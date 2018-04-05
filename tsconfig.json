@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "outDir": "./lib",
+    "module": "esnext",
+    "lib": ["es7", "dom"],
+    "downlevelIteration": true,
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "target": "es5",
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    "removeComments": false,
+    "declaration": true,
+    "sourceMap": true,
+    "skipDefaultLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "paths": {
+      "*": ["*", "src/*"]
+    }
+  },
+  "include": ["./src/**/*.tsx", "./src/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "lib"
+  ]
+}
