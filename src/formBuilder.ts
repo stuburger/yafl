@@ -1,6 +1,6 @@
 import * as React from 'react'
-import getInitialState from 'getInitialState'
-import { FormProviderState, BoolFunc, ReactContextForm } from 'types/index'
+import getInitialState from './getInitialState'
+import { FormProviderState, BoolFunc, ReactContextForm } from './types/index'
 import wrapProvider from './wrapProvider'
 import wrapConsumer from './wrapConsumer'
 

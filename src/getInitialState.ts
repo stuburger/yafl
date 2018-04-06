@@ -1,5 +1,5 @@
 import { transform, cloneDeep } from 'lodash'
-import { FieldState, FormFieldState } from 'types/index'
+import { FieldState, FormFieldState } from './types/index'
 export default function getInitialState<T>(value: T): FormFieldState<T> {
   return transform<any, FieldState>(
     value,

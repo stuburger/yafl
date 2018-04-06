@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from 'types/index'
+import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from './types/index'
 
 const defaultFieldState: FieldState = {
   value: '',
@@ -16,13 +16,18 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   return class FormField extends React.Component<FormFieldProps<T>> {
     _render = (state: ProviderValue<T>) => {
       const { name, render, validators = [] } = this.props
-      const value = state.loaded ? state.value[name] : defaultFieldState
+      const { loaded } = state
+      if (loaded && state.value[name] === undefined) {
+        return <AbsentField name={name} />
+      }
+      const value = loaded ? state.value[name] : defaultFieldState
       return (
         <InnerField
           {...value}
           name={name}
           submit={state.submit}
           validators={validators}
+          onFieldBlur={state.onFieldBlur}
           setFieldValue={state.setFieldValue}
           validationResult={state.validateField(name, value)}
           registerValidator={state.registerValidator}
@@ -45,6 +50,19 @@ function getInnerField<T>() {
       registerValidator(name, validators)
     }
 
+    // TODO
+    // shouldComponentUpdate(np: InnerFieldProps<T>) {
+    //   return this.props.value !== np.value
+    // }
+
+    onBlur = e => {
+      const { onFieldBlur, name, onBlur } = this.props
+      onFieldBlur(name)
+      if (onBlur) {
+        onBlur(e)
+      }
+    }
+
     onChange = e => {
       const { setFieldValue, name } = this.props
       setFieldValue(name, e.target.value)
@@ -58,11 +76,14 @@ function getInnerField<T>() {
     }
 
     render() {
-      const { render, value, isDirty, submit, validationResult } = this.props
+      const { render, value, isDirty, submit, didBlur, isTouched, validationResult } = this.props
       return render({
         value,
         isDirty,
         submit,
+        didBlur,
+        isTouched,
+        onBlur: this.onBlur,
         onChange: this.onChange,
         validation: validationResult
       })
@@ -71,3 +92,5 @@ function getInnerField<T>() {
 }
 
 export default wrapConsumer
+
+const AbsentField = ({ name }) => <span>Fielp with name '{name}' does not exist.</span>

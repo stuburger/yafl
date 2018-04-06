@@ -31,7 +31,7 @@ export interface FieldState {
   originalValue: any
 }
 
-export type FormFieldState<T> = { [k in keyof T]: FieldState } | null
+export type FormFieldState<T> = { [k in keyof T]?: FieldState } | null
 
 export interface FormProviderState<T> {
   value: FormFieldState<T>
@@ -68,6 +68,9 @@ export interface FormContextReceiverProps {
   onChange: (value: any) => void
   submit: () => void
   value: any
+  didBlur: boolean
+  isTouched: boolean
+  onBlur: (e) => void
   validation: FieldValidationResult
 }
 
@@ -81,6 +84,7 @@ export interface ProviderValue<T> {
   loaded: boolean
   submit: () => void
   registerValidator: RegisterValidator<T>
+  onFieldBlur: (fieldName: keyof T) => void
   validateField: (fieldName: keyof T, value: any) => FieldValidationResult
   setFieldValue: (fieldName: keyof T, value: any) => void
 }
@@ -91,8 +95,10 @@ export interface InnerFieldProps<T> extends FieldState {
   name: keyof T
   validationResult: FieldValidationResult
   setFieldValue: (fieldName: keyof T, value: any) => void
+  onFieldBlur: (fieldName: keyof T) => void
   validators?: Validator[]
   registerValidator: RegisterValidator<T>
+  onBlur?: (e) => void
 }
 
 export interface RegisterValidator<T> {

@@ -1,32 +1,22 @@
 {
   "compilerOptions": {
     "outDir": "./lib",
-    "module": "esnext",
-    "lib": ["es7", "dom"],
-    "downlevelIteration": true,
-    "baseUrl": ".",
-    "moduleResolution": "node",
     "target": "es5",
-    "jsx": "react",
-    "allowSyntheticDefaultImports": true,
+    "lib": ["es7", "dom"],
+    "module": "commonjs",
+    "noImplicitAny": false,
     "removeComments": false,
     "declaration": true,
     "sourceMap": true,
+    "jsx": "react",
     "skipDefaultLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": false,
     "noImplicitThis": false,
-    "noImplicitAny": false,
     "strictNullChecks": false,
     "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true,
-    "paths": {
-      "*": ["*", "src/*"]
-    }
+    "noUnusedLocals": true
   },
   "include": ["./src/**/*.tsx", "./src/**/*.ts"],
-  "exclude": [
-    "node_modules",
-    "lib"
-  ]
+  "exclude": ["node_modules"]
 }

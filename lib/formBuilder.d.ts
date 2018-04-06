@@ -1,4 +1,4 @@
-import { BoolFunc, ReactContextForm } from 'types/index'
+import { BoolFunc, ReactContextForm } from './types/index'
 export default class FormBuilder<T> {
   private _initialValue
   private _initialValueAsync

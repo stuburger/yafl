@@ -8,7 +8,7 @@ import {
   ProviderValue,
   FieldValidationResult,
   Validator
-} from 'types/index'
+} from './types/index'
 import getInitialState from './getInitialState'
 
 export type ValidatorSet<T> = { [P in keyof T]?: Validator[] }
@@ -26,7 +26,10 @@ function wrapFormProvider<T>(
   > {
     validators: ValidatorSet<T> = {}
     // state = { value: getInitialValue(this.props) } // here be errors
-    state = { value: null, loaded: false } // here be errors
+    constructor(props) {
+      super(props)
+      this.state = { value: null, loaded: false } // here be errors
+    }
     componentDidMount() {
       let load = this.props.loadAsync || opts.loadAsync
       if (load) {
@@ -35,7 +38,8 @@ function wrapFormProvider<T>(
     }
 
     init = (value: T) => {
-      this.setState({ value: getInitialState(value), loaded: true })
+      const initialValue = getInitialState(value)
+      this.setState({ value: initialValue, loaded: true })
     }
 
     submit = () => {}
@@ -44,10 +48,18 @@ function wrapFormProvider<T>(
       if (!this.state.loaded) {
         return
       }
-      const state = cloneDeep(this.state)
+      const state: FormProviderState<FormFieldState<T>> = cloneDeep(this.state)
       state.value[fieldName].value = value
+      state.value[fieldName].isTouched = true
       state.value[fieldName].isDirty =
         JSON.stringify(value) !== JSON.stringify(state.value[fieldName].originalValue)
+      this.setState(state)
+    }
+
+    onFieldBlur = (fieldName: keyof T) => {
+      if (this.state.value[fieldName].didBlur) return
+      const state: FormProviderState<FormFieldState<T>> = cloneDeep(this.state)
+      state.value[fieldName].didBlur = true
       this.setState(state)
     }
 
@@ -71,7 +83,8 @@ function wrapFormProvider<T>(
         value: this.state.value,
         setFieldValue: this.setFieldValue,
         registerValidator: this.registerValidator,
-        validateField: this.validateField
+        validateField: this.validateField,
+        onFieldBlur: this.onFieldBlur
       }
     }
 
