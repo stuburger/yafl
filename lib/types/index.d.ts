@@ -24,7 +24,6 @@ export interface BoolFunc {
 export interface FieldState {
   value: any
   didBlur: boolean
-  isDirty: boolean
   isValid: boolean
   isTouched: boolean
   originalValue: any
@@ -40,18 +39,20 @@ export interface FormProviderProps<T> {
   children: React.ReactNode
 }
 export interface Validator {
-  (value: any, fieldName: any, formValue: any): string
+  (value: any, fieldName: any, formValue: any): string | undefined
 }
 export interface FormFieldProps<T> {
   name: keyof T
   validators?: Validator[]
-  render: (state: FormContextReceiverProps) => React.ReactNode
+  render?: (state: FormContextReceiverProps) => React.ReactNode
+  component?: React.ComponentType<FormContextReceiverProps> | React.ComponentType<any>
+  [key: string]: any
 }
 export interface FormProviderOptions<T> {
   initialValue: T
   loadAsync: () => Promise<T>
 }
-export interface FieldValidationResult {
+export interface ValidationResult {
   isValid: boolean
   messages: string[]
 }
@@ -62,7 +63,7 @@ export interface FormContextReceiverProps {
   didBlur: boolean
   isTouched: boolean
   onBlur: (e) => void
-  validation: FieldValidationResult
+  validation: ValidationResult
 }
 export interface ReactContextForm<T> {
   Form: React.ComponentClass<FormProviderProps<T>>
@@ -72,21 +73,26 @@ export interface ProviderValue<T> {
   value: FormFieldState<T>
   loaded: boolean
   submit: () => void
+  validation: ValidationResult
   registerValidator: RegisterValidator<T>
   onFieldBlur: (fieldName: keyof T) => void
-  validateField: (fieldName: keyof T, value: any) => FieldValidationResult
+  validateField: (fieldName: keyof T, value: FieldState) => ValidationResult
   setFieldValue: (fieldName: keyof T, value: any) => void
 }
 export interface InnerFieldProps<T> extends FieldState {
   submit: () => void
+  state: FieldState
   render: (value) => React.ReactNode
   name: keyof T
-  validationResult: FieldValidationResult
+  component: React.ComponentType<FormContextReceiverProps> | React.ComponentType<any>
+  validateField: (fieldName: keyof T, value: FieldState) => ValidationResult
+  validationResult: ValidationResult
   setFieldValue: (fieldName: keyof T, value: any) => void
   onFieldBlur: (fieldName: keyof T) => void
   validators?: Validator[]
   registerValidator: RegisterValidator<T>
   onBlur?: (e) => void
+  isDirty: boolean
 }
 export interface RegisterValidator<T> {
   (fieldName: keyof T, validators: Validator[]): any

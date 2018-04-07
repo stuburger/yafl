@@ -1,37 +1,46 @@
 import * as React from 'react'
 import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from './types/index'
+import AbsentField from './AbsentField'
 
 const defaultFieldState: FieldState = {
   value: '',
   originalValue: '',
   isValid: false,
-  isDirty: false,
   didBlur: false,
   isTouched: false
 }
 
+function isEqual(val1, val2): boolean {
+  return val1 === val2 || JSON.stringify(val1) === JSON.stringify(val2)
+}
+
 function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const InnerField = getInnerField<T>()
-
+  const emptyValidators = []
   return class FormField extends React.Component<FormFieldProps<T>> {
-    _render = (state: ProviderValue<T>) => {
-      const { name, render, validators = [] } = this.props
-      const { loaded } = state
-      if (loaded && state.value[name] === undefined) {
+    _render = (providerValue: ProviderValue<T>) => {
+      const { name, render, component, validators = emptyValidators, ...props } = this.props
+      const { loaded } = providerValue
+      if (loaded && providerValue.value[name] === undefined) {
         return <AbsentField name={name} />
       }
-      const value = loaded ? state.value[name] : defaultFieldState
+      const state = loaded ? providerValue.value[name] : defaultFieldState
       return (
         <InnerField
-          {...value}
+          {...state}
+          {...props}
           name={name}
-          submit={state.submit}
-          validators={validators}
-          onFieldBlur={state.onFieldBlur}
-          setFieldValue={state.setFieldValue}
-          validationResult={state.validateField(name, value)}
-          registerValidator={state.registerValidator}
+          state={state}
           render={render}
+          component={component}
+          submit={providerValue.submit}
+          validators={validators}
+          onFieldBlur={providerValue.onFieldBlur}
+          validateField={providerValue.validateField}
+          setFieldValue={providerValue.setFieldValue}
+          isDirty={isEqual(state.originalValue, state.value)}
+          registerValidator={providerValue.registerValidator}
+          validationResult={providerValue.validateField(name, state)}
         />
       )
     }
@@ -50,10 +59,7 @@ function getInnerField<T>() {
       registerValidator(name, validators)
     }
 
-    // TODO
-    // shouldComponentUpdate(np: InnerFieldProps<T>) {
-    //   return this.props.value !== np.value
-    // }
+    // TODO shouldComponentUpdate(np: InnerFieldProps<T>){}
 
     onBlur = e => {
       const { onFieldBlur, name, onBlur } = this.props
@@ -68,29 +74,45 @@ function getInnerField<T>() {
       setFieldValue(name, e.target.value)
     }
 
-    componentDidUpdate(pp) {
-      const { validators = [], registerValidator, name } = this.props
+    componentDidUpdate(pp: InnerFieldProps<T>) {
+      const { validators, registerValidator, name } = this.props
       if (validators !== pp.validators) {
         registerValidator(name, validators)
       }
     }
 
-    render() {
-      const { render, value, isDirty, submit, didBlur, isTouched, validationResult } = this.props
-      return render({
-        value,
-        isDirty,
-        submit,
+    collectProps = () => {
+      const { value, submit, didBlur, isDirty, isTouched, validationResult, ...props } = this.props
+      return {
+        ...props,
         didBlur,
+        isDirty,
         isTouched,
         onBlur: this.onBlur,
         onChange: this.onChange,
         validation: validationResult
-      })
+      }
+    }
+
+    render() {
+      const { render, component: Component, name } = this.props
+
+      const props = this.collectProps()
+      if (render) {
+        return render(props)
+      }
+
+      if (Component) {
+        return <Component {...props} />
+      }
+
+      return (
+        <AbsentField
+          message={`Please provide render or component prop for form field: '${name}'`}
+        />
+      )
     }
   }
 }
 
 export default wrapConsumer
-
-const AbsentField = ({ name }) => <span>Fielp with name '{name}' does not exist.</span>

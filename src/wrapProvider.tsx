@@ -6,30 +6,44 @@ import {
   FormFieldState,
   FormProviderProps,
   ProviderValue,
-  FieldValidationResult,
+  ValidationResult,
   Validator
 } from './types/index'
 import getInitialState from './getInitialState'
 
 export type ValidatorSet<T> = { [P in keyof T]?: Validator[] }
 
+const defaultInitialState = {
+  value: null,
+  loaded: false
+}
+
+const initialValidationResult = {
+  messages: [],
+  isValid: true
+}
+
 function wrapFormProvider<T>(
   Provider: React.Provider<FormProviderState<T>>,
   opts: FormProviderOptions<T>
-): any {
-  // const getInitialValue = (props): FormFieldState<T> =>
-  //   props.initialValue || opts.initialValue || ({} as FormFieldState<T>)
-
+): React.ComponentClass<FormProviderProps<T>> {
   return class Form extends React.Component<
     FormProviderProps<T>,
     FormProviderState<FormFieldState<T>>
   > {
     validators: ValidatorSet<T> = {}
-    // state = { value: getInitialValue(this.props) } // here be errors
-    constructor(props) {
+
+    constructor(props: FormProviderProps<T>) {
       super(props)
-      this.state = { value: null, loaded: false } // here be errors
+      const initialValue = props.initialValue || opts.initialValue
+
+      if (initialValue) {
+        this.init(initialValue)
+      } else {
+        this.state = defaultInitialState
+      }
     }
+
     componentDidMount() {
       let load = this.props.loadAsync || opts.loadAsync
       if (load) {
@@ -51,8 +65,6 @@ function wrapFormProvider<T>(
       const state: FormProviderState<FormFieldState<T>> = cloneDeep(this.state)
       state.value[fieldName].value = value
       state.value[fieldName].isTouched = true
-      state.value[fieldName].isDirty =
-        JSON.stringify(value) !== JSON.stringify(state.value[fieldName].originalValue)
       this.setState(state)
     }
 
@@ -65,9 +77,27 @@ function wrapFormProvider<T>(
 
     registerValidator = (fieldName: keyof T, validators: Validator[]) => {
       this.validators[fieldName] = validators
+      this.forceUpdate()
     }
 
-    validateField = (fieldName: keyof T, value: any): FieldValidationResult => {
+    validateForm = (): ValidationResult => {
+      if (!this.state.loaded) {
+        return initialValidationResult
+      }
+      let messages: string[] = []
+      for (let v in this.validators) {
+        messages = messages.concat(this.validateField(v, this.state.value[v]).messages)
+      }
+      return {
+        messages,
+        isValid: messages.length === 0
+      }
+    }
+
+    validateField = (fieldName: keyof T, value: any): ValidationResult => {
+      if (!this.state.loaded) {
+        return initialValidationResult
+      }
       const validators = this.validators[fieldName] || []
       const messages = validators.map(f => f(value, fieldName, this.state.value)).filter(x => !!x)
       return {
@@ -78,10 +108,11 @@ function wrapFormProvider<T>(
 
     getProviderValue = (): ProviderValue<T> => {
       return {
-        loaded: this.state.loaded, // shouldnt have to pass this down
+        loaded: this.state.loaded,
         submit: this.submit,
         value: this.state.value,
         setFieldValue: this.setFieldValue,
+        validation: this.validateForm(),
         registerValidator: this.registerValidator,
         validateField: this.validateField,
         onFieldBlur: this.onFieldBlur
