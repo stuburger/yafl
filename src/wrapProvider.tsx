@@ -108,10 +108,10 @@ function wrapFormProvider<T>(
     return true
   }
 
-  function validateField<T>(
+  function validateField(
     value: FieldState,
     fieldName: FieldName<T>,
-    form: T,
+    form: FormFieldState<T>,
     validators: Validator[]
   ): ValidationResult {
     const messages: ValidationResult = []
