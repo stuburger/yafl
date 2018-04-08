@@ -7,7 +7,6 @@ export default function getInitialState<T>(val: T): FormFieldState<T> {
       ret[fieldName] = {
         value: fieldValue,
         originalValue: cloneDeep(fieldValue),
-        isValid: false,
         didBlur: false,
         isTouched: false
       }

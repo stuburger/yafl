@@ -5,7 +5,6 @@ import AbsentField from './AbsentField'
 const defaultFieldState: FieldState = {
   value: '',
   originalValue: '',
-  isValid: false,
   didBlur: false,
   isTouched: false
 }

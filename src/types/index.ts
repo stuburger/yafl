@@ -25,7 +25,6 @@ export interface BoolFunc {
 export interface FieldState {
   value: any
   didBlur: boolean
-  isValid: boolean
   isTouched: boolean
   originalValue: any
 }
