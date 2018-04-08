@@ -108,6 +108,22 @@ function wrapFormProvider<T>(
     return true
   }
 
+  function validateField<T>(
+    value: FieldState,
+    fieldName: FieldName<T>,
+    form: T,
+    validators: Validator[]
+  ): ValidationResult {
+    const messages: ValidationResult = []
+    for (let validate of validators) {
+      const message = validate(value, fieldName, form)
+      if (message) {
+        messages.push(message)
+      }
+    }
+    return messages
+  }
+
   return class Form extends React.Component<
     FormProviderProps<T>,
     FormProviderState<FormFieldState<T>>
@@ -118,7 +134,8 @@ function wrapFormProvider<T>(
       super(props)
       const initialValue = props.initialValue || opts.initialValue
       if (initialValue) {
-        this.init(initialValue)
+        this.assignFuncs()
+        this.state = { value: getInitialState(initialValue), loaded: true, submitCount: 0 }
       } else {
         this.state = defaultInitialState
       }
@@ -221,11 +238,10 @@ function wrapFormProvider<T>(
       const form = this.state.value
       const value = form[fieldName]
       const validators = this.validators[fieldName]
-
-      if (!value) {
-        return initialValidation
+      if (value) {
+        return validateField(value, fieldName, form, validators)
       } else {
-        return validators.map(f => f(value, fieldName, form)).filter(x => !!x)
+        return initialValidation
       }
     }
 
