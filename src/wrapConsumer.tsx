@@ -37,11 +37,10 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
           clearForm={providerValue.clearForm}
           submitCount={providerValue.submitCount}
           onFieldBlur={providerValue.onFieldBlur}
-          validateField={providerValue.validateField}
+          validation={providerValue.validation[name]}
           setFieldValue={providerValue.setFieldValue}
           isDirty={isEqual(state.originalValue, state.value)}
           registerValidator={providerValue.registerValidator}
-          validationResult={providerValue.validateField(name, state)}
         />
       )
     }
@@ -53,11 +52,18 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
 }
 
 function getInnerField<T>() {
+  const emptyArray = []
   class InnerField extends React.Component<InnerFieldProps<T>> {
-    state = { isMounted: false }
     componentDidMount() {
-      const { registerValidator, name, validators = [] } = this.props
+      const { registerValidator, name, validators = emptyArray } = this.props
       registerValidator(name, validators)
+    }
+
+    componentDidUpdate(pp: InnerFieldProps<T>) {
+      const { validators, registerValidator, name } = this.props
+      if (validators !== pp.validators) {
+        registerValidator(name, validators)
+      }
     }
 
     onBlur = e => {
@@ -73,20 +79,16 @@ function getInnerField<T>() {
       setFieldValue(name, e.target.value)
     }
 
-    componentDidUpdate(pp: InnerFieldProps<T>) {
-      const { validators, registerValidator, name } = this.props
-      if (validators !== pp.validators) {
-        registerValidator(name, validators)
-      }
-    }
-
     collectProps = () => {
-      const { validationResult, ...props } = this.props
+      const { validation = emptyArray, ...props } = this.props
       return {
         ...props,
+        validation: {
+          isValid: validation.length === 0,
+          messages: validation
+        },
         onBlur: this.onBlur,
-        onChange: this.onChange,
-        validation: validationResult
+        onChange: this.onChange
       }
     }
 
@@ -103,9 +105,7 @@ function getInnerField<T>() {
       }
 
       return (
-        <AbsentField
-          message={`Please provide render or component prop for form field: '${name}'`}
-        />
+        <AbsentField message={`Please provide render or component prop for field: '${name}'`} />
       )
     }
   }

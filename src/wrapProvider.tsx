@@ -6,13 +6,15 @@ import {
   FormFieldState,
   FormProviderProps,
   ProviderValue,
-  ValidationResult,
   Validator,
-  FieldState
+  FieldState,
+  FormValidationResult,
+  FieldName,
+  ValidationResult
 } from './types/index'
 import getInitialState from './getInitialState'
 
-export type ValidatorSet<T> = { [P in keyof T]?: Validator[] }
+export type ValidatorSet<T> = { [P in FieldName<T>]?: Validator[] }
 
 const defaultInitialState = {
   value: null,
@@ -20,10 +22,7 @@ const defaultInitialState = {
   submitCount: 0
 }
 
-const initialValidationResult = {
-  messages: [],
-  isValid: true
-}
+const initialValidation: ValidationResult = []
 
 interface FieldUpdater {
   (fields: FieldState): FieldState
@@ -39,6 +38,14 @@ function createFormUpdater(update: FieldUpdater) {
   }
 }
 
+function getFormValue<T>(fields: FormFieldState<T>): T {
+  const result: T = {} as T
+  for (let fieldName in fields) {
+    result[fieldName] = fields[fieldName].value
+  }
+  return result
+}
+
 const touchField: FieldUpdater = (field: FieldState) => {
   return {
     isTouched: true,
@@ -48,14 +55,14 @@ const touchField: FieldUpdater = (field: FieldState) => {
   }
 }
 
-// function untouchField(field: FieldState): FieldState {
-//   return {
-//     isTouched: false,
-//     didBlur: false,
-//     value: field.value,
-//     originalValue: field.originalValue
-//   }
-// }
+function untouchField(field: FieldState): FieldState {
+  return {
+    isTouched: false,
+    didBlur: false,
+    value: field.value,
+    originalValue: field.originalValue
+  }
+}
 
 function resetField(field: FieldState): FieldState {
   return {
@@ -67,23 +74,38 @@ function resetField(field: FieldState): FieldState {
 }
 
 const touchAllFields = createFormUpdater(touchField)
-// const untouchAllFields = createFormUpdater(untouchField)
+const untouchAllFields = createFormUpdater(untouchField)
 const resetFields = createFormUpdater(resetField)
+
+function getNoops<T>() {
+  return {
+    noopSubmit: (formValue: T) => {},
+    noopOnFieldBlur: (fieldName: FieldName<T>) => {},
+    noopSetFieldValue: (fieldName: FieldName<T>, value) => {},
+    noopValidateForm: (): FormValidationResult<T> => ({}),
+    noopValidateField: (fieldName: FieldName<T>): ValidationResult => initialValidation
+  }
+}
 
 function wrapFormProvider<T>(
   Provider: React.Provider<FormProviderState<T>>,
   opts: FormProviderOptions<T>
 ): React.ComponentClass<FormProviderProps<T>> {
-  const noopSubmit = () => {}
-  const noopOnFieldBlur = (fieldName: keyof T) => {}
-  const noopSetFieldValue = (fieldName: keyof T, value) => {
-    console.log('form is still loading')
-  }
-  const noopValidateForm = (): ValidationResult => {
-    return initialValidationResult
-  }
-  const noopValidateField = (fieldName: keyof T, value: FieldState): ValidationResult => {
-    return initialValidationResult
+  const {
+    noopSubmit,
+    noopOnFieldBlur,
+    noopSetFieldValue,
+    noopValidateForm,
+    noopValidateField
+  } = getNoops<T>()
+
+  const formIsValid = (validation: FormValidationResult<T>) => {
+    for (let k in validation) {
+      if (validation[k].length > 0) {
+        return false
+      }
+    }
+    return true
   }
 
   return class Form extends React.Component<
@@ -147,23 +169,30 @@ function wrapFormProvider<T>(
         value: touchAllFields(value),
         submitCount: submitCount + 1
       }))
+
+      if (formIsValid(this._validateForm())) {
+        const { submit = opts.submit || noopSubmit } = this.props
+        submit(getFormValue(this.state.value))
+      } else {
+        console.warn('cannot submit, form is not valid...')
+      }
     }
 
-    _setFieldValue = (fieldName: keyof T, value: any) => {
+    _setFieldValue = (fieldName: FieldName<T>, value: any) => {
       const state = cloneDeep<FormProviderState<FormFieldState<T>>>(this.state)
       state.value[fieldName].value = value
       state.value[fieldName].isTouched = true
       this.setState(state)
     }
 
-    _onFieldBlur = (fieldName: keyof T) => {
+    _onFieldBlur = (fieldName: FieldName<T>) => {
       if (this.state.value[fieldName].didBlur) return
       const state = cloneDeep<FormProviderState<FormFieldState<T>>>(this.state)
       state.value[fieldName].didBlur = true
       this.setState(state)
     }
 
-    registerValidator = (fieldName: keyof T, validators: Validator[]) => {
+    registerValidator = (fieldName: FieldName<T>, validators: Validator[]) => {
       this.validators[fieldName] = validators
       this.forceUpdate()
     }
@@ -172,29 +201,31 @@ function wrapFormProvider<T>(
       this.setState({ value: resetFields<T>(this.state.value) })
     }
 
-    _validateForm = (): ValidationResult => {
-      let messages: string[] = []
-      for (let v in this.validators) {
-        messages = messages.concat(this._validateField(v).messages)
-      }
-      return {
-        messages,
-        isValid: messages.length === 0
-      }
+    unload = () => {
+      this.setState({ value: resetFields<T>(this.state.value), loaded: false })
     }
 
-    _validateField = (fieldName: keyof T): ValidationResult => {
+    forgetState = () => {
+      this.setState(({ value }) => ({ value: untouchAllFields(value), submitCount: 0 }))
+    }
+
+    _validateForm = (): FormValidationResult<T> => {
+      let result: FormValidationResult<T> = {}
+      for (let v in this.validators) {
+        result[v] = this._validateField(v)
+      }
+      return result
+    }
+
+    _validateField = (fieldName: FieldName<T>): ValidationResult => {
+      const form = this.state.value
+      const value = form[fieldName]
       const validators = this.validators[fieldName]
-      const value = this.state.value[fieldName]
 
       if (!value) {
-        return initialValidationResult
-      }
-
-      const messages = validators.map(f => f(value, fieldName, this.state.value)).filter(x => !!x)
-      return {
-        messages,
-        isValid: messages.length === 0
+        return initialValidation
+      } else {
+        return validators.map(f => f(value, fieldName, form)).filter(x => !!x)
       }
     }
 
@@ -203,11 +234,10 @@ function wrapFormProvider<T>(
         ...this.state,
         submit: this.submit,
         clearForm: this.clearForm,
-        setFieldValue: this.setFieldValue,
+        onFieldBlur: this.onFieldBlur,
         validation: this.validateForm(),
-        registerValidator: this.registerValidator,
-        validateField: this.validateField,
-        onFieldBlur: this.onFieldBlur
+        setFieldValue: this.setFieldValue,
+        registerValidator: this.registerValidator
       }
     }
 
