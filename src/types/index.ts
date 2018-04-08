@@ -34,6 +34,7 @@ export type FormFieldState<T> = { [k in keyof T]?: FieldState } | null
 export interface FormProviderState<T> {
   value: FormFieldState<T>
   loaded: boolean
+  submitCount: number
 }
 
 export interface FormProviderProps<T> {
@@ -71,6 +72,8 @@ export interface FormContextReceiverProps {
   didBlur: boolean
   isTouched: boolean
   onBlur: (e) => void
+  clearForm: () => void
+  submitCount: number
   validation: ValidationResult
 }
 
@@ -83,27 +86,31 @@ export interface ProviderValue<T> {
   value: FormFieldState<T>
   loaded: boolean
   submit: () => void
+  submitCount: number
+  clearForm: () => void
   validation: ValidationResult
   registerValidator: RegisterValidator<T>
   onFieldBlur: (fieldName: keyof T) => void
-  validateField: (fieldName: keyof T, value: FieldState) => ValidationResult
   setFieldValue: (fieldName: keyof T, value: any) => void
+  validateField: (fieldName: keyof T, value: FieldState) => ValidationResult
 }
 
 export interface InnerFieldProps<T> extends FieldState {
-  submit: () => void
-  state: FieldState
-  render: (value) => React.ReactNode
   name: keyof T
-  component: React.ComponentType<FormContextReceiverProps> | React.ComponentType<any>
-  validateField: (fieldName: keyof T, value: FieldState) => ValidationResult
-  validationResult: ValidationResult
-  setFieldValue: (fieldName: keyof T, value: any) => void
-  onFieldBlur: (fieldName: keyof T) => void
-  validators?: Validator[]
-  registerValidator: RegisterValidator<T>
-  onBlur?: (e) => void
   isDirty: boolean
+  state: FieldState
+  submitCount: number
+  submit: () => void
+  onBlur?: (e) => void
+  clearForm: () => void
+  validators?: Validator[]
+  render: (value) => React.ReactNode
+  validationResult: ValidationResult
+  registerValidator: RegisterValidator<T>
+  onFieldBlur: (fieldName: keyof T) => void
+  setFieldValue: (fieldName: keyof T, value: any) => void
+  validateField: (fieldName: keyof T, value: FieldState) => ValidationResult
+  component: React.ComponentType<FormContextReceiverProps> | React.ComponentType<any>
 }
 
 export interface RegisterValidator<T> {

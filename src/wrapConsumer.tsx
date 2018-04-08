@@ -16,14 +16,14 @@ function isEqual(val1, val2): boolean {
 function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const InnerField = getInnerField<T>()
   const emptyValidators = []
+
   return class FormField extends React.Component<FormFieldProps<T>> {
-    _render = (providerValue: ProviderValue<T>) => {
-      const { name, render, component, validators = emptyValidators, ...props } = this.props
-      const { loaded } = providerValue
-      if (loaded && providerValue.value[name] === undefined) {
+    _render = ({ value, loaded, ...providerValue }: ProviderValue<T>) => {
+      const { render, component, name, validators = emptyValidators, ...props } = this.props
+      if (loaded && value[name] === undefined) {
         return <AbsentField name={name} />
       }
-      const state = loaded ? providerValue.value[name] : defaultFieldState
+      const state = loaded ? value[name] : defaultFieldState
       return (
         <InnerField
           {...state}
@@ -32,8 +32,10 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
           state={state}
           render={render}
           component={component}
-          submit={providerValue.submit}
           validators={validators}
+          submit={providerValue.submit}
+          clearForm={providerValue.clearForm}
+          submitCount={providerValue.submitCount}
           onFieldBlur={providerValue.onFieldBlur}
           validateField={providerValue.validateField}
           setFieldValue={providerValue.setFieldValue}
@@ -51,14 +53,12 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
 }
 
 function getInnerField<T>() {
-  return class InnerField extends React.Component<InnerFieldProps<T>> {
+  class InnerField extends React.Component<InnerFieldProps<T>> {
     state = { isMounted: false }
     componentDidMount() {
       const { registerValidator, name, validators = [] } = this.props
       registerValidator(name, validators)
     }
-
-    // TODO shouldComponentUpdate(np: InnerFieldProps<T>){}
 
     onBlur = e => {
       const { onFieldBlur, name, onBlur } = this.props
@@ -81,12 +81,9 @@ function getInnerField<T>() {
     }
 
     collectProps = () => {
-      const { value, submit, didBlur, isDirty, isTouched, validationResult, ...props } = this.props
+      const { validationResult, ...props } = this.props
       return {
         ...props,
-        didBlur,
-        isDirty,
-        isTouched,
         onBlur: this.onBlur,
         onChange: this.onChange,
         validation: validationResult
@@ -112,6 +109,8 @@ function getInnerField<T>() {
       )
     }
   }
+
+  return InnerField
 }
 
 export default wrapConsumer

@@ -7,7 +7,8 @@ import wrapConsumer from './wrapConsumer'
 function createForm<T>(initialValue?: T) {
   return React.createContext<FormProviderState<T>>({
     value: getInitialState(initialValue),
-    loaded: false
+    loaded: false,
+    submitCount: 0
   })
 }
 

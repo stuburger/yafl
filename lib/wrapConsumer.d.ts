@@ -5,7 +5,7 @@ declare function wrapConsumer<T>(
   Consumer: React.Consumer<ProviderValue<T>>
 ): {
   new (props: FormFieldProps<T>, context?: any): {
-    _render: (providerValue: ProviderValue<T>) => JSX.Element
+    _render: ({ value, loaded, ...providerValue }: ProviderValue<T>) => JSX.Element
     render(): JSX.Element
     setState<K extends never>(
       state:

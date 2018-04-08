@@ -7,9 +7,9 @@ export interface AbsentFieldProps {
 
 const AbsentField: React.SFC<AbsentFieldProps> = ({ name, message }) => {
   if (message) {
-    return <span>message</span>
+    return <span style={{ color: 'red' }}>message</span>
   } else {
-    return <span>Fielp with name '{name}' does not exist.</span>
+    return <span style={{ color: 'red' }}>Field with name '{name}' does not exist.</span>
   }
 }
 
