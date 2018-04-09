@@ -130,6 +130,11 @@ function wrapFormProvider<T>(
   > {
     validators: ValidatorSet<T> = {}
 
+    static getDerivedStateFromProps(np, ps) {
+      console.log(np, ps)
+      if (np.loading(np)) return null
+    }
+
     constructor(props: FormProviderProps<T>) {
       super(props)
       const initialValue = props.initialValue || opts.initialValue

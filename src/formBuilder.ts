@@ -1,8 +1,9 @@
 import * as React from 'react'
 import getInitialState from './getInitialState'
 import { FormProviderState, BoolFunc, ReactContextForm } from './types/index'
-import wrapProvider from './wrapProvider'
-import wrapConsumer from './wrapConsumer'
+import wrapProvider from './createFormProvider'
+import createField from './createField'
+import createFormComponent from './createFormComponent'
 
 function createForm<T>(initialValue?: T) {
   return React.createContext<FormProviderState<T>>({
@@ -40,11 +41,12 @@ export default class FormBuilder<T> {
   create(): ReactContextForm<T> {
     const { Consumer, Provider } = createForm<T>(this._initialValue)
     return {
-      Form: wrapProvider(Provider, {
+      Form: wrapProvider<T>(Provider, {
         initialValue: this._initialValue,
         loadAsync: this._initialValueAsync
       }),
-      Field: wrapConsumer(Consumer)
+      Field: createField<T>(Consumer),
+      FormComponent: createFormComponent<T>(Consumer)
     }
   }
 }
