@@ -80,7 +80,7 @@ function getInnerField<T>() {
     }
 
     collectProps = () => {
-      const { validation = emptyArray, ...props } = this.props
+      const { validation = emptyArray, render, component, registerValidator, ...props } = this.props
       return {
         ...props,
         validation: {

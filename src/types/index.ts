@@ -31,6 +31,10 @@ export interface FieldState {
   originalValue: any
 }
 
+export interface MapPropsToFields<T> {
+  (props): T
+}
+
 export type FormFieldState<T> = { [k in keyof T]?: FieldState } | null
 
 export interface FormProviderState<T> {
@@ -42,7 +46,7 @@ export interface FormProviderState<T> {
 }
 
 export interface FormProviderProps<T> {
-  loadAsync?: () => Promise<T>
+  getInitialValueAsync?: () => Promise<T>
   initialValue?: T
   submit?: (formValue: T) => any
   children: React.ReactNode
@@ -65,12 +69,17 @@ export interface FormFieldProps<T> extends FormComponentWrapper<T> {
   validators?: Validator[]
 }
 
+export interface PropsToBool {
+  (props): boolean
+}
+
 export interface FormProviderOptions<T> {
   initialValue: T
-  loadAsync: () => Promise<T>
+  getInitialValueAsync: () => Promise<T>
   submit?: (formValue: T) => any
-  loading?: (props: any) => boolean
-  submitting?: (props: any) => boolean
+  loading?: PropsToBool
+  submitting?: PropsToBool
+  getInitialValueFromProps: MapPropsToFields<T>
 }
 
 export type ValidationResult = string[]
@@ -87,6 +96,7 @@ export interface FormContextReceiverProps<T> {
   submit: () => void
   value: any
   didBlur: boolean
+  isDirty: boolean
   isTouched: boolean
   onBlur: (e) => void
   clearForm: () => void

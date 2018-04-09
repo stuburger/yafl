@@ -43,7 +43,7 @@ function getNullState<T>() {
   const state: FCS<T> = {
     value: null,
     loaded: false,
-    isBusy: false,
+    isBusy: true,
     submitting: false,
     submitCount: 0
   }
@@ -91,16 +91,22 @@ const resetFields = createFormUpdater(resetField)
 
 function getNoops<T>() {
   return {
-    noopSubmit: (formValue: T) => {},
-    noopOnFieldBlur: (fieldName: FieldName<T>) => {},
-    noopSetFieldValue: (fieldName: FieldName<T>, value) => {},
+    noopSubmit: (formValue: T) => {
+      console.error('submit: form not loaded')
+    },
+    noopOnFieldBlur: (fieldName: FieldName<T>) => {
+      console.error('blur: form not loaded')
+    },
+    noopSetFieldValue: (fieldName: FieldName<T>, value) => {
+      console.error('setFieldValue: form not loaded')
+    },
     noopValidateForm: (): FVR<T> => ({}),
     noopValidateField: (fieldName: FieldName<T>): ValidationResult => initialValidation
   }
 }
 
 function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
-  return () => (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
+  return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
     const loading = np.loading || opts.loading
     const submitting = np.submitting || opts.submitting
 
@@ -123,10 +129,15 @@ function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
     }
 
     if (!ps.loaded && state.loaded) {
-      const initialValue = np.initialValue || opts.initialValue
-      state.value = getInitialState(initialValue)
-    }
+      let initialValue = np.initialValue || opts.initialValue
+      const { getInitialValueFromProps = props => ({} as T) } = opts
+      initialValue = initialValue || getInitialValueFromProps(np)
 
+      if (initialValue) {
+        state.value = getInitialState(initialValue)
+      }
+    }
+    console.log(state)
     return state
   }
 }
@@ -178,15 +189,17 @@ function wrapFormProvider<T>(
     state = initialState
 
     componentDidMount() {
-      let load = this.props.loadAsync || opts.loadAsync
-      if (load) {
+      let load = this.props.getInitialValueAsync || opts.getInitialValueAsync
+      if (this.state.loaded) {
+        this.assignFuncs(true)
+      } else if (load) {
         load().then(this.init)
       }
     }
 
     componentDidUpdate(pp: FPP<T>, ps: FCS<T>) {
       if (ps.isBusy !== this.state.isBusy) {
-        this.handleAssign()
+        this.handleAssign(true)
       }
     }
 
