@@ -40,7 +40,6 @@ export interface FormProviderState<T> {
   submitCount: number
 }
 export interface FormProviderProps<T> {
-  getInitialValueAsync?: () => Promise<T>
   initialValue?: T
   submit?: (formValue: T) => any
   children: React.ReactNode

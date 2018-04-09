@@ -59,15 +59,13 @@ export default class FormBuilder<T> {
   create(): ReactContextForm<T> {
     const { Consumer, Provider } = createForm<T>(this._initialValue)
     const defaultGetInitialValue: MapPropsToFields<T> = (props): T => ({} as T)
-    const defaultGetInitialValueAsync: () => Promise<T> = () => {
-      return null
-    }
+
     return {
       Form: wrapProvider<T>(Provider, {
         initialValue: this._initialValue,
         loading: this._isLoading || defaultLoading,
         submitting: this._isSubmitting || defaultSubmitting,
-        getInitialValueAsync: this._initialValueAsync || defaultGetInitialValueAsync,
+        getInitialValueAsync: this._initialValueAsync,
         getInitialValueFromProps: this._getInitialValueFromProps || defaultGetInitialValue
       }),
       Field: createField<T>(Consumer),

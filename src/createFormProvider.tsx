@@ -106,9 +106,22 @@ function getNoops<T>() {
 }
 
 function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
+  if (opts.getInitialValueAsync) {
+    return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
+      const submitting = np.submitting || opts.submitting
+      const isSubmitting = submitting(np)
+      return {
+        submitting: isSubmitting,
+        isBusy: isSubmitting
+      }
+    }
+  }
+
   return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
     const loading = np.loading || opts.loading
     const submitting = np.submitting || opts.submitting
+
+    // np.submitting should not be a function - just a value - duh!!!!
 
     // no derived state to be handled since these props were not passed in
     if (!loading && !submitting) {
@@ -137,7 +150,7 @@ function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
         state.value = getInitialState(initialValue)
       }
     }
-    console.log(state)
+
     return state
   }
 }
@@ -189,11 +202,14 @@ function wrapFormProvider<T>(
     state = initialState
 
     componentDidMount() {
-      let load = this.props.getInitialValueAsync || opts.getInitialValueAsync
+      const { getInitialValueAsync } = opts
       if (this.state.loaded) {
         this.assignFuncs(true)
-      } else if (load) {
-        load().then(this.init)
+      } else if (getInitialValueAsync) {
+        getInitialValueAsync().then((value: T) => {
+          this.assignFuncs()
+          this.setState({ value: getInitialState(value), loaded: true })
+        })
       }
     }
 
@@ -208,11 +224,6 @@ function wrapFormProvider<T>(
     onFieldBlur = noopOnFieldBlur
     validateForm = noopValidateForm
     validateField = noopValidateField
-
-    init = (value: T) => {
-      this.assignFuncs()
-      this.setState({ value: getInitialState(value), loaded: true })
-    }
 
     assignFuncs = (forceUpdate = false) => {
       this.submit = this._submit
