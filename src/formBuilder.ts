@@ -9,6 +9,8 @@ function createForm<T>(initialValue?: T) {
   return React.createContext<FormProviderState<T>>({
     value: getInitialState(initialValue),
     loaded: false,
+    submitting: false,
+    isBusy: false,
     submitCount: 0
   })
 }
@@ -16,8 +18,8 @@ function createForm<T>(initialValue?: T) {
 export default class FormBuilder<T> {
   private _initialValue: T
   private _initialValueAsync: () => Promise<T>
-  // private _isSubmitting: BoolFunc
-  // private _isLoading: BoolFunc
+  private _isSubmitting: BoolFunc
+  private _isLoading: BoolFunc
 
   initialValue(value: T): this {
     this._initialValue = value
@@ -30,11 +32,11 @@ export default class FormBuilder<T> {
   }
 
   loading(func: BoolFunc): this {
-    // this._isLoading = func
+    this._isLoading = func
     return this
   }
   submitting(func: BoolFunc): this {
-    // this._isSubmitting = func
+    this._isSubmitting = func
     return this
   }
 
@@ -43,7 +45,9 @@ export default class FormBuilder<T> {
     return {
       Form: wrapProvider<T>(Provider, {
         initialValue: this._initialValue,
-        loadAsync: this._initialValueAsync
+        loadAsync: this._initialValueAsync,
+        loading: this._isLoading,
+        submitting: this._isSubmitting
       }),
       Field: createField<T>(Consumer),
       FormComponent: createFormComponent<T>(Consumer)

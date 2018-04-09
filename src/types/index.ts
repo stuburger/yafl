@@ -35,7 +35,9 @@ export type FormFieldState<T> = { [k in keyof T]?: FieldState } | null
 
 export interface FormProviderState<T> {
   value: FormFieldState<T>
+  isBusy: boolean
   loaded: boolean
+  submitting: boolean
   submitCount: number
 }
 
@@ -101,6 +103,8 @@ export interface ReactContextForm<T> {
 export interface ProviderValue<T> {
   value: FormFieldState<T>
   loaded: boolean
+  submitting: boolean
+  isBusy: boolean
   submit: (formValue: T) => any
   submitCount: number
   clearForm: () => void
