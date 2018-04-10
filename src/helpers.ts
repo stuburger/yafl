@@ -1,48 +1,61 @@
-// import {
-//   FormProviderState,
-//   FormProviderOptions,
-//   FormFieldState,
-//   FormProviderProps,
-// } from './types/index'
+// import { FPO, FCS, FPP, FieldUpdater, FFS } from './createFormProvider'
 // import getInitialState from './getInitialState'
+// import { FieldState } from './index'
 
-// export function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
-//   type FPS<T> = FormProviderState<T>
-//   type FFS<T> = FormFieldState<T>
-//   type FCS = FPS<FFS<T>>
-//   type FPP = FormProviderProps<T>
-
-//   return (np: FPP, ps: FCS): Partial<FCS> => {
-//     const loading = np.loading || opts.loading
-//     const submitting = np.submitting || opts.submitting
-//     const initialValue = np.initialValue || opts.initialValue
-//     const state: Partial<FCS> = {}
-
-//     if (ps.loaded) {
-//       state.submitting = submitting(np)
-//       state.isBusy = state.submitting
-//       return state
-//     }
-
-//     if (initialValue) {
-//       state.loaded = true
-//       state.isBusy = false
-//       state.submitting = submitting(np)
-//       state.value = getInitialState(initialValue)
-//       return state
-//     }
-
-//     state.loaded = !loading(np)
-//     state.isBusy = !state.isBusy
-
-//     state.submitting = submitting(np)
-//     state.isBusy = state.isBusy || state.submitting
-
-//     if (state.loaded) {
-//       state.value = getInitialState(opts.getInitialValueFromProps(np))
+// function createFormUpdater(update: FieldUpdater) {
+//   return function<T>(fields: FFS<T>) {
+//     const state: FFS<T> = {}
+//     for (let key in fields) {
+//       state[key] = update(fields[key])
 //     }
 //     return state
 //   }
 // }
 
-// export default getGetDerivedStateFromProps
+// const trueIfAbsent = val => {
+//   const nullOrUndefined = val === undefined || val === null
+//   return nullOrUndefined || !!val
+// }
+
+// function resetField(field: FieldState): FieldState {
+//   return {
+//     touched: false,
+//     didBlur: false,
+//     value: '',
+//     originalValue: ''
+//   }
+// }
+
+// const resetFields = createFormUpdater(resetField)
+
+// export function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
+//   if (opts.getInitialValueAsync) {
+//     return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
+//       return {
+//         isBusy: np.submitting
+//       }
+//     }
+//   }
+
+//   return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
+//     const state: Partial<FCS<T>> = {}
+//     const loaded = trueIfAbsent(np.loaded)
+//     // if the form is about to load...
+//     if (!ps.loaded && loaded) {
+//       let initialValue = np.initialValue || opts.initialValue
+//       state.value = getInitialState(initialValue)
+//     } else if (ps.loaded && !loaded) {
+//       // if the form is about to unload
+//       // not sure if this is the desired behavior
+//       state.value = resetFields(ps.value)
+//     }
+
+//     if (!ps.loaded) {
+//       state.loaded = loaded
+//     }
+
+//     state.isBusy = !loaded || np.submitting || false
+
+//     return state
+//   }
+// }

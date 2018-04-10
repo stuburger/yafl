@@ -6,9 +6,10 @@ import {
   FormFieldState,
   FormProviderProps,
   Validator,
+  FieldState,
   FormValidationResult,
   FieldName
-} from './types/index'
+} from './index'
 export declare type ValidatorSet<T> = { [P in FieldName<T>]?: Validator[] }
 export declare type FPS<T> = FormProviderState<T>
 export declare type FFS<T> = FormFieldState<T>
@@ -16,6 +17,15 @@ export declare type FCS<T> = FPS<FFS<T>>
 export declare type FPP<T> = FormProviderProps<T>
 export declare type FPO<T> = FormProviderOptions<T>
 export declare type FVR<T> = FormValidationResult<T>
+export interface FieldUpdater {
+  (fields: FieldState): FieldState
+}
+export declare function getGetDerivedStateFromProps<T>(
+  opts: FPO<T>
+): (
+  np: FormProviderProps<T>,
+  ps: FormProviderState<{ [k in keyof T]?: FieldState }>
+) => Partial<FormProviderState<{ [k in keyof T]?: FieldState }>>
 declare function wrapFormProvider<T>(
   Provider: React.Provider<FPS<T>>,
   opts: FPO<T>

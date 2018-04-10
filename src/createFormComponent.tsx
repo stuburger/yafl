@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ProviderValue, FormComponentProps, FormComponentWrapper } from './types/index'
+import { ProviderValue, FormComponentProps, FormComponentWrapper } from './index'
 
 function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const Component = getComponent<T>()

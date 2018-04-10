@@ -11,7 +11,7 @@ import {
   FormValidationResult,
   FieldName,
   ValidationResult
-} from './types/index'
+} from './index'
 import getInitialState from './getInitialState'
 
 export type ValidatorSet<T> = { [P in FieldName<T>]?: Validator[] }
@@ -25,8 +25,13 @@ export type FPP<T> = FormProviderProps<T>
 export type FPO<T> = FormProviderOptions<T>
 export type FVR<T> = FormValidationResult<T>
 
-interface FieldUpdater {
+export interface FieldUpdater {
   (fields: FieldState): FieldState
+}
+
+const trueIfAbsent = val => {
+  const nullOrUndefined = val === undefined || val === null
+  return nullOrUndefined || !!val
 }
 
 function createFormUpdater(update: FieldUpdater) {
@@ -60,7 +65,7 @@ function getFormValue<T>(fields: FFS<T>): T {
 
 const touchField: FieldUpdater = (field: FieldState) => {
   return {
-    isTouched: true,
+    touched: true,
     value: field.value,
     didBlur: field.didBlur,
     originalValue: field.originalValue
@@ -69,7 +74,7 @@ const touchField: FieldUpdater = (field: FieldState) => {
 
 function untouchField(field: FieldState): FieldState {
   return {
-    isTouched: false,
+    touched: false,
     didBlur: false,
     value: field.value,
     originalValue: field.originalValue
@@ -78,7 +83,7 @@ function untouchField(field: FieldState): FieldState {
 
 function resetField(field: FieldState): FieldState {
   return {
-    isTouched: false,
+    touched: false,
     didBlur: false,
     value: '',
     originalValue: ''
@@ -105,51 +110,33 @@ function getNoops<T>() {
   }
 }
 
-function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
+export function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
   if (opts.getInitialValueAsync) {
     return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
-      const submitting = np.submitting || opts.submitting
-      const isSubmitting = submitting(np)
       return {
-        submitting: isSubmitting,
-        isBusy: isSubmitting
+        isBusy: np.submitting
       }
     }
   }
 
   return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
-    const loading = np.loading || opts.loading
-    const submitting = np.submitting || opts.submitting
-
-    // np.submitting should not be a function - just a value - duh!!!!
-
-    // no derived state to be handled since these props were not passed in
-    if (!loading && !submitting) {
-      return null
-    }
-
     const state: Partial<FCS<T>> = {}
-
-    if (!ps.loaded || typeof loading === 'function') {
-      const isLoading = loading(np)
-      state.loaded = !isLoading
-      state.isBusy = isLoading
-    }
-
-    if (typeof submitting === 'function') {
-      state.submitting = submitting(np)
-      state.isBusy = state.isBusy || state.submitting
-    }
-
-    if (!ps.loaded && state.loaded) {
+    const loaded = trueIfAbsent(np.loaded)
+    // if the form is about to load...
+    if (!ps.loaded && loaded) {
       let initialValue = np.initialValue || opts.initialValue
-      const { getInitialValueFromProps = props => ({} as T) } = opts
-      initialValue = initialValue || getInitialValueFromProps(np)
-
-      if (initialValue) {
-        state.value = getInitialState(initialValue)
-      }
+      state.value = getInitialState(initialValue)
+    } else if (ps.loaded && !loaded) {
+      // if the form is about to unload
+      // not sure if this is the desired behavior
+      state.value = resetFields(ps.value)
     }
+
+    if (!ps.loaded) {
+      state.loaded = loaded
+    }
+
+    state.isBusy = !loaded || np.submitting || false
 
     return state
   }
@@ -268,7 +255,7 @@ function wrapFormProvider<T>(
     _setFieldValue = (fieldName: FieldName<T>, value: any) => {
       const state = cloneDeep<FCS<T>>(this.state)
       state.value[fieldName].value = value
-      state.value[fieldName].isTouched = true
+      state.value[fieldName].touched = true
       this.setState(state)
     }
 

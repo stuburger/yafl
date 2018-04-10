@@ -1,12 +1,12 @@
 import * as React from 'react'
-import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from './types/index'
+import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from './index'
 import AbsentField from './AbsentField'
 
 const defaultFieldState: FieldState = {
   value: '',
   originalValue: '',
   didBlur: false,
-  isTouched: false
+  touched: false
 }
 
 function isEqual(val1, val2): boolean {
