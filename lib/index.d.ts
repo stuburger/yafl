@@ -38,7 +38,7 @@ export interface FormProviderState<T> {
 }
 export interface FormProviderProps<T> {
   initialValue?: T
-  submit?: (formValue: T) => any
+  submit?: (formValue: T) => void
   children: React.ReactNode
   loaded?: boolean
   submitting?: boolean
@@ -47,8 +47,8 @@ export interface Validator {
   (value: any, fieldName: any, formValue: any): string | undefined
 }
 export interface FormComponentWrapper<T> {
-  render?: (state: FormContextReceiverProps<T>) => React.ReactNode
-  component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
+  render?: (state: FormBaseContextReceiverProps<T>) => React.ReactNode
+  component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>
   [key: string]: any
 }
 export interface FormFieldProps<T> extends FormComponentWrapper<T> {
@@ -58,7 +58,7 @@ export interface FormFieldProps<T> extends FormComponentWrapper<T> {
 export interface FormProviderOptions<T> {
   initialValue: T
   getInitialValueAsync: () => Promise<T>
-  submit?: (formValue: T) => any
+  submit?: (formValue: T) => void
 }
 export declare type ValidationResult = string[]
 export interface FieldValidationResult {
@@ -66,19 +66,28 @@ export interface FieldValidationResult {
   messages: ValidationResult
 }
 export declare type FormValidationResult<T> = { [K in keyof T]?: string[] }
-export interface FormContextReceiverProps<T> {
+export interface FormBaseContextReceiverProps<T> {
+  submit: () => void
+  setFieldValue: (fieldName: FieldName<T>, value: any) => void
+  submitCount: number
+  value: FormFieldState<T>
+  loaded: boolean
+  unload: () => void
+  submitting: boolean
+  forgetState: () => void
+  clearForm: () => void
+  [key: string]: any
+}
+export interface FormContextReceiverProps<T> extends FormBaseContextReceiverProps<T> {
   name: FieldName<T>
   onChange: (value: any) => void
-  submit: () => void
   value: any
   didBlur: boolean
   isDirty: boolean
   touched: boolean
   onBlur: (e) => void
-  clearForm: () => void
-  submitCount: number
+  unload: () => void
   validation: FieldValidationResult
-  [key: string]: any
 }
 export interface ReactContextForm<T> {
   Form: React.ComponentClass<FormProviderProps<T>>
@@ -87,10 +96,12 @@ export interface ReactContextForm<T> {
 }
 export interface ProviderValue<T> {
   value: FormFieldState<T>
+  unload: () => void
   loaded: boolean
   submitting: boolean
   isBusy: boolean
-  submit: (formValue: T) => any
+  forgetState: () => void
+  submit: () => void
   submitCount: number
   clearForm: () => void
   validation: FormValidationResult<T>
@@ -100,11 +111,12 @@ export interface ProviderValue<T> {
 }
 export interface BaseFormComponentProps<T> {
   submitCount: number
-  submit: (formValue: T) => any
   clearForm: () => void
-  render?: (value) => React.ReactNode
+  unload: () => void
+  forgetState: () => void
+  submitting: boolean
+  submit: () => void
   setFieldValue: (fieldName: FieldName<T>, value: any) => void
-  component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
 }
 export interface BaseInnerFieldProps<T> extends BaseFormComponentProps<T> {
   name: FieldName<T>
@@ -115,10 +127,14 @@ export interface BaseInnerFieldProps<T> extends BaseFormComponentProps<T> {
   validation: ValidationResult
   registerValidator: RegisterValidator<T>
   onFieldBlur: (fieldName: FieldName<T>) => void
+  render?: (value) => React.ReactNode
+  component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
 }
 export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
-  value: FormFieldState<T>
   loaded: boolean
+  value: FormFieldState<T>
+  render?: (value: FormBaseContextReceiverProps<T>) => React.ReactNode
+  component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>
 }
 export declare type InnerFieldProps<T> = BaseInnerFieldProps<T> & FieldState
 export interface RegisterValidator<T> {

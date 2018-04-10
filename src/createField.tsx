@@ -16,6 +16,7 @@ function isEqual(val1, val2): boolean {
 function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const InnerField = getInnerField<T>()
   const emptyValidators = []
+  const emptyArray = []
 
   return class FormField extends React.Component<FormFieldProps<T>> {
     _render = ({ value, loaded, ...providerValue }: ProviderValue<T>) => {
@@ -24,6 +25,7 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
         return <AbsentField name={name} />
       }
       const state = loaded ? value[name] : defaultFieldState
+      const validation = loaded ? providerValue.validation[name] : emptyArray
       return (
         <InnerField
           {...state}
@@ -32,12 +34,15 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
           state={state}
           render={render}
           component={component}
+          validation={validation}
           validators={validators}
           submit={providerValue.submit}
+          unload={providerValue.unload}
           clearForm={providerValue.clearForm}
+          submitting={providerValue.submitting}
+          forgetState={providerValue.forgetState}
           submitCount={providerValue.submitCount}
           onFieldBlur={providerValue.onFieldBlur}
-          validation={providerValue.validation[name]}
           setFieldValue={providerValue.setFieldValue}
           isDirty={isEqual(state.originalValue, state.value)}
           registerValidator={providerValue.registerValidator}

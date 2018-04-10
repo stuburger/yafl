@@ -17,6 +17,9 @@ export declare type FCS<T> = FPS<FFS<T>>
 export declare type FPP<T> = FormProviderProps<T>
 export declare type FPO<T> = FormProviderOptions<T>
 export declare type FVR<T> = FormValidationResult<T>
+export interface SnapShot {
+  [key: string]: any
+}
 export interface FieldUpdater {
   (fields: FieldState): FieldState
 }

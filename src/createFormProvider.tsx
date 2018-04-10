@@ -14,6 +14,11 @@ import {
 } from './index'
 import getInitialState from './getInitialState'
 
+// todo
+// distinguish between loading / loaded / isBusy
+// i.e. form can be !loaded === true && !isBusy === true at the same time
+// pass function loadForm from trigger load from from form component
+
 export type ValidatorSet<T> = { [P in FieldName<T>]?: Validator[] }
 
 const initialValidation: ValidationResult = []
@@ -25,6 +30,9 @@ export type FPP<T> = FormProviderProps<T>
 export type FPO<T> = FormProviderOptions<T>
 export type FVR<T> = FormValidationResult<T>
 
+export interface SnapShot {
+  [key: string]: any
+}
 export interface FieldUpdater {
   (fields: FieldState): FieldState
 }
@@ -96,7 +104,7 @@ const resetFields = createFormUpdater(resetField)
 
 function getNoops<T>() {
   return {
-    noopSubmit: (formValue: T) => {
+    noopSubmit: () => {
       console.error('submit: form not loaded')
     },
     noopOnFieldBlur: (fieldName: FieldName<T>) => {
@@ -114,7 +122,8 @@ export function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
   if (opts.getInitialValueAsync) {
     return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
       return {
-        isBusy: np.submitting
+        isBusy: np.submitting,
+        submitting: np.submitting
       }
     }
   }
@@ -136,6 +145,7 @@ export function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
       state.loaded = loaded
     }
 
+    state.submitting = np.submitting
     state.isBusy = !loaded || np.submitting || false
 
     return state
@@ -200,7 +210,7 @@ function wrapFormProvider<T>(
       }
     }
 
-    componentDidUpdate(pp: FPP<T>, ps: FCS<T>) {
+    componentDidUpdate(pp: FPP<T>, ps: FCS<T>, snapshot?: SnapShot) {
       if (ps.isBusy !== this.state.isBusy) {
         this.handleAssign(true)
       }
@@ -284,9 +294,10 @@ function wrapFormProvider<T>(
     }
 
     _validateForm = (): FVR<T> => {
+      if (!this.state.loaded) return
       let result: FVR<T> = {}
       for (let v in this.validators) {
-        result[v] = this._validateField(v)
+        result[v] = this.validateField(v)
       }
       return result
     }
@@ -305,8 +316,10 @@ function wrapFormProvider<T>(
     getProviderValue = (): ProviderValue<T> => {
       return {
         ...this.state,
+        unload: this.unload,
         submit: this.submit,
         clearForm: this.clearForm,
+        forgetState: this.forgetState,
         onFieldBlur: this.onFieldBlur,
         validation: this.validateForm(),
         setFieldValue: this.setFieldValue,
