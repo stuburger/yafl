@@ -7,21 +7,27 @@ import {
   FormProviderProps,
   ProviderValue,
   Validator,
-  FieldState,
   FormValidationResult,
   FieldName,
-  ValidationResult
+  ValidationResult,
+  ValidatorSet
 } from './index'
 import getInitialState from './getInitialState'
+import {
+  validateField,
+  noops,
+  resetFields,
+  touchAllFields,
+  untouchAllFields,
+  getGetDerivedStateFromProps,
+  getFormValue,
+  getNullState
+} from './helpers'
 
 // todo
 // distinguish between loading / loaded / isBusy
 // i.e. form can be !loaded === true && !isBusy === true at the same time
 // pass function loadForm from trigger load from from form component
-
-export type ValidatorSet<T> = { [P in FieldName<T>]: Validator[] }
-
-const initialValidation: ValidationResult = []
 
 export type FPS<T> = FormProviderState<T>
 export type FFS<T> = FormFieldState<T>
@@ -29,128 +35,6 @@ export type FCS<T> = FPS<FFS<T>> //FormComponentState
 export type FPP<T> = FormProviderProps<T>
 export type FPO<T> = FormProviderOptions<T>
 export type FVR<T> = FormValidationResult<T>
-
-export interface SnapShot {
-  [key: string]: any
-}
-export interface FieldUpdater {
-  (fields: FieldState): FieldState
-}
-
-const trueIfAbsent = val => {
-  const nullOrUndefined = val === undefined || val === null
-  return nullOrUndefined || !!val
-}
-
-function createFormUpdater(update: FieldUpdater) {
-  return function<T>(fields: FFS<T>) {
-    const state = {} as FFS<T>
-    for (let key in fields) {
-      state[key] = update(fields[key])
-    }
-    return state
-  }
-}
-
-function getNullState<T>(): FCS<T> {
-  return {
-    value: {} as FFS<T>,
-    loaded: false,
-    isBusy: true,
-    submitting: false,
-    submitCount: 0
-  }
-}
-
-function getFormValue<T>(fields: FFS<T>): T {
-  const result: T = {} as T
-  for (let fieldName in fields) {
-    const temp = fields[fieldName]
-    result[fieldName] = temp.value
-  }
-  return result
-}
-
-const touchField: FieldUpdater = (field: FieldState) => {
-  return {
-    touched: true,
-    value: field.value,
-    didBlur: field.didBlur,
-    originalValue: field.originalValue
-  }
-}
-
-function untouchField(field: FieldState): FieldState {
-  return {
-    touched: false,
-    didBlur: false,
-    value: field.value,
-    originalValue: field.originalValue
-  }
-}
-
-function resetField(field: FieldState): FieldState {
-  return {
-    touched: false,
-    didBlur: false,
-    value: '',
-    originalValue: ''
-  }
-}
-
-const touchAllFields = createFormUpdater(touchField)
-const untouchAllFields = createFormUpdater(untouchField)
-const resetFields = createFormUpdater(resetField)
-
-function getNoops<T>() {
-  return {
-    noopSubmit: () => {
-      console.error('submit: form not loaded')
-    },
-    noopOnFieldBlur: (fieldName: FieldName<T>) => {
-      console.error('blur: form not loaded')
-    },
-    noopSetFieldValue: (fieldName: FieldName<T>, value) => {
-      console.error('setFieldValue: form not loaded')
-    },
-    noopValidateForm: (): FVR<T> => ({} as FVR<T>),
-    noopValidateField: (fieldName: FieldName<T>): ValidationResult => initialValidation
-  }
-}
-
-export function getGetDerivedStateFromProps<T>(opts: FPO<T>) {
-  if (opts.getInitialValueAsync) {
-    return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
-      return {
-        isBusy: np.submitting,
-        submitting: np.submitting
-      }
-    }
-  }
-
-  return (np: FPP<T>, ps: FCS<T>): Partial<FCS<T>> => {
-    const state: Partial<FCS<T>> = {}
-    const loaded = trueIfAbsent(np.loaded)
-    // if the form is about to load...
-    if (!ps.loaded && loaded) {
-      let initialValue = np.initialValue || opts.initialValue
-      state.value = getInitialState(initialValue)
-    } else if (ps.loaded && !loaded) {
-      // if the form is about to unload
-      // not sure if this is the desired behavior
-      state.value = resetFields(ps.value)
-    }
-
-    if (!ps.loaded) {
-      state.loaded = loaded
-    }
-
-    state.submitting = np.submitting
-    state.isBusy = !loaded || np.submitting || false
-
-    return state
-  }
-}
 
 function wrapFormProvider<T>(
   Provider: React.Provider<FPS<T>>,
@@ -164,7 +48,7 @@ function wrapFormProvider<T>(
     noopSetFieldValue,
     noopValidateForm,
     noopValidateField
-  } = getNoops<T>()
+  } = noops<T>()
 
   const formIsValid = (validation: FVR<T>) => {
     for (let k in validation) {
@@ -173,22 +57,6 @@ function wrapFormProvider<T>(
       }
     }
     return true
-  }
-
-  function validateField(
-    value: FieldState,
-    fieldName: FieldName<T>,
-    form: FFS<T>,
-    validators = [] as Validator[]
-  ): ValidationResult {
-    const messages: ValidationResult = []
-    for (let validate of validators) {
-      const message = validate(value, fieldName, form)
-      if (message) {
-        messages.push(message)
-      }
-    }
-    return messages
   }
 
   return class Form extends React.Component<FPP<T>, FCS<T>> {
@@ -210,7 +78,11 @@ function wrapFormProvider<T>(
       }
     }
 
-    componentDidUpdate(pp: FPP<T>, ps: FCS<T>, snapshot?: SnapShot) {
+    // getSnapshotBeforeUpdate(pp: FPP<T>, ps: FCS<T>, snapshot?: SnapShot) {
+    //   return null
+    // }
+
+    componentDidUpdate(pp: FPP<T>, ps: FCS<T>) {
       if (ps.isBusy !== this.state.isBusy) {
         this.handleAssign(true)
       }
@@ -306,11 +178,7 @@ function wrapFormProvider<T>(
       const form = this.state.value
       const value = form[fieldName]
       const validators = this.validators[fieldName]
-      if (value) {
-        return validateField(value, fieldName, form, validators)
-      } else {
-        return initialValidation
-      }
+      return validateField<T>(value, form, validators)
     }
 
     getProviderValue = (): ProviderValue<T> => {

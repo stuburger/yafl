@@ -44,8 +44,9 @@ export interface FormProviderProps<T> {
   submitting?: boolean
 }
 export interface Validator {
-  (value: any, fieldName: any, formValue: any): string | undefined
+  (value: any, formValue: any): string | undefined
 }
+export declare type ValidatorSet<T> = { [P in FieldName<T>]: Validator[] }
 export interface FormComponentWrapper<T> {
   render?: (state: FormBaseContextReceiverProps<T>) => React.ReactNode
   component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>

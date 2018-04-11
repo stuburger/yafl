@@ -50,8 +50,10 @@ export interface FormProviderProps<T> {
 }
 
 export interface Validator {
-  (value, fieldName, formValue): string | undefined
+  (value, formValue): string | undefined
 }
+
+export type ValidatorSet<T> = { [P in FieldName<T>]: Validator[] }
 
 export interface FormComponentWrapper<T> {
   render?: (state: FormBaseContextReceiverProps<T>) => React.ReactNode
