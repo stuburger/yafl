@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { isEqual } from './utils'
 import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from './index'
 import AbsentField from './AbsentField'
 
@@ -9,18 +10,13 @@ const defaultFieldState: FieldState = {
   touched: false
 }
 
-function isEqual(val1, val2): boolean {
-  return val1 === val2 || JSON.stringify(val1) === JSON.stringify(val2)
-}
-
 function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const InnerField = getInnerField<T>()
-  const emptyValidators = []
   const emptyArray = []
 
   return class FormField extends React.Component<FormFieldProps<T>> {
     _render = ({ value, loaded, ...providerValue }: ProviderValue<T>) => {
-      const { render, component, name, validators = emptyValidators, ...props } = this.props
+      const { render, component, name, validators, ...props } = this.props
       if (loaded && value[name] === undefined) {
         return <AbsentField name={name} />
       }
