@@ -20,10 +20,6 @@
   version "22.2.2"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-22.2.2.tgz#afe5dacbd00d65325f52da0ed3e76e259629ac9d"
 
-"@types/lodash@^4.14.106":
-  version "4.14.106"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.106.tgz#6093e9a02aa567ddecfe9afadca89e53e5dce4dd"
-
 "@types/node@*":
   version "9.6.4"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.4.tgz#0ef7b4cfc3499881c81e0ea1ce61a23f6f4f5b42"
