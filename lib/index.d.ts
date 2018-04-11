@@ -28,7 +28,7 @@ export interface FieldState {
   touched: boolean
   originalValue: any
 }
-export declare type FormFieldState<T> = { [k in keyof T]?: FieldState } | null
+export declare type FormFieldState<T> = { [k in keyof T]: FieldState }
 export interface FormProviderState<T> {
   value: FormFieldState<T>
   isBusy: boolean
@@ -65,7 +65,7 @@ export interface FieldValidationResult {
   isValid: boolean
   messages: ValidationResult
 }
-export declare type FormValidationResult<T> = { [K in keyof T]?: string[] }
+export declare type FormValidationResult<T> = { [K in keyof T]: string[] }
 export interface FormBaseContextReceiverProps<T> {
   submit: () => void
   setFieldValue: (fieldName: FieldName<T>, value: any) => void

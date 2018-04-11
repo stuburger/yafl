@@ -65,7 +65,7 @@ function getInnerField<T>() {
     }
 
     componentDidUpdate(pp: InnerFieldProps<T>) {
-      const { validators, registerValidator, name } = this.props
+      const { validators = emptyArray, registerValidator, name } = this.props
       if (validators !== pp.validators) {
         registerValidator(name, validators)
       }

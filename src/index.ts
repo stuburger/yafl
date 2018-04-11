@@ -31,7 +31,7 @@ export interface FieldState {
   originalValue: any
 }
 
-export type FormFieldState<T> = { [k in keyof T]?: FieldState } | null
+export type FormFieldState<T> = { [k in keyof T]: FieldState }
 
 export interface FormProviderState<T> {
   value: FormFieldState<T>
@@ -76,7 +76,7 @@ export interface FieldValidationResult {
   messages: ValidationResult
 }
 
-export type FormValidationResult<T> = { [K in keyof T]?: string[] }
+export type FormValidationResult<T> = { [K in keyof T]: string[] }
 
 export interface FormBaseContextReceiverProps<T> {
   submit: () => void

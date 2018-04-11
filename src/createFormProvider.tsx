@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cloneDeep } from 'lodash'
+import { clone } from './utils'
 import {
   FormProviderState,
   FormProviderOptions,
@@ -19,7 +19,7 @@ import getInitialState from './getInitialState'
 // i.e. form can be !loaded === true && !isBusy === true at the same time
 // pass function loadForm from trigger load from from form component
 
-export type ValidatorSet<T> = { [P in FieldName<T>]?: Validator[] }
+export type ValidatorSet<T> = { [P in FieldName<T>]: Validator[] }
 
 const initialValidation: ValidationResult = []
 
@@ -44,7 +44,7 @@ const trueIfAbsent = val => {
 
 function createFormUpdater(update: FieldUpdater) {
   return function<T>(fields: FFS<T>) {
-    const state: FFS<T> = {}
+    const state = {} as FFS<T>
     for (let key in fields) {
       state[key] = update(fields[key])
     }
@@ -52,21 +52,21 @@ function createFormUpdater(update: FieldUpdater) {
   }
 }
 
-function getNullState<T>() {
-  const state: FCS<T> = {
-    value: null,
+function getNullState<T>(): FCS<T> {
+  return {
+    value: {} as FFS<T>,
     loaded: false,
     isBusy: true,
     submitting: false,
     submitCount: 0
   }
-  return state
 }
 
 function getFormValue<T>(fields: FFS<T>): T {
   const result: T = {} as T
   for (let fieldName in fields) {
-    result[fieldName] = fields[fieldName].value
+    const temp = fields[fieldName]
+    result[fieldName] = temp.value
   }
   return result
 }
@@ -113,7 +113,7 @@ function getNoops<T>() {
     noopSetFieldValue: (fieldName: FieldName<T>, value) => {
       console.error('setFieldValue: form not loaded')
     },
-    noopValidateForm: (): FVR<T> => ({}),
+    noopValidateForm: (): FVR<T> => ({} as FVR<T>),
     noopValidateField: (fieldName: FieldName<T>): ValidationResult => initialValidation
   }
 }
@@ -179,7 +179,7 @@ function wrapFormProvider<T>(
     value: FieldState,
     fieldName: FieldName<T>,
     form: FFS<T>,
-    validators: Validator[]
+    validators = [] as Validator[]
   ): ValidationResult {
     const messages: ValidationResult = []
     for (let validate of validators) {
@@ -192,7 +192,7 @@ function wrapFormProvider<T>(
   }
 
   return class Form extends React.Component<FPP<T>, FCS<T>> {
-    validators: ValidatorSet<T> = {}
+    validators: Partial<ValidatorSet<T>> = {}
 
     static getDerivedStateFromProps = getGetDerivedStateFromProps<T>(opts)
 
@@ -256,14 +256,14 @@ function wrapFormProvider<T>(
 
       if (formIsValid(this._validateForm())) {
         const { submit = opts.submit || noopSubmit } = this.props
-        submit(getFormValue(this.state.value))
+        submit(getFormValue<T>(this.state.value))
       } else {
         console.warn('cannot submit, form is not valid...')
       }
     }
 
     _setFieldValue = (fieldName: FieldName<T>, value: any) => {
-      const state = cloneDeep<FCS<T>>(this.state)
+      const state = clone<FCS<T>>(this.state)
       state.value[fieldName].value = value
       state.value[fieldName].touched = true
       this.setState(state)
@@ -271,7 +271,7 @@ function wrapFormProvider<T>(
 
     _onFieldBlur = (fieldName: FieldName<T>) => {
       if (this.state.value[fieldName].didBlur) return
-      const state = cloneDeep<FCS<T>>(this.state)
+      const state = clone<FCS<T>>(this.state)
       state.value[fieldName].didBlur = true
       this.setState(state)
     }
@@ -294,8 +294,8 @@ function wrapFormProvider<T>(
     }
 
     _validateForm = (): FVR<T> => {
-      if (!this.state.loaded) return
-      let result: FVR<T> = {}
+      if (!this.state.loaded) return {} as FVR<T>
+      let result = {} as FVR<T>
       for (let v in this.validators) {
         result[v] = this.validateField(v)
       }

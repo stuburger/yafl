@@ -5,7 +5,7 @@ import wrapProvider from './createFormProvider'
 import createField from './createField'
 import createFormComponent from './createFormComponent'
 
-function createForm<T>(initialValue?: T) {
+function createForm<T>(initialValue = {} as T) {
   return React.createContext<FormProviderState<T>>({
     value: getInitialState(initialValue),
     loaded: false,
