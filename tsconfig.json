@@ -3,6 +3,7 @@
     "outDir": "./lib",
     "target": "es5",
     "lib": ["es7", "dom"],
+    "strict": true,
     "module": "commonjs",
     "noImplicitAny": false,
     "removeComments": false,
