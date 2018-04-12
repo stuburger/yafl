@@ -179,10 +179,12 @@ function wrapFormProvider<T>(
     }
 
     registerField = (fieldName: FieldName<T>, value: T[keyof T], validators: Validator[]) => {
-      const state = clone(this.state)
-      state.value[fieldName] = getInitialFieldState(value)
       this.registerValidator(fieldName, validators)
-      this.setState(state)
+      this.setState(s => {
+        const state = clone(s)
+        state.value[fieldName] = getInitialFieldState(value)
+        return state
+      })
     }
 
     getProviderValue = (): ProviderValue<T> => {
