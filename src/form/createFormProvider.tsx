@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { clone } from '../utils'
 
-import getInitialState from './getInitialState'
+import getInitialState, { getInitialFieldState } from './getInitialState'
 import {
   validateField,
   noops,
@@ -128,7 +128,7 @@ function wrapFormProvider<T>(
     }
 
     _setFieldValue = (fieldName: FieldName<T>, value: any) => {
-      const state = clone<FCS<T>>(this.state)
+      const state = clone(this.state)
       state.value[fieldName].value = value
       state.value[fieldName].touched = true
       this.setState(state)
@@ -136,13 +136,17 @@ function wrapFormProvider<T>(
 
     _onFieldBlur = (fieldName: FieldName<T>) => {
       if (this.state.value[fieldName].didBlur) return
-      const state = clone<FCS<T>>(this.state)
+      const state = clone(this.state)
       state.value[fieldName].didBlur = true
       this.setState(state)
     }
 
     registerValidator = (fieldName: FieldName<T>, validators: Validator[]) => {
       this.validators[fieldName] = validators
+    }
+
+    _registerValidator = (fieldName: FieldName<T>, validators: Validator[]) => {
+      this.registerValidator(fieldName, validators)
       this.forceUpdate()
     }
 
@@ -174,6 +178,13 @@ function wrapFormProvider<T>(
       return validateField<T>(value, form, validators)
     }
 
+    registerField = (fieldName: FieldName<T>, value: T[keyof T], validators: Validator[]) => {
+      const state = clone(this.state)
+      state.value[fieldName] = getInitialFieldState(value)
+      this.registerValidator(fieldName, validators)
+      this.setState(state)
+    }
+
     getProviderValue = (): ProviderValue<T> => {
       return {
         ...this.state,
@@ -184,6 +195,7 @@ function wrapFormProvider<T>(
         onFieldBlur: this.onFieldBlur,
         validation: this.validateForm(),
         setFieldValue: this.setFieldValue,
+        registerField: this.registerField,
         registerValidator: this.registerValidator
       }
     }

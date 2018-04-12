@@ -55,6 +55,8 @@ export interface FormComponentWrapper<T> {
 export interface FormFieldProps<T> extends FormComponentWrapper<T> {
   name: FieldName<T>
   validators?: Validator[]
+  render?: (state: FormContextReceiverProps<T>) => React.ReactNode
+  component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
 }
 export interface FormProviderOptions<T> {
   initialValue: T
@@ -107,6 +109,7 @@ export interface ProviderValue<T> {
   clearForm: () => void
   validation: FormValidationResult<T>
   registerValidator: RegisterValidator<T>
+  registerField: (fieldName: FieldName<T>, initialValue: any, validators: Validator[]) => void
   onFieldBlur: (fieldName: FieldName<T>) => void
   setFieldValue: (fieldName: FieldName<T>, value: any) => void
 }
@@ -122,13 +125,13 @@ export interface BaseFormComponentProps<T> {
 export interface BaseInnerFieldProps<T> extends BaseFormComponentProps<T> {
   name: FieldName<T>
   isDirty: boolean
-  state: FieldState
   onBlur?: (e) => void
   validators?: Validator[]
   validation: ValidationResult
   registerValidator: RegisterValidator<T>
   onFieldBlur: (fieldName: FieldName<T>) => void
   render?: (value) => React.ReactNode
+  registerField: (fieldName: FieldName<T>, initialValue: any, validators: Validator[]) => void
   component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
 }
 export interface FormComponentProps<T> extends BaseFormComponentProps<T> {

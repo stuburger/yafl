@@ -17,17 +17,13 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   return class FormField extends React.Component<FormFieldProps<T>> {
     _render = ({ value, loaded, ...providerValue }: ProviderValue<T>) => {
       const { render, component, name, validators, ...props } = this.props
-      if (loaded && value[name] === undefined) {
-        return <AbsentField name={name} />
-      }
-      const state = loaded ? value[name] : defaultFieldState
-      const validation = loaded ? providerValue.validation[name] : emptyArray
+      const state = loaded && value[name] ? value[name] : defaultFieldState
+      const validation = loaded && value[name] ? providerValue.validation[name] : emptyArray
       return (
         <InnerField
           {...state}
           {...props}
           name={name}
-          state={state}
           render={render}
           component={component}
           validation={validation}
@@ -40,7 +36,8 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
           submitCount={providerValue.submitCount}
           onFieldBlur={providerValue.onFieldBlur}
           setFieldValue={providerValue.setFieldValue}
-          isDirty={isEqual(state.originalValue, state.value)}
+          registerField={providerValue.registerField}
+          isDirty={!isEqual(state.originalValue, state.value)}
           registerValidator={providerValue.registerValidator}
         />
       )
@@ -56,8 +53,8 @@ function getInnerField<T>() {
   const emptyArray = []
   class InnerField extends React.Component<InnerFieldProps<T>> {
     componentDidMount() {
-      const { registerValidator, name, validators = emptyArray } = this.props
-      registerValidator(name, validators)
+      const { registerField, name, value, validators } = this.props
+      registerField(name, value, validators || emptyArray)
     }
 
     componentDidUpdate(pp: InnerFieldProps<T>) {
@@ -65,6 +62,10 @@ function getInnerField<T>() {
       if (validators !== pp.validators) {
         registerValidator(name, validators)
       }
+    }
+
+    componentWillUnmount() {
+      // unregisterField()
     }
 
     onBlur = e => {
