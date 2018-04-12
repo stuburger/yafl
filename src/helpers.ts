@@ -1,4 +1,3 @@
-export { default as trueIfAbsent } from './trueIfAbsent'
 export { default as validateField } from './validateField'
 export { default as getFormValue } from './getFormValue'
 export { default as getNullState } from './getNullState'

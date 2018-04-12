@@ -1,6 +1,7 @@
-import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from '.'
-import { trueIfAbsent, resetFields } from './helpers'
+import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from './index'
+import { resetFields } from './helpers'
 import getInitialState from './getInitialState'
+import { trueIfAbsent } from './utils'
 
 function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
   if (opts.getInitialValueAsync) {
