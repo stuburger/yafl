@@ -53,8 +53,8 @@ function getInnerField<T>() {
   const emptyArray = []
   class InnerField extends React.Component<InnerFieldProps<T>> {
     componentDidMount() {
-      const { registerField, name, value, validators } = this.props
-      registerField(name, value, validators || emptyArray)
+      const { registerField, name, initialValue, validators } = this.props
+      registerField(name, initialValue, validators || emptyArray)
     }
 
     componentDidUpdate(pp: InnerFieldProps<T>) {
@@ -82,13 +82,25 @@ function getInnerField<T>() {
     }
 
     collectProps = () => {
-      const { validation = emptyArray, render, component, registerValidator, ...props } = this.props
+      const {
+        render,
+        component,
+        initialValue,
+        registerValidator,
+        validation = emptyArray,
+        ...props
+      } = this.props
       return {
+        name: this.props.name,
+        value: this.props.value,
+        originalValue: this.props.originalValue,
+        didBlur: this.props.didBlur,
+        touched: this.props.touched,
+        isDirty: this.props.isDirty,
+        isValid: validation.length === 0,
+        messages: validation,
+        submitCount: this.props.submitCount,
         ...props,
-        validation: {
-          isValid: validation.length === 0,
-          messages: validation
-        },
         onBlur: this.onBlur,
         onChange: this.onChange
       }

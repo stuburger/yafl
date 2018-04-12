@@ -147,6 +147,7 @@ export interface BaseFormComponentProps<T> {
 export interface BaseInnerFieldProps<T> extends BaseFormComponentProps<T> {
   name: FieldName<T>
   isDirty: boolean
+  initialValue?: any
   onBlur?: (e) => void
   validators?: Validator[]
   validation: ValidationResult
