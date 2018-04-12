@@ -15,7 +15,7 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const emptyArray = []
 
   return class FormField extends React.Component<FormFieldProps<T>> {
-    _render = ({ value, loaded, ...providerValue }: ProviderValue<T>) => {
+    _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T>) => {
       const { render, component, name, validators, ...props } = this.props
       const state = loaded && value[name] ? value[name] : defaultFieldState
       const validation = loaded && value[name] ? providerValue.validation[name] : emptyArray
@@ -28,6 +28,7 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
           component={component}
           validation={validation}
           validators={validators}
+          formIsDirty={formIsDirty}
           submit={providerValue.submit}
           unload={providerValue.unload}
           clearForm={providerValue.clearForm}
@@ -37,8 +38,8 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
           onFieldBlur={providerValue.onFieldBlur}
           setFieldValue={providerValue.setFieldValue}
           registerField={providerValue.registerField}
-          isDirty={!isEqual(state.originalValue, state.value)}
           registerValidator={providerValue.registerValidator}
+          isDirty={formIsDirty && !isEqual(state.originalValue, state.value)}
         />
       )
     }

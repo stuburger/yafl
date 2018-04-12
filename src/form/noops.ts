@@ -3,6 +3,7 @@ const initialValidation: ValidationResult = []
 
 function getNoops<T>() {
   return {
+    noop: () => {},
     noopSubmit: () => {
       console.error('submit: form not loaded')
     },

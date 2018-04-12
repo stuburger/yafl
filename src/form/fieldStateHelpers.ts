@@ -1,4 +1,5 @@
 import { FormFieldState, FieldState } from '../'
+import { createEmptyField } from './getInitialState'
 
 export interface FieldUpdater {
   (fields: FieldState): FieldState
@@ -15,30 +16,30 @@ export function createFormUpdater(update: FieldUpdater) {
 }
 
 export const touchField: FieldUpdater = (field: FieldState) => {
-  return {
-    touched: true,
-    value: field.value,
-    didBlur: field.didBlur,
-    originalValue: field.originalValue
-  }
+  const res = createEmptyField()
+  res.touched = true
+  res.value = field.value
+  res.didBlur = field.didBlur
+  res.originalValue = field.originalValue
+  return res
 }
 
 export function untouchField(field: FieldState): FieldState {
-  return {
-    touched: false,
-    didBlur: false,
-    value: field.value,
-    originalValue: field.originalValue
-  }
+  const res = createEmptyField()
+  res.touched = false
+  res.value = field.value
+  res.didBlur = false
+  res.originalValue = field.originalValue
+  return res
 }
 
 export function resetField(field: FieldState): FieldState {
-  return {
-    touched: false,
-    didBlur: false,
-    value: '',
-    originalValue: ''
-  }
+  const res = createEmptyField()
+  res.touched = false
+  res.value = null
+  res.didBlur = false
+  res.originalValue = null
+  return res
 }
 
 export const touchAllFields = createFormUpdater(touchField)

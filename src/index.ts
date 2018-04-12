@@ -123,6 +123,7 @@ export interface ProviderValue<T> {
   loaded: boolean
   submitting: boolean
   isBusy: boolean
+  formIsDirty: boolean
   forgetState: () => void
   submit: () => void
   submitCount: number
@@ -140,6 +141,7 @@ export interface BaseFormComponentProps<T> {
   unload: () => void
   forgetState: () => void
   submitting: boolean
+  formIsDirty: boolean
   submit: () => void
   setFieldValue: (fieldName: FieldName<T>, value: any) => void
 }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { clone } from '../utils'
+import { clone, transform, isEqual } from '../utils'
 
 import getInitialState, { getInitialFieldState } from './getInitialState'
 import {
@@ -45,6 +45,7 @@ function wrapFormProvider<T>(
   const initialState = getNullState<T>()
 
   const {
+    noop,
     noopSubmit,
     noopOnFieldBlur,
     noopSetFieldValue,
@@ -120,7 +121,7 @@ function wrapFormProvider<T>(
       }))
 
       if (formIsValid<T>(this._validateForm())) {
-        const { submit = opts.submit || noopSubmit } = this.props
+        const { submit = opts.submit || noop } = this.props
         submit(getFormValue<T>(this.state.value))
       } else {
         console.warn('cannot submit, form is not valid...')
@@ -187,6 +188,19 @@ function wrapFormProvider<T>(
       })
     }
 
+    formIsDirty = () => {
+      const { loaded, value } = this.state
+      let clean = true
+      if (loaded) {
+        clean = transform(
+          value,
+          (ret, field, key) => ret && isEqual(field.value, field.originalValue),
+          clean
+        )
+      }
+      return !clean
+    }
+
     getProviderValue = (): ProviderValue<T> => {
       return {
         ...this.state,
@@ -194,6 +208,7 @@ function wrapFormProvider<T>(
         submit: this.submit,
         clearForm: this.clearForm,
         forgetState: this.forgetState,
+        formIsDirty: this.formIsDirty(),
         onFieldBlur: this.onFieldBlur,
         validation: this.validateForm(),
         setFieldValue: this.setFieldValue,
