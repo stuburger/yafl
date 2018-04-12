@@ -1,4 +1,4 @@
-import { ReactContextForm } from './index'
+import { ReactContextForm } from '../index'
 export default class FormBuilder<T> {
   private _initialValue
   private _initialValueAsync

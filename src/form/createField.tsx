@@ -1,0 +1,117 @@
+import * as React from 'react'
+import { isEqual } from '../utils'
+import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from '../index'
+import AbsentField from '../AbsentField'
+
+const defaultFieldState: FieldState = {
+  value: '',
+  originalValue: '',
+  didBlur: false,
+  touched: false
+}
+
+function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
+  const InnerField = getInnerField<T>()
+  const emptyArray = []
+
+  return class FormField extends React.Component<FormFieldProps<T>> {
+    _render = ({ value, loaded, ...providerValue }: ProviderValue<T>) => {
+      const { render, component, name, validators, ...props } = this.props
+      if (loaded && value[name] === undefined) {
+        return <AbsentField name={name} />
+      }
+      const state = loaded ? value[name] : defaultFieldState
+      const validation = loaded ? providerValue.validation[name] : emptyArray
+      return (
+        <InnerField
+          {...state}
+          {...props}
+          name={name}
+          state={state}
+          render={render}
+          component={component}
+          validation={validation}
+          validators={validators}
+          submit={providerValue.submit}
+          unload={providerValue.unload}
+          clearForm={providerValue.clearForm}
+          submitting={providerValue.submitting}
+          forgetState={providerValue.forgetState}
+          submitCount={providerValue.submitCount}
+          onFieldBlur={providerValue.onFieldBlur}
+          setFieldValue={providerValue.setFieldValue}
+          isDirty={isEqual(state.originalValue, state.value)}
+          registerValidator={providerValue.registerValidator}
+        />
+      )
+    }
+
+    render() {
+      return <Consumer>{this._render}</Consumer>
+    }
+  }
+}
+
+function getInnerField<T>() {
+  const emptyArray = []
+  class InnerField extends React.Component<InnerFieldProps<T>> {
+    componentDidMount() {
+      const { registerValidator, name, validators = emptyArray } = this.props
+      registerValidator(name, validators)
+    }
+
+    componentDidUpdate(pp: InnerFieldProps<T>) {
+      const { validators = emptyArray, registerValidator, name } = this.props
+      if (validators !== pp.validators) {
+        registerValidator(name, validators)
+      }
+    }
+
+    onBlur = e => {
+      const { onFieldBlur, name, onBlur } = this.props
+      onFieldBlur(name)
+      if (onBlur) {
+        onBlur(e)
+      }
+    }
+
+    onChange = e => {
+      const { setFieldValue, name } = this.props
+      setFieldValue(name, e.target.value)
+    }
+
+    collectProps = () => {
+      const { validation = emptyArray, render, component, registerValidator, ...props } = this.props
+      return {
+        ...props,
+        validation: {
+          isValid: validation.length === 0,
+          messages: validation
+        },
+        onBlur: this.onBlur,
+        onChange: this.onChange
+      }
+    }
+
+    render() {
+      const { render, component: Component, name } = this.props
+
+      const props = this.collectProps()
+      if (render) {
+        return render(props)
+      }
+
+      if (Component) {
+        return <Component {...props} />
+      }
+
+      return (
+        <AbsentField message={`Please provide render or component prop for field: '${name}'`} />
+      )
+    }
+  }
+
+  return InnerField
+}
+
+export default wrapConsumer

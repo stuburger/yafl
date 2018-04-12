@@ -1,9 +1,9 @@
 import * as React from 'react'
-import getInitialState from './getInitialState'
-import { FormProviderState, ReactContextForm } from './index'
-import wrapProvider from './createFormProvider'
-import createField from './createField'
-import createFormComponent from './createFormComponent'
+import getInitialState from './form/getInitialState'
+import { FormProviderState, ReactContextForm } from '../index'
+import wrapProvider from './form/createFormProvider'
+import createField from './form/createField'
+import createFormComponent from './form/createFormComponent'
 
 function createForm<T>(initialValue = {} as T) {
   return React.createContext<FormProviderState<T>>({
