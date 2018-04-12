@@ -10,7 +10,8 @@ import {
   untouchAllFields,
   getGetDerivedStateFromProps,
   getFormValue,
-  getNullState
+  getNullState,
+  formIsValid
 } from './index'
 import {
   FormProviderState,
@@ -50,15 +51,6 @@ function wrapFormProvider<T>(
     noopValidateForm,
     noopValidateField
   } = noops<T>()
-
-  const formIsValid = (validation: FVR<T>) => {
-    for (let k in validation) {
-      if (validation[k].length > 0) {
-        return false
-      }
-    }
-    return true
-  }
 
   return class Form extends React.Component<FPP<T>, FCS<T>> {
     validators: Partial<ValidatorSet<T>> = {}
@@ -127,7 +119,7 @@ function wrapFormProvider<T>(
         submitCount: submitCount + 1
       }))
 
-      if (formIsValid(this._validateForm())) {
+      if (formIsValid<T>(this._validateForm())) {
         const { submit = opts.submit || noopSubmit } = this.props
         submit(getFormValue<T>(this.state.value))
       } else {
