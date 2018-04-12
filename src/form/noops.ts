@@ -3,18 +3,22 @@ const initialValidation: ValidationResult = []
 
 function getNoops<T>() {
   return {
-    noop: () => {},
-    noopSubmit: () => {
+    noop: function() {},
+    noopSubmit: function() {
       console.error('submit: form not loaded')
     },
-    noopOnFieldBlur: (fieldName: FieldName<T>) => {
+    noopOnFieldBlur: function(fieldName: FieldName<T>) {
       console.error('blur: form not loaded')
     },
-    noopSetFieldValue: (fieldName: FieldName<T>, value) => {
+    noopSetFieldValue: function(fieldName: FieldName<T>, value) {
       console.error('setFieldValue: form not loaded')
     },
-    noopValidateForm: (): FormValidationResult<T> => ({} as FormValidationResult<T>),
-    noopValidateField: (fieldName: FieldName<T>): ValidationResult => initialValidation
+    noopValidateForm: function(): FormValidationResult<T> {
+      return {} as FormValidationResult<T>
+    },
+    noopValidateField: function(fieldName: FieldName<T>): ValidationResult {
+      return initialValidation
+    }
   }
 }
 

@@ -25,7 +25,7 @@ function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
     // if the form is about to load...
     if (!ps.loaded && loaded) {
       let initialValue = np.initialValue || opts.initialValue
-      state.value = getInitialState(initialValue)
+      state.value = Object.assign({}, getInitialState(initialValue), ps.value)
     } else if (ps.loaded && !loaded) {
       // if the form is about to unload
       // not sure if this is the desired behavior
