@@ -6,7 +6,7 @@ import {
   FormFieldState,
   FormProviderProps,
   FormValidationResult
-} from '../index'
+} from '../'
 export declare type FPS<T> = FormProviderState<T>
 export declare type FFS<T> = FormFieldState<T>
 export declare type FCS<T> = FPS<FFS<T>>

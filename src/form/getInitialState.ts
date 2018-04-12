@@ -1,5 +1,5 @@
 import { transform, clone } from '../utils/index'
-import { FieldState, FormFieldState } from '../index'
+import { FieldState, FormFieldState } from '../'
 
 export const getInitialFieldState = (value?: any): FieldState => ({
   value: value ? clone(value) : null,

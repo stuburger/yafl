@@ -1,17 +1,6 @@
 import * as React from 'react'
 import { clone } from '../utils'
-import {
-  FormProviderState,
-  FormProviderOptions,
-  FormFieldState,
-  FormProviderProps,
-  ProviderValue,
-  Validator,
-  FormValidationResult,
-  FieldName,
-  ValidationResult,
-  ValidatorSet
-} from '../index'
+
 import getInitialState from './getInitialState'
 import {
   validateField,
@@ -23,6 +12,18 @@ import {
   getFormValue,
   getNullState
 } from './index'
+import {
+  FormProviderState,
+  FormProviderOptions,
+  FormFieldState,
+  FormProviderProps,
+  ProviderValue,
+  Validator,
+  FormValidationResult,
+  FieldName,
+  ValidationResult,
+  ValidatorSet
+} from '../'
 
 // todo
 // distinguish between loading / loaded / isBusy

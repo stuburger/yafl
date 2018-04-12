@@ -1,4 +1,4 @@
-import { FormProviderState, FormFieldState } from '../index'
+import { FormProviderState, FormFieldState } from '../'
 
 function getNullState<T>(): FormProviderState<FormFieldState<T>> {
   return {

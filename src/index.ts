@@ -1,4 +1,9 @@
 import * as React from 'react'
+import wrapProvider from './form/createFormProvider'
+import createField from './form/createField'
+import createFormComponent from './form/createFormComponent'
+import getInitialState from './form/getInitialState'
+
 declare module 'react' {
   type Provider<T> = React.ComponentType<{
     value: T
@@ -68,7 +73,7 @@ export interface FormFieldProps<T> extends FormComponentWrapper<T> {
 
 export interface FormProviderOptions<T> {
   initialValue: T
-  getInitialValueAsync: () => Promise<T>
+  getInitialValueAsync?: () => Promise<T>
   submit?: (formValue: T) => void
 }
 
@@ -160,4 +165,27 @@ export type InnerFieldProps<T> = BaseInnerFieldProps<T> & FieldState
 
 export interface RegisterValidator<T> {
   (fieldName: FieldName<T>, validators: Validator[])
+}
+
+function getFormContext<T>(initialValue: T): React.Context<FormProviderState<T>> {
+  return React.createContext<FormProviderState<T>>({
+    value: getInitialState(initialValue),
+    loaded: false,
+    submitting: false,
+    isBusy: false,
+    submitCount: 0
+  })
+}
+
+export function createForm<T>(initialState: T = {} as T): ReactContextForm<T> {
+  const { Consumer, Provider } = getFormContext<T>(initialState)
+
+  return {
+    Form: wrapProvider<T>(Provider, {
+      initialValue: initialState,
+      getInitialValueAsync: undefined
+    }),
+    Field: createField<T>(Consumer),
+    FormComponent: createFormComponent<T>(Consumer)
+  }
 }

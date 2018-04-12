@@ -1,4 +1,4 @@
-import { FieldState, FormFieldState, Validator, ValidationResult } from '../index'
+import { FieldState, FormFieldState, Validator, ValidationResult } from '../'
 
 function validateField<T>(
   value: FieldState,

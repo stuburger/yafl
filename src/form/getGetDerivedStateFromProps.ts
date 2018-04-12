@@ -1,4 +1,4 @@
-import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from '../index'
+import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from '../'
 import { resetFields } from '../form'
 import getInitialState from './getInitialState'
 import { trueIfAbsent } from '../utils'

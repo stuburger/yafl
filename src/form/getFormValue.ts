@@ -1,4 +1,4 @@
-import { FormFieldState } from '../index'
+import { FormFieldState } from '../'
 
 function getFormValue<T>(fields: FormFieldState<T>): T {
   const result = {} as T

@@ -1,4 +1,4 @@
-import { FieldState, FormFieldState } from '../index'
+import { FormFieldState, FieldState } from '../'
 
 export interface FieldUpdater {
   (fields: FieldState): FieldState

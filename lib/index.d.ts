@@ -58,7 +58,7 @@ export interface FormFieldProps<T> extends FormComponentWrapper<T> {
 }
 export interface FormProviderOptions<T> {
   initialValue: T
-  getInitialValueAsync: () => Promise<T>
+  getInitialValueAsync?: () => Promise<T>
   submit?: (formValue: T) => void
 }
 export declare type ValidationResult = string[]
@@ -141,3 +141,4 @@ export declare type InnerFieldProps<T> = BaseInnerFieldProps<T> & FieldState
 export interface RegisterValidator<T> {
   (fieldName: FieldName<T>, validators: Validator[]): any
 }
+export declare function createForm<T>(initialState?: T): ReactContextForm<T>

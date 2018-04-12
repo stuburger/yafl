@@ -1,4 +1,4 @@
-import { FormValidationResult } from '../index'
+import { FormValidationResult } from '../'
 declare function getNoops<T>(): {
   noopSubmit: () => void
   noopOnFieldBlur: (fieldName: keyof T) => void

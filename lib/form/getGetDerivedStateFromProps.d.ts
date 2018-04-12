@@ -1,4 +1,4 @@
-import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from '../index'
+import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from '../'
 declare function getGetDerivedStateFromProps<T>(
   opts: FormProviderOptions<T>
 ): (

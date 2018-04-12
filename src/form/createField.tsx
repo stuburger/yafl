@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { isEqual } from '../utils'
-import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from '../index'
 import AbsentField from '../AbsentField'
+import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from '../'
 
 const defaultFieldState: FieldState = {
   value: '',

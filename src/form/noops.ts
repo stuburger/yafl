@@ -1,4 +1,4 @@
-import { ValidationResult, FieldName, FormValidationResult } from '../index'
+import { ValidationResult, FieldName, FormValidationResult } from '../'
 const initialValidation: ValidationResult = []
 
 function getNoops<T>() {

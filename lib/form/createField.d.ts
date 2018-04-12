@@ -1,6 +1,6 @@
 /// <reference types="react" />
 import * as React from 'react'
-import { ProviderValue, FormFieldProps } from '../index'
+import { ProviderValue, FormFieldProps } from '../'
 declare function wrapConsumer<T>(
   Consumer: React.Consumer<ProviderValue<T>>
 ): {

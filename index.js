@@ -1,3 +1,3 @@
 'use strict'
 
-module.exports = require('./lib/formBuilder')
+module.exports = require('./lib/index')
