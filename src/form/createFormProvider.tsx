@@ -1,5 +1,4 @@
 import * as React from 'react'
-// import * as methods from './prototypeFunctions'
 import { getInitialFieldState } from './getInitialState'
 import {
   // noops,

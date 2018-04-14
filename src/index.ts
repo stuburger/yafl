@@ -2,7 +2,7 @@ import * as React from 'react'
 import wrapProvider from './form/createFormProvider'
 import createField from './form/createField'
 import createFormComponent from './form/createFormComponent'
-import getInitialState from './form/getInitialState'
+import initializeState from './form/getInitialState'
 
 declare module 'react' {
   type Provider<T> = React.ComponentType<{
@@ -46,12 +46,18 @@ export interface FormProviderState<T> {
   submitCount: number
 }
 
+export interface Person {
+  name: string
+}
+
 export interface FormProviderProps<T> {
-  initialValue?: T
+  initialValue?: Partial<T>
   submit?: (formValue: T) => void
   children: React.ReactNode
   loaded?: boolean
   submitting?: boolean
+  allowReinitialize?: boolean
+  rememberStateOnReinitialize?: boolean
 }
 
 export interface Validator<T> {
@@ -74,8 +80,7 @@ export interface FormFieldProps<T> extends FormComponentWrapper<T> {
 }
 
 export interface FormProviderOptions<T> {
-  initialValue: T
-  getInitialValueAsync?: () => Promise<T>
+  initialValue?: Partial<T>
   submit?: (formValue: T) => void
 }
 
@@ -174,7 +179,7 @@ export interface RegisterValidator<T> {
 
 function getFormContext<T>(initialValue: T): React.Context<FormProviderState<T>> {
   return React.createContext<FormProviderState<T>>({
-    value: getInitialState(initialValue),
+    value: initializeState(initialValue),
     loaded: false,
     submitting: false,
     isBusy: false,
@@ -187,8 +192,7 @@ export function createForm<T>(initialState: T = {} as T): ReactContextForm<T> {
 
   return {
     Form: wrapProvider<T>(Provider, {
-      initialValue: initialState,
-      getInitialValueAsync: undefined
+      initialValue: initialState
     }),
     Field: createField<T>(Consumer),
     FormComponent: createFormComponent<T>(Consumer)

@@ -1,4 +1,4 @@
-import getInitialState, { getInitialFieldState } from './getInitialState'
+import initializeState, { getInitialFieldState } from './getInitialState'
 
 const numberValue = {
   value: 5,
@@ -55,7 +55,7 @@ describe('getting the initial state of a single form field with different value 
       expect(getInitialFieldState('Bob')).toEqual(stringValue)
     })
     test('undefined values initialized to null', () => {
-      const result = getInitialFieldState()
+      const result = getInitialFieldState(undefined)
       expect(result).toEqual(nullValue)
     })
   })
@@ -129,7 +129,7 @@ describe('getting the initial form state from the intial value supplied', () => 
     favorites: ['books', 'rock n roll']
   }
 
-  const result = getInitialState(form)
+  const result = initializeState(form)
   test('form state to be initialized correctly', () => {
     expect(result).toEqual(formResult)
   })

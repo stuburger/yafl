@@ -10,6 +10,6 @@ const result = {
 
 describe('getNullState of form component', () => {
   test('should equal', () => {
-    expect(getNullState()).toEqual(result)
+    expect(getNullState<any>()).toEqual(result)
   })
 })

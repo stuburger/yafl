@@ -35,12 +35,17 @@ export interface FormProviderState<T> {
     submitting: boolean;
     submitCount: number;
 }
+export interface Person {
+    name: string;
+}
 export interface FormProviderProps<T> {
-    initialValue?: T;
+    initialValue?: Partial<T>;
     submit?: (formValue: T) => void;
     children: React.ReactNode;
     loaded?: boolean;
     submitting?: boolean;
+    allowReinitialize?: boolean;
+    rememberStateOnReinitialize?: boolean;
 }
 export interface Validator<T> {
     (value: FieldState, formValue: FormFieldState<T>, fieldName: FieldName<T>): string | undefined;
@@ -60,8 +65,7 @@ export interface FormFieldProps<T> extends FormComponentWrapper<T> {
     component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>;
 }
 export interface FormProviderOptions<T> {
-    initialValue: T;
-    getInitialValueAsync?: () => Promise<T>;
+    initialValue?: Partial<T>;
     submit?: (formValue: T) => void;
 }
 export declare type ValidationResult = string[];

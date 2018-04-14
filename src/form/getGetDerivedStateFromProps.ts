@@ -1,36 +1,39 @@
 import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from '../'
-import { resetFields } from '../form'
-import getInitialState from './getInitialState'
+import { resetFields, getNullState } from '../form'
 import { trueIfAbsent } from '../utils'
+import initializeState from './getInitialState'
 
 function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
-  if (opts.getInitialValueAsync) {
-    return (
-      np: FormProviderProps<T>,
-      ps: FormProviderState<FormFieldState<T>>
-    ): Partial<FormProviderState<FormFieldState<T>>> => {
-      return {
-        isBusy: np.submitting,
-        submitting: np.submitting
-      }
-    }
-  }
-
   return (
     np: FormProviderProps<T>,
     ps: FormProviderState<FormFieldState<T>>
   ): Partial<FormProviderState<FormFieldState<T>>> => {
-    const state: Partial<FormProviderState<FormFieldState<T>>> = {}
+    let state: Partial<FormProviderState<FormFieldState<T>>> = {}
     const loaded = trueIfAbsent(np.loaded)
-    // if the form is about to load...
     if (!ps.loaded && loaded) {
-      let initialValue = np.initialValue || opts.initialValue
-      state.value = Object.assign({}, getInitialState(initialValue), ps.value)
+      let initialValue = np.initialValue || opts.initialValue || {}
+      // state.initialValue = initialValue
+      state.value = Object.assign({}, initializeState<Partial<T>>(initialValue), ps.value)
     } else if (ps.loaded && !loaded) {
-      // if the form is about to unload
-      // not sure if this is the desired behavior
+      state = getNullState<T>()
       state.value = resetFields(ps.value)
     }
+
+    // if (np.allowReinitialize && !isEqual(ps.initialValue, np.initialValue)) {
+    //   if (np.initialValue) {
+    //     if (np.rememberStateOnReinitialize) {
+    //       state.value = reinitializeState<T>(np.initialValue, ps.value)
+    //     } else {
+    //       state.value = initializeState<T>(np.initialValue)
+    //       state.submitCount = 0
+    //     }
+    //   } else {
+    //     if (np.rememberStateOnReinitialize) {
+    //       state.submitCount = 0
+    //     }
+    //     state.value = initializeState<T>(getFormValue<T>(resetFields(ps.value)))
+    //   }
+    // }
 
     if (!ps.loaded) {
       state.loaded = loaded
@@ -44,3 +47,15 @@ function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
 }
 
 export default getGetDerivedStateFromProps
+
+// if (opts.getInitialValueAsync) {
+// 	return (
+// 		np: FormProviderProps<T>,
+// 		ps: FormProviderState<FormFieldState<T>>
+// 	): Partial<FormProviderState<FormFieldState<T>>> => {
+// 		return {
+// 			isBusy: np.submitting,
+// 			submitting: np.submitting
+// 		}
+// 	}
+// }
