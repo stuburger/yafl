@@ -48,7 +48,7 @@ const expectedResult1 = {
 }
 
 describe('getFormValue function', () => {
-  const testResult1 = getFormValue(formState1)
+  const testResult1 = getFormValue<any>(formState1)
   test('should correctly convert form state to the actual value of the form', () => {
     expect(testResult1).toEqual(expectedResult1)
   })
