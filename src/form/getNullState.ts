@@ -1,12 +1,13 @@
 import { FormProviderState, FormFieldState } from '../'
 
-function getNullState<T>(): FormProviderState<FormFieldState<T>> {
+function getNullState<T>(): FormProviderState<T> {
   return {
     value: {} as FormFieldState<T>,
     loaded: false,
     isBusy: true,
     submitting: false,
-    submitCount: 0
+    submitCount: 0,
+    initialValue: {}
   }
 }
 

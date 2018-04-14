@@ -5,7 +5,8 @@ const result = {
   loaded: false,
   isBusy: true,
   submitting: false,
-  submitCount: 0
+  submitCount: 0,
+  initialValue: {}
 }
 
 describe('getNullState of form component', () => {

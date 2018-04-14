@@ -1,3 +1,3 @@
-import { FormProviderState, FormFieldState } from '../';
-declare function getNullState<T>(): FormProviderState<FormFieldState<T>>;
+import { FormProviderState } from '../';
+declare function getNullState<T>(): FormProviderState<T>;
 export default getNullState;

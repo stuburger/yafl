@@ -30,6 +30,7 @@ export declare type FormFieldState<T> = {
 };
 export interface FormProviderState<T> {
     value: FormFieldState<T>;
+    initialValue: Partial<T>;
     isBusy: boolean;
     loaded: boolean;
     submitting: boolean;
@@ -105,6 +106,7 @@ export interface ReactContextForm<T> {
 }
 export interface ProviderValue<T> {
     value: FormFieldState<T>;
+    initialValue: Partial<T>;
     unload: () => void;
     loaded: boolean;
     submitting: boolean;
@@ -153,4 +155,4 @@ export declare type InnerFieldProps<T> = BaseInnerFieldProps<T> & FieldState;
 export interface RegisterValidator<T> {
     (fieldName: FieldName<T>, validators: Validator<T>[]): any;
 }
-export declare function createForm<T>(initialState?: T): ReactContextForm<T>;
+export declare function createForm<T>(initialState?: Partial<T>): ReactContextForm<T>;

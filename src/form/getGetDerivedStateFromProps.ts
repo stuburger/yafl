@@ -1,39 +1,41 @@
-import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from '../'
-import { resetFields, getNullState } from '../form'
-import { trueIfAbsent } from '../utils'
-import initializeState from './getInitialState'
+import { FormProviderOptions, FormProviderProps, FormProviderState } from '../'
+import { resetFields, getNullState, getFormValue } from '../form'
+import { trueIfAbsent, isEqual } from '../utils'
+import initializeState, { reinitializeState } from './getInitialState'
 
 function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
   return (
     np: FormProviderProps<T>,
-    ps: FormProviderState<FormFieldState<T>>
-  ): Partial<FormProviderState<FormFieldState<T>>> => {
-    let state: Partial<FormProviderState<FormFieldState<T>>> = {}
+    ps: FormProviderState<T>
+  ): Partial<FormProviderState<Partial<T>>> => {
+    let state: Partial<FormProviderState<Partial<T>>> = {}
     const loaded = trueIfAbsent(np.loaded)
     if (!ps.loaded && loaded) {
       let initialValue = np.initialValue || opts.initialValue || {}
-      // state.initialValue = initialValue
+      state.initialValue = initialValue
       state.value = Object.assign({}, initializeState<Partial<T>>(initialValue), ps.value)
     } else if (ps.loaded && !loaded) {
-      state = getNullState<T>()
+      state = getNullState<Partial<T>>()
       state.value = resetFields(ps.value)
     }
 
-    // if (np.allowReinitialize && !isEqual(ps.initialValue, np.initialValue)) {
-    //   if (np.initialValue) {
-    //     if (np.rememberStateOnReinitialize) {
-    //       state.value = reinitializeState<T>(np.initialValue, ps.value)
-    //     } else {
-    //       state.value = initializeState<T>(np.initialValue)
-    //       state.submitCount = 0
-    //     }
-    //   } else {
-    //     if (np.rememberStateOnReinitialize) {
-    //       state.submitCount = 0
-    //     }
-    //     state.value = initializeState<T>(getFormValue<T>(resetFields(ps.value)))
-    //   }
-    // }
+    if (np.allowReinitialize && !isEqual(ps.initialValue, np.initialValue)) {
+      if (np.initialValue) {
+        if (np.rememberStateOnReinitialize) {
+          state.value = reinitializeState<Partial<T>>(np.initialValue, ps.value)
+        } else {
+          state.value = initializeState<Partial<T>>(np.initialValue)
+          state.submitCount = 0
+        }
+        state.initialValue = np.initialValue
+      } else {
+        if (np.rememberStateOnReinitialize) {
+          state.submitCount = 0
+        }
+        state.initialValue = getFormValue<T>(resetFields(ps.value))
+        state.value = initializeState<Partial<T>>(state.initialValue)
+      }
+    }
 
     if (!ps.loaded) {
       state.loaded = loaded

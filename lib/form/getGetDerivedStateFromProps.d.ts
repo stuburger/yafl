@@ -1,3 +1,3 @@
-import { FormProviderOptions, FormProviderProps, FormProviderState, FormFieldState } from '../';
-declare function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>): (np: FormProviderProps<T>, ps: FormProviderState<FormFieldState<T>>) => Partial<FormProviderState<FormFieldState<T>>>;
+import { FormProviderOptions, FormProviderProps, FormProviderState } from '../';
+declare function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>): (np: FormProviderProps<T>, ps: FormProviderState<T>) => Partial<FormProviderState<Partial<T>>>;
 export default getGetDerivedStateFromProps;

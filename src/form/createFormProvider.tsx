@@ -17,7 +17,6 @@ import {
 import {
   FormProviderState,
   FormProviderOptions,
-  FormFieldState,
   FormProviderProps,
   ProviderValue,
   Validator,
@@ -28,8 +27,7 @@ import {
 import { bind, clone, transform } from '../utils'
 
 export type FPS<T> = FormProviderState<T>
-export type FFS<T> = FormFieldState<T>
-export type FCS<T> = FPS<FFS<T>> //FormComponentState
+export type FCS<T> = FPS<T> //FormComponentState
 export type FPP<T> = FormProviderProps<T>
 export type FPO<T> = FormProviderOptions<T>
 export type FVR<T> = FormValidationResult<T>
@@ -124,7 +122,9 @@ function wrapFormProvider<T>(
       this.registerValidator(fieldName, validators)
       this.setState(s => {
         const state = clone(s)
-        state.value[fieldName] = getInitialFieldState(value)
+        const field = state.value[fieldName]
+        const val = field ? field.value || value : value
+        state.value[fieldName] = getInitialFieldState(val || value)
         return state
       })
     }
@@ -138,6 +138,7 @@ function wrapFormProvider<T>(
     }
 
     getProviderValue(): ProviderValue<T> {
+      // const { initialValue, ...state } = this.state
       return {
         ...this.state,
         unload: this.unload,

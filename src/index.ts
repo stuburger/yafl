@@ -40,6 +40,7 @@ export type FormFieldState<T> = { [k in keyof T]: FieldState }
 
 export interface FormProviderState<T> {
   value: FormFieldState<T>
+  initialValue: Partial<T>
   isBusy: boolean
   loaded: boolean
   submitting: boolean
@@ -123,6 +124,7 @@ export interface ReactContextForm<T> {
 
 export interface ProviderValue<T> {
   value: FormFieldState<T>
+  initialValue: Partial<T>
   unload: () => void
   loaded: boolean
   submitting: boolean
@@ -177,21 +179,22 @@ export interface RegisterValidator<T> {
   (fieldName: FieldName<T>, validators: Validator<T>[])
 }
 
-function getFormContext<T>(initialValue: T): React.Context<FormProviderState<T>> {
-  return React.createContext<FormProviderState<T>>({
-    value: initializeState(initialValue),
+function getFormContext<T>(initialValue: Partial<T>): React.Context<FormProviderState<Partial<T>>> {
+  return React.createContext<FormProviderState<Partial<T>>>({
+    value: initializeState<Partial<T>>(initialValue),
     loaded: false,
     submitting: false,
     isBusy: false,
-    submitCount: 0
+    submitCount: 0,
+    initialValue: {}
   })
 }
 
-export function createForm<T>(initialState: T = {} as T): ReactContextForm<T> {
+export function createForm<T>(initialState: Partial<T> = {}): ReactContextForm<T> {
   const { Consumer, Provider } = getFormContext<T>(initialState)
 
   return {
-    Form: wrapProvider<T>(Provider, {
+    Form: wrapProvider<Partial<T>>(Provider, {
       initialValue: initialState
     }),
     Field: createField<T>(Consumer),
