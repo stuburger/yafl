@@ -10,7 +10,10 @@ import {
   touchAllFields,
   formIsValid,
   getFormValue,
-  resetFields
+  resetFields,
+  formIsDirty,
+  setFieldValue,
+  blurField
 } from './index'
 import {
   FormProviderState,
@@ -21,10 +24,9 @@ import {
   Validator,
   FormValidationResult,
   FieldName,
-  ValidationResult,
   ValidatorSet
 } from '../'
-import { bind, clone, transform, isEqual } from '../utils'
+import { bind, clone, transform } from '../utils'
 
 export type FPS<T> = FormProviderState<T>
 export type FFS<T> = FormFieldState<T>
@@ -44,13 +46,13 @@ function wrapFormProvider<T>(
 
     constructor(props) {
       super(props)
-      const onlyIfLoaded = func => {
+      const onlyIfLoaded = (func, defaultFunc = noop) => {
         func = bind(this, func)
         return bind(this, function(...params) {
           if (!this.state.isBusy) {
             return func(...params)
           }
-          return noop
+          return defaultFunc
         })
       }
       this.submit = onlyIfLoaded(this.submit)
@@ -59,10 +61,9 @@ function wrapFormProvider<T>(
       this.unload = onlyIfLoaded(this.unload)
       this.forgetState = onlyIfLoaded(this.forgetState)
       this.clearForm = onlyIfLoaded(this.clearForm)
-      this.validateForm = bind(this, this.validateForm)
-      this.validateField = bind(this, this.validateField)
+      this.formIsDirty = onlyIfLoaded(this.formIsDirty, () => false)
+      this.validateForm = onlyIfLoaded(this.validateForm, () => ({}))
       this.registerField = bind(this, this.registerField)
-      this.formIsDirty = bind(this, this.formIsDirty)
       this.registerValidator = bind(this, this.registerValidator)
       this.getProviderValue = bind(this, this.getProviderValue)
     }
@@ -78,25 +79,24 @@ function wrapFormProvider<T>(
       }))
 
       if (formIsValid<T>(this.validateForm())) {
-        const { submit = () => {} } = this.props
+        const { submit = noop } = this.props
         submit(getFormValue<T>(this.state.value))
       } else {
         console.warn('cannot submit, form is not valid...')
       }
     }
 
-    setFieldValue(fieldName: FieldName<T>, value: any) {
-      const state = clone(this.state)
-      state.value[fieldName].value = value
-      state.value[fieldName].touched = true
-      this.setState(state)
+    setFieldValue(fieldName: FieldName<T>, val: any) {
+      const value = clone(this.state.value)
+      value[fieldName] = setFieldValue(value[fieldName], val)
+      this.setState(state => ({ value }))
     }
 
     onFieldBlur(fieldName: FieldName<T>) {
       if (this.state.value[fieldName].didBlur) return
-      const state = clone(this.state)
-      state.value[fieldName].didBlur = true
-      this.setState(state)
+      const value = clone(this.state.value)
+      value[fieldName] = blurField(value[fieldName])
+      this.setState({ value })
     }
 
     unload() {
@@ -108,26 +108,20 @@ function wrapFormProvider<T>(
     }
 
     validateForm(): FormValidationResult<T> {
-      if (!this.state.loaded) return {} as FormValidationResult<T>
-      let result = {} as FormValidationResult<T>
-      for (let v in this.validators) {
-        result[v] = this.validateField(v)
-      }
-      return result
-    }
-
-    validateField(fieldName: FieldName<T>): ValidationResult {
+      type PVS = Partial<ValidatorSet<T>>
       const form = this.state.value
-      const value = form[fieldName]
-      const validators = this.validators[fieldName]
-      return validateField<T>(value, form, validators)
+      const result = transform<PVS, FVR<T>>(this.validators, (ret, validators, fieldName) => {
+        ret[fieldName] = validateField<T>(fieldName, form, validators)
+        return ret
+      })
+      return result
     }
 
     clearForm() {
       this.setState({ value: resetFields<T>(this.state.value) })
     }
 
-    registerField(fieldName: FieldName<T>, value: T[keyof T], validators: Validator[]) {
+    registerField(fieldName: FieldName<T>, value: T[keyof T], validators: Validator<T>[]) {
       this.registerValidator(fieldName, validators)
       this.setState(s => {
         const state = clone(s)
@@ -137,19 +131,10 @@ function wrapFormProvider<T>(
     }
 
     formIsDirty(): boolean {
-      const { loaded, value } = this.state
-      let clean = true
-      if (loaded) {
-        clean = transform(
-          value,
-          (ret, field, key) => ret && isEqual(field.value, field.originalValue),
-          clean
-        )
-      }
-      return !clean
+      return formIsDirty(this.state.value)
     }
 
-    registerValidator(fieldName: FieldName<T>, validators: Validator[]) {
+    registerValidator(fieldName: FieldName<T>, validators: Validator<T>[]) {
       this.validators[fieldName] = validators
     }
 

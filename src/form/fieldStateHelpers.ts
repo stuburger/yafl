@@ -1,5 +1,6 @@
 import { FormFieldState, FieldState } from '../'
 import { createEmptyField } from './getInitialState'
+import { transform, isEqual, clone } from '../utils'
 
 export interface FieldUpdater {
   (fields: FieldState): FieldState
@@ -15,31 +16,43 @@ export function createFormUpdater(update: FieldUpdater) {
   }
 }
 
+export const setFieldValue = (field: FieldState, value: any): FieldState => {
+  const res = touchField(field)
+  res.value = value
+  return res
+}
+
+export const blurField: FieldUpdater = (field: FieldState): FieldState => {
+  if (field.didBlur) return field
+  const res = clone(field)
+  res.didBlur = true
+  return res
+}
+
 export const touchField: FieldUpdater = (field: FieldState) => {
-  const res = createEmptyField()
+  const res = clone(field)
   res.touched = true
-  res.value = field.value
-  res.didBlur = field.didBlur
-  res.originalValue = field.originalValue
   return res
 }
 
 export function untouchField(field: FieldState): FieldState {
-  const res = createEmptyField()
+  const res = clone(field)
   res.touched = false
-  res.value = field.value
   res.didBlur = false
-  res.originalValue = field.originalValue
   return res
 }
 
 export function resetField(field: FieldState): FieldState {
-  const res = createEmptyField()
-  res.touched = false
-  res.value = null
-  res.didBlur = false
-  res.originalValue = null
-  return res
+  return createEmptyField()
+}
+
+export function formIsDirty<T>(value: FormFieldState<T>): boolean {
+  let clean = transform(
+    value,
+    (ret, field, key) => ret && isEqual(field.value, field.originalValue),
+    true
+  )
+  return !clean
 }
 
 export const touchAllFields = createFormUpdater(touchField)

@@ -2,13 +2,9 @@ import * as React from 'react'
 import { isEqual } from '../utils'
 import AbsentField from '../AbsentField'
 import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from '../'
+import { getInitialFieldState } from './getInitialState'
 
-const defaultFieldState: FieldState = {
-  value: '',
-  originalValue: '',
-  didBlur: false,
-  touched: false
-}
+const defaultFieldState: FieldState = getInitialFieldState('')
 
 function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const InnerField = getInnerField<T>()
@@ -17,8 +13,8 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   return class FormField extends React.Component<FormFieldProps<T>> {
     _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T>) => {
       const { render, component, name, validators, ...props } = this.props
-      const state = loaded && value[name] ? value[name] : defaultFieldState
-      const validation = loaded && value[name] ? providerValue.validation[name] : emptyArray
+      const state = value[name] || defaultFieldState
+      const validation = providerValue.validation[name] || emptyArray
       return (
         <InnerField
           {...state}
@@ -63,10 +59,6 @@ function getInnerField<T>() {
       if (validators !== pp.validators) {
         registerValidator(name, validators)
       }
-    }
-
-    componentWillUnmount() {
-      // unregisterField()
     }
 
     onBlur = e => {

@@ -1,3 +1,3 @@
-import { FieldState, FormFieldState, Validator, ValidationResult } from '../';
-declare function validateField<T>(value: FieldState, form: FormFieldState<T>, validators?: Validator[]): ValidationResult;
+import { FormFieldState, Validator, ValidationResult, FieldName } from '../index';
+declare function validateField<T>(fieldName: FieldName<T>, form: FormFieldState<T>, validators?: Validator<T>[]): ValidationResult;
 export default validateField;

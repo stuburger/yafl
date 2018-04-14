@@ -1,12 +1,11 @@
 import { FormFieldState } from '../'
+import { transform } from '../utils'
 
 function getFormValue<T>(fields: FormFieldState<T>): T {
-  const result = {} as T
-  for (let fieldName in fields) {
-    const temp = fields[fieldName]
-    result[fieldName] = temp.value
-  }
-  return result
+  return transform<FormFieldState<T>, T>(fields, (ret, value, fieldName) => {
+    ret[fieldName] = fields[fieldName].value
+    return ret
+  })
 }
 
 export default getFormValue

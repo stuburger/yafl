@@ -94,4 +94,8 @@ describe('transform objects', () => {
     expect(testResult2.contact_contact).not.toBe(input1.contact)
     expect(testResult2.favorites_favorites).not.toBe(input1.favorites)
   })
+
+  test('produce an empty object', () => {
+    expect(transform({}, () => ({}))).toEqual({})
+  })
 })

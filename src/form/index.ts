@@ -4,4 +4,11 @@ export { default as getNullState } from './getNullState'
 export { default as formIsValid } from './formIsValid'
 export { default as noops } from './noops'
 export { default as getGetDerivedStateFromProps } from './getGetDerivedStateFromProps'
-export { touchAllFields, untouchAllFields, resetFields } from './fieldStateHelpers'
+export {
+  touchAllFields,
+  untouchAllFields,
+  resetFields,
+  formIsDirty,
+  setFieldValue,
+  blurField
+} from './fieldStateHelpers'
