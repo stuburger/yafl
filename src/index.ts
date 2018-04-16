@@ -139,6 +139,8 @@ export interface ProviderValue<T> {
   registerField: (fieldName: FieldName<T>, initialValue: any, validators: Validator<T>[]) => void
   onFieldBlur: (fieldName: FieldName<T>) => void
   setFieldValue: (fieldName: FieldName<T>, value: any) => void
+  touch: (fieldName: FieldName<T>) => void
+  untouch: (fieldName: FieldName<T>) => void
 }
 
 export interface BaseFormComponentProps<T> {
@@ -149,6 +151,8 @@ export interface BaseFormComponentProps<T> {
   submitting: boolean
   formIsDirty: boolean
   submit: () => void
+  touch: (fieldName: FieldName<T>) => void
+  untouch: (fieldName: FieldName<T>) => void
   setFieldValue: (fieldName: FieldName<T>, value: any) => void
 }
 

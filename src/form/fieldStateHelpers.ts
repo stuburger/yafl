@@ -38,7 +38,6 @@ export const touchField: FieldUpdater = (field: FieldState) => {
 export function untouchField(field: FieldState): FieldState {
   const res = clone(field)
   res.touched = false
-  res.didBlur = false
   return res
 }
 

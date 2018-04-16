@@ -15,6 +15,7 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
       const { render, component, name, validators, ...props } = this.props
       const state = value[name] || defaultFieldState
       const validation = providerValue.validation[name] || emptyArray
+
       return (
         <InnerField
           {...state}
@@ -25,8 +26,10 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
           validation={validation}
           validators={validators}
           formIsDirty={formIsDirty}
+          touch={providerValue.touch}
           submit={providerValue.submit}
           unload={providerValue.unload}
+          untouch={providerValue.untouch}
           clearForm={providerValue.clearForm}
           submitting={providerValue.submitting}
           forgetState={providerValue.forgetState}
@@ -74,16 +77,31 @@ function getInnerField<T>() {
       setFieldValue(name, e.target.value)
     }
 
+    touch = (name = this.props.name) => {
+      const { touch } = this.props
+      touch(this.props.name)
+    }
+
+    untouch = (name = this.props.name) => {
+      const { untouch } = this.props
+      untouch(name)
+    }
+
     collectProps = () => {
       const {
+        touch,
+        untouch,
         render,
         component,
         initialValue,
+        registerField,
         registerValidator,
         validation = emptyArray,
         ...props
       } = this.props
       return {
+        touch: this.touch,
+        untouch: this.untouch,
         name: this.props.name,
         value: this.props.value,
         originalValue: this.props.originalValue,
@@ -93,9 +111,9 @@ function getInnerField<T>() {
         isValid: validation.length === 0,
         messages: validation,
         submitCount: this.props.submitCount,
-        ...props,
         onBlur: this.onBlur,
-        onChange: this.onChange
+        onChange: this.onChange,
+        ...props
       }
     }
 
@@ -103,12 +121,13 @@ function getInnerField<T>() {
       const { render, component: Component, name } = this.props
 
       const props = this.collectProps()
-      if (render) {
-        return render(props)
-      }
 
       if (Component) {
         return <Component {...props} />
+      }
+
+      if (render) {
+        return render(props)
       }
 
       return (

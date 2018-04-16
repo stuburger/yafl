@@ -13,7 +13,7 @@ function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
     if (!ps.loaded && loaded) {
       let initialValue = np.initialValue || opts.initialValue || {}
       state.initialValue = initialValue
-      state.value = Object.assign({}, initializeState<Partial<T>>(initialValue), ps.value)
+      state.value = Object.assign({}, ps.value, initializeState<Partial<T>>(initialValue))
     } else if (ps.loaded && !loaded) {
       state = getNullState<Partial<T>>()
       state.value = resetFields(ps.value)

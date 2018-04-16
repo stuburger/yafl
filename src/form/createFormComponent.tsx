@@ -5,7 +5,12 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const Component = getComponent<T>()
 
   return class FormComponent extends React.Component<FormComponentWrapper<T>> {
-    _render = ({ registerValidator, onFieldBlur, ...providerValue }: ProviderValue<T>) => {
+    _render = ({
+      registerValidator,
+      registerField,
+      onFieldBlur,
+      ...providerValue
+    }: ProviderValue<T>) => {
       return <Component {...this.props} {...providerValue} />
     }
 

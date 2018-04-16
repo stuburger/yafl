@@ -25,6 +25,7 @@ import {
   ValidatorSet
 } from '../'
 import { bind, clone, transform } from '../utils'
+import { touchField, untouchField } from './fieldStateHelpers'
 
 export type FPS<T> = FormProviderState<T>
 export type FCS<T> = FPS<T> //FormComponentState
@@ -58,6 +59,8 @@ function wrapFormProvider<T>(
       this.unload = onlyIfLoaded(this.unload)
       this.forgetState = onlyIfLoaded(this.forgetState)
       this.clearForm = onlyIfLoaded(this.clearForm)
+      this.touchField = onlyIfLoaded(this.touchField)
+      this.untouchField = onlyIfLoaded(this.untouchField)
       this.formIsDirty = onlyIfLoaded(this.formIsDirty, () => false)
       this.validateForm = onlyIfLoaded(this.validateForm, () => ({}))
       this.registerField = bind(this, this.registerField)
@@ -84,9 +87,50 @@ function wrapFormProvider<T>(
     }
 
     setFieldValue(fieldName: FieldName<T>, val: any) {
+      if (!this.state.value[fieldName]) return
       const value = clone(this.state.value)
       value[fieldName] = setFieldValue(value[fieldName], val)
       this.setState(state => ({ value }))
+    }
+
+    touchField(fieldName: FieldName<T>) {
+      if (!this.state.value[fieldName]) return
+      const value = clone(this.state.value)
+      value[fieldName] = touchField(value[fieldName])
+      this.setState(state => ({ value }))
+    }
+
+    touchFields(fieldNames: FieldName<T>[]) {
+      let didUpdate = false
+      const value = clone(this.state.value)
+      fieldNames.forEach(fieldName => {
+        if (value[fieldName]) {
+          value[fieldName] = touchField(value[fieldName])
+          didUpdate = true
+        }
+      })
+
+      if (didUpdate) this.setState(state => ({ value }))
+    }
+
+    untouchField(fieldName: FieldName<T>) {
+      if (!this.state.value[fieldName]) return
+      const value = clone(this.state.value)
+      value[fieldName] = untouchField(value[fieldName])
+      this.setState(state => ({ value }))
+    }
+
+    untouchFields(fieldNames: FieldName<T>[]) {
+      let didUpdate = false
+      const value = clone(this.state.value)
+      fieldNames.forEach(fieldName => {
+        if (value[fieldName]) {
+          value[fieldName] = untouchField(value[fieldName])
+          didUpdate = true
+        }
+      })
+
+      if (didUpdate) this.setState(state => ({ value }))
     }
 
     onFieldBlur(fieldName: FieldName<T>) {
@@ -120,6 +164,7 @@ function wrapFormProvider<T>(
 
     registerField(fieldName: FieldName<T>, value: T[keyof T], validators: Validator<T>[]) {
       this.registerValidator(fieldName, validators)
+      if (this.state.value[fieldName]) return // field is already registered
       this.setState(s => {
         const state = clone(s)
         const field = state.value[fieldName]
@@ -138,12 +183,13 @@ function wrapFormProvider<T>(
     }
 
     getProviderValue(): ProviderValue<T> {
-      // const { initialValue, ...state } = this.state
       return {
         ...this.state,
         unload: this.unload,
         submit: this.submit,
         clearForm: this.clearForm,
+        touch: this.touchField,
+        untouch: this.untouchField,
         forgetState: this.forgetState,
         formIsDirty: this.formIsDirty(),
         onFieldBlur: this.onFieldBlur,
