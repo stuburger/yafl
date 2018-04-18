@@ -4,27 +4,24 @@ import { trueIfAbsent, isEqual } from '../utils'
 import initializeState, { reinitializeState } from './getInitialState'
 
 function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
-  return (
-    np: FormProviderProps<T>,
-    ps: FormProviderState<T>
-  ): Partial<FormProviderState<Partial<T>>> => {
-    let state: Partial<FormProviderState<Partial<T>>> = {}
+  return (np: FormProviderProps<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {
+    let state: Partial<FormProviderState<T>> = {}
     const loaded = trueIfAbsent(np.loaded)
     if (!ps.loaded && loaded) {
-      let initialValue = np.initialValue || opts.initialValue || {}
+      let initialValue = np.initialValue || opts.initialValue || ({} as T)
       state.initialValue = initialValue
-      state.value = Object.assign({}, ps.value, initializeState<Partial<T>>(initialValue))
+      state.value = Object.assign({}, ps.value, initializeState<T>(initialValue))
     } else if (ps.loaded && !loaded) {
-      state = getNullState<Partial<T>>()
+      state = getNullState<T>()
       state.value = resetFields(ps.value)
     }
 
     if (np.allowReinitialize && !isEqual(ps.initialValue, np.initialValue)) {
       if (np.initialValue) {
         if (np.rememberStateOnReinitialize) {
-          state.value = reinitializeState<Partial<T>>(np.initialValue, ps.value)
+          state.value = reinitializeState<T>(np.initialValue, ps.value)
         } else {
-          state.value = initializeState<Partial<T>>(np.initialValue)
+          state.value = initializeState<T>(np.initialValue)
           state.submitCount = 0
         }
         state.initialValue = np.initialValue
@@ -33,7 +30,7 @@ function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
           state.submitCount = 0
         }
         state.initialValue = getFormValue<T>(resetFields(ps.value))
-        state.value = initializeState<Partial<T>>(state.initialValue)
+        state.value = initializeState<T>(state.initialValue)
       }
     }
 

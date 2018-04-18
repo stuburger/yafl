@@ -3,7 +3,7 @@ import { FormFieldState, Validator, ValidationResult, FieldName } from '../index
 function validateField<T>(
   fieldName: FieldName<T>,
   form: FormFieldState<T>,
-  validators = [] as Validator<T>[]
+  validators = [] as Validator<T, FieldName<T>>[]
 ): ValidationResult {
   const messages: ValidationResult = []
   const value = form[fieldName]

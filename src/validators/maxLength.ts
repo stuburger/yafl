@@ -1,16 +1,21 @@
-import { FieldState, FormFieldState, Validator, FieldName } from '../index'
+import { FieldState, FormFieldState, StringOrNothing } from '../index'
 
-function maxLength<T>(length: number, message?: string): Validator<T> {
-  return function(
-    value: FieldState,
+function maxLength<T>(length: number, message?: string) {
+  const test = function<P extends keyof T>(
+    value: FieldState<T[P] & (string | any[])>,
     formValue: FormFieldState<T>,
-    fieldName: FieldName<T>
-  ): string | undefined | any {
+    fieldName: P
+  ): StringOrNothing {
     const val = value.value || ''
-    if (value.touched && val.length > length) {
-      return message || `${fieldName} should not be longer than ${length} characters`
+    if (typeof val === 'string') {
+      if (value.touched && val.length > length) {
+        return message || `${fieldName} should not be longer than ${length} characters`
+      }
     }
+    return undefined
   }
+
+  return test
 }
 
 export default maxLength

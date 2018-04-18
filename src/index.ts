@@ -29,18 +29,23 @@ export interface BoolFunc {
   (props: any): boolean
 }
 
-export interface FieldState {
-  value: any
+export type FieldValue<T, K extends keyof T> = T[K]
+//{ [P in keyof T]: T[P] | null }
+
+export type Nullable<T> = { [P in keyof T]: T[P] | null }
+
+export interface FieldState<T> {
+  value: T | null
   didBlur: boolean
   touched: boolean
-  originalValue: any
+  originalValue: T | null
 }
 
-export type FormFieldState<T> = { [k in keyof T]: FieldState }
+export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
 
 export interface FormProviderState<T> {
   value: FormFieldState<T>
-  initialValue: Partial<T>
+  initialValue: T
   isBusy: boolean
   loaded: boolean
   submitting: boolean
@@ -49,11 +54,22 @@ export interface FormProviderState<T> {
 
 export interface Person {
   name: string
+  surname: string
+  age: number
+  gender: string
+  contact: Contact
+  favorites: string[]
 }
 
+export interface Contact {
+  tel: string
+}
+
+export type StringOrNothing = string | undefined
+
 export interface FormProviderProps<T> {
-  initialValue?: Partial<T>
-  submit?: (formValue: T) => void
+  initialValue?: T
+  submit?: (formValue: Nullable<T>) => void
   children: React.ReactNode
   loaded?: boolean
   submitting?: boolean
@@ -61,11 +77,13 @@ export interface FormProviderProps<T> {
   rememberStateOnReinitialize?: boolean
 }
 
-export interface Validator<T> {
-  (value: FieldState, formValue: FormFieldState<T>, fieldName: FieldName<T>): string | undefined
+export interface Validator<T, K extends keyof T> {
+  (value: FieldState<FieldValue<T, K>>, formValue: FormFieldState<T>, fieldName: FieldName<T>):
+    | string
+    | undefined
 }
 
-export type ValidatorSet<T> = { [P in FieldName<T>]: Validator<T>[] }
+export type ValidatorSet<T> = { [P in FieldName<T>]: Validator<T, P>[] }
 
 export interface FormComponentWrapper<T> {
   render?: (state: FormBaseContextReceiverProps<T>) => React.ReactNode
@@ -75,14 +93,14 @@ export interface FormComponentWrapper<T> {
 
 export interface FormFieldProps<T> extends FormComponentWrapper<T> {
   name: FieldName<T>
-  validators?: Validator<T>[]
+  validators?: Validator<T, keyof T>[]
   render?: (state: FormContextReceiverProps<T>) => React.ReactNode
   component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
 }
 
 export interface FormProviderOptions<T> {
-  initialValue?: Partial<T>
-  submit?: (formValue: T) => void
+  initialValue?: T
+  submit?: (formValue: Nullable<T>) => void
 }
 
 export type ValidationResult = string[]
@@ -95,7 +113,7 @@ export type FormValidationResult<T> = { [K in keyof T]: string[] }
 
 export interface FormBaseContextReceiverProps<T> {
   submit: () => void
-  setFieldValue: (fieldName: FieldName<T>, value: any) => void
+  setFieldValue: (fieldName: FieldName<T>, value: FieldValue<T, keyof T>) => void
   submitCount: number
   value: FormFieldState<T>
   loaded: boolean
@@ -124,7 +142,7 @@ export interface ReactContextForm<T> {
 
 export interface ProviderValue<T> {
   value: FormFieldState<T>
-  initialValue: Partial<T>
+  initialValue: T
   unload: () => void
   loaded: boolean
   submitting: boolean
@@ -136,7 +154,11 @@ export interface ProviderValue<T> {
   clearForm: () => void
   validation: FormValidationResult<T>
   registerValidator: RegisterValidator<T>
-  registerField: (fieldName: FieldName<T>, initialValue: any, validators: Validator<T>[]) => void
+  registerField: (
+    fieldName: FieldName<T>,
+    initialValue: any,
+    validators: Validator<T, keyof T>[]
+  ) => void
   onFieldBlur: (fieldName: FieldName<T>) => void
   setFieldValue: (fieldName: FieldName<T>, value: any) => void
   touch: (fieldName: FieldName<T>) => void
@@ -161,12 +183,16 @@ export interface BaseInnerFieldProps<T> extends BaseFormComponentProps<T> {
   isDirty: boolean
   initialValue?: any
   onBlur?: (e) => void
-  validators?: Validator<T>[]
+  validators?: Validator<T, keyof T>[]
   validation: ValidationResult
   registerValidator: RegisterValidator<T>
   onFieldBlur: (fieldName: FieldName<T>) => void
   render?: (value) => React.ReactNode
-  registerField: (fieldName: FieldName<T>, initialValue: any, validators: Validator<T>[]) => void
+  registerField: (
+    fieldName: FieldName<T>,
+    initialValue: any,
+    validators: Validator<T, keyof T>[]
+  ) => void
   component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
 }
 
@@ -177,31 +203,31 @@ export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
   component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>
 }
 
-export type InnerFieldProps<T> = BaseInnerFieldProps<T> & FieldState
+export type InnerFieldProps<T, P extends keyof T> = BaseInnerFieldProps<T> & FieldState<T[P]>
 
 export interface RegisterValidator<T> {
-  (fieldName: FieldName<T>, validators: Validator<T>[])
+  (fieldName: FieldName<T>, validators: Validator<T, keyof T>[])
 }
 
-function getFormContext<T>(initialValue: Partial<T>): React.Context<FormProviderState<Partial<T>>> {
-  return React.createContext<FormProviderState<Partial<T>>>({
-    value: initializeState<Partial<T>>(initialValue),
+function getFormContext<T>(initialValue: T): React.Context<FormProviderState<T>> {
+  return React.createContext<FormProviderState<T>>({
+    value: initializeState<T>(initialValue),
     loaded: false,
     submitting: false,
     isBusy: false,
     submitCount: 0,
-    initialValue: {}
+    initialValue: {} as T
   })
 }
 
-export function createForm<T>(initialState: Partial<T> = {}): ReactContextForm<T> {
-  const { Consumer, Provider } = getFormContext<T>(initialState)
+export function createForm<T>(initialState: Partial<T> = {}): ReactContextForm<Partial<T>> {
+  const { Consumer, Provider } = getFormContext<Partial<T>>(initialState)
 
   return {
     Form: wrapProvider<Partial<T>>(Provider, {
       initialValue: initialState
     }),
-    Field: createField<T>(Consumer),
-    FormComponent: createFormComponent<T>(Consumer)
+    Field: createField<Partial<T>>(Consumer),
+    FormComponent: createFormComponent<Partial<T>>(Consumer)
   }
 }

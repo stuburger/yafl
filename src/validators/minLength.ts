@@ -1,25 +1,21 @@
-import { FieldState, FormFieldState, Validator, FieldName } from '../index'
+import { FieldState, FormFieldState, StringOrNothing } from '../index'
 
-function minLength<T>(length: number, message?: string): Validator<T> {
-  return function(
-    value: FieldState,
+function minLength<T>(length: number, message?: string) {
+  const test = function<P extends keyof T>(
+    value: FieldState<T[P] & (string | any[])>,
     formValue: FormFieldState<T>,
-    fieldName: FieldName<T>
-  ): string | undefined | any {
+    fieldName: P
+  ): StringOrNothing {
     const val = value.value || ''
-    if (value.touched && val.length < length) {
-      return message || `${fieldName} should be at least ${length} characters`
+    if (typeof val === 'string') {
+      if (value.touched && val.length < length) {
+        return message || `${fieldName} should be at least ${length} characters`
+      }
     }
+    return undefined
   }
+
+  return test
 }
 
 export default minLength
-
-// function minLength(len): (field, fieldName, formValue) => string | undefined {
-//   return function(field, fieldName, formValue): string | undefined {
-//     if (field.value.length < len) {
-//       return `${fieldName} must be at least ${len} characters`
-//     }
-//     return
-//   }
-// }

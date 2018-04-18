@@ -1,14 +1,13 @@
 import { FormFieldState, FieldState } from '../';
-export interface FieldUpdater {
-    (fields: FieldState): FieldState;
+export interface FieldUpdater<T, K extends keyof T> {
+    (fields: FieldState<T[K]>): FieldState<T[K]>;
 }
-export declare function createFormUpdater(update: FieldUpdater): <T>(fields: FormFieldState<T>) => FormFieldState<T>;
-export declare const setFieldValue: (field: FieldState, value: any) => FieldState;
-export declare const blurField: FieldUpdater;
-export declare const touchField: FieldUpdater;
-export declare function untouchField(field: FieldState): FieldState;
-export declare function resetField(field: FieldState): FieldState;
+export declare function setFieldValue<T>(field: FieldState<T>, value: T): FieldState<T>;
+export declare function blurField<T>(field: FieldState<T>): FieldState<T>;
+export declare function touchField<T>(field: FieldState<T>): FieldState<T>;
+export declare function untouchField<T>(field: FieldState<T>): FieldState<T>;
+export declare function resetField(): FieldState<null>;
 export declare function formIsDirty<T>(value: FormFieldState<T>): boolean;
-export declare const touchAllFields: <T>(fields: FormFieldState<T>) => FormFieldState<T>;
-export declare const untouchAllFields: <T>(fields: FormFieldState<T>) => FormFieldState<T>;
-export declare const resetFields: <T>(fields: FormFieldState<T>) => FormFieldState<T>;
+export declare function touchAllFields<T>(fields: FormFieldState<T>): FormFieldState<T>;
+export declare function untouchAllFields<T>(fields: FormFieldState<T>): FormFieldState<T>;
+export declare function resetFields<T>(fields: FormFieldState<T>): FormFieldState<T>;

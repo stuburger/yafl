@@ -1,4 +1,4 @@
-import { FormProviderState, FormFieldState } from '../'
+import { FormProviderState, FormFieldState } from '../index'
 
 function getNullState<T>(): FormProviderState<T> {
   return {
@@ -7,7 +7,7 @@ function getNullState<T>(): FormProviderState<T> {
     isBusy: true,
     submitting: false,
     submitCount: 0,
-    initialValue: {}
+    initialValue: {} as T
   }
 }
 

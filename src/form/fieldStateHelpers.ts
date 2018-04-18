@@ -2,46 +2,36 @@ import { FormFieldState, FieldState } from '../'
 import { createEmptyField } from './getInitialState'
 import { transform, isEqual, clone } from '../utils'
 
-export interface FieldUpdater {
-  (fields: FieldState): FieldState
+export interface FieldUpdater<T, K extends keyof T> {
+  (fields: FieldState<T[K]>): FieldState<T[K]>
 }
 
-export function createFormUpdater(update: FieldUpdater) {
-  return function<T>(fields: FormFieldState<T>) {
-    const state = {} as FormFieldState<T>
-    for (let key in fields) {
-      state[key] = update(fields[key])
-    }
-    return state
-  }
-}
-
-export const setFieldValue = (field: FieldState, value: any): FieldState => {
-  const res = touchField(field)
+export function setFieldValue<T>(field: FieldState<T>, value: T): FieldState<T> {
+  const res = touchField<T>(field)
   res.value = value
   return res
 }
 
-export const blurField: FieldUpdater = (field: FieldState): FieldState => {
+export function blurField<T>(field: FieldState<T>): FieldState<T> {
   if (field.didBlur) return field
   const res = clone(field)
   res.didBlur = true
   return res
 }
 
-export const touchField: FieldUpdater = (field: FieldState) => {
+export function touchField<T>(field: FieldState<T>): FieldState<T> {
   const res = clone(field)
   res.touched = true
   return res
 }
 
-export function untouchField(field: FieldState): FieldState {
+export function untouchField<T>(field: FieldState<T>): FieldState<T> {
   const res = clone(field)
   res.touched = false
   return res
 }
 
-export function resetField(field: FieldState): FieldState {
+export function resetField(): FieldState<null> {
   return createEmptyField()
 }
 
@@ -54,6 +44,26 @@ export function formIsDirty<T>(value: FormFieldState<T>): boolean {
   return !clean
 }
 
-export const touchAllFields = createFormUpdater(touchField)
-export const untouchAllFields = createFormUpdater(untouchField)
-export const resetFields = createFormUpdater(resetField)
+export function touchAllFields<T>(fields: FormFieldState<T>) {
+  const state = clone(fields)
+  for (let key in state) {
+    state[key] = touchField(state[key])
+  }
+  return state
+}
+
+export function untouchAllFields<T>(fields: FormFieldState<T>): FormFieldState<T> {
+  const state = clone(fields)
+  for (let key in state) {
+    state[key] = untouchField(state[key])
+  }
+  return state
+}
+
+export function resetFields<T>(fields: FormFieldState<T>): FormFieldState<T> {
+  const state = clone(fields)
+  for (let key in state) {
+    state[key] = resetField()
+  }
+  return state
+}

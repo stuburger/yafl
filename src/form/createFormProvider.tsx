@@ -162,7 +162,11 @@ function wrapFormProvider<T>(
       this.setState({ value: resetFields<T>(this.state.value) })
     }
 
-    registerField(fieldName: FieldName<T>, value: T[keyof T], validators: Validator<T>[]) {
+    registerField(
+      fieldName: FieldName<T>,
+      value: T[keyof T],
+      validators: Validator<T, FieldName<T>>[]
+    ) {
       this.registerValidator(fieldName, validators)
       if (this.state.value[fieldName]) return // field is already registered
       this.setState(s => {
@@ -178,7 +182,7 @@ function wrapFormProvider<T>(
       return formIsDirty(this.state.value)
     }
 
-    registerValidator(fieldName: FieldName<T>, validators: Validator<T>[]) {
+    registerValidator(fieldName: FieldName<T>, validators: Validator<T, FieldName<T>>[]) {
       this.validators[fieldName] = validators
     }
 

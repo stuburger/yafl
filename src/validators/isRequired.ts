@@ -1,27 +1,18 @@
-import { FieldState, FormFieldState, Validator, FieldName } from '../index'
+import { FieldState, FormFieldState, StringOrNothing } from '../index'
 
-function required<T>(message?: string): Validator<T> {
-  return function(
-    value: FieldState,
+function required<T>(message?: string) {
+  const test = function<P extends keyof T>(
+    value: FieldState<T[P] & (string | any[])>,
     formValue: FormFieldState<T>,
-    fieldName: FieldName<T>
-  ): string | undefined {
+    fieldName: P
+  ): StringOrNothing {
     if (value.touched && !value.value) {
       return message || `${fieldName} is required`
     }
     return undefined
   }
+
+  return test
 }
 
 export default required
-
-// const required: Validator = function(
-//   field,
-//   fieldName,
-//   formValue
-// ): string | undefined {
-//   if (!field.value) {
-//     return `${fieldName} is required`
-//   }
-//   return
-// }

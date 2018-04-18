@@ -1,6 +1,7 @@
 import minLength from './minLength'
+import { FormFieldState, Person } from '..'
 
-const formUntouchedInvalid = {
+const formUntouchedInvalid: FormFieldState<Person> = {
   name: {
     value: 'S',
     originalValue: '',
@@ -42,7 +43,7 @@ const formUntouchedInvalid = {
     touched: false
   }
 }
-const formTouchedInvalid = {
+const formTouchedInvalid: FormFieldState<Person> = {
   name: {
     value: 'j',
     originalValue: 'j',
@@ -85,7 +86,7 @@ const formTouchedInvalid = {
   }
 }
 
-const formTouchedValid = {
+const formTouchedValid: FormFieldState<Person> = {
   name: {
     value: 'st',
     originalValue: 'stuart',
@@ -130,7 +131,7 @@ const formTouchedValid = {
 
 const badValuesForm = {
   name: {
-    value: null,
+    value: '',
     originalValue: null,
     didBlur: true,
     touched: true
@@ -148,7 +149,7 @@ const badValuesForm = {
     touched: true
   },
   gender: {
-    value: null,
+    value: '',
     originalValue: null,
     didBlur: true,
     touched: true

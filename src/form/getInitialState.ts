@@ -1,7 +1,7 @@
 import { transform, clone } from '../utils/index'
 import { FieldState, FormFieldState } from '../'
 
-export const createEmptyField = (): FieldState => {
+export const createEmptyField = (): FieldState<null> => {
   return {
     value: null,
     originalValue: null,
@@ -10,7 +10,7 @@ export const createEmptyField = (): FieldState => {
   }
 }
 
-export const getInitialFieldState = (value: any, copyFrom?: FieldState): FieldState => {
+export const getInitialFieldState = <T>(value: T, copyFrom?: FieldState<T>): FieldState<T> => {
   const field = copyFrom ? clone(copyFrom) : createEmptyField()
   field.value = value ? clone(value) : null
   field.originalValue = value ? clone(value) : null
@@ -19,10 +19,11 @@ export const getInitialFieldState = (value: any, copyFrom?: FieldState): FieldSt
 
 export function reinitializeState<T>(val: T, formState: FormFieldState<T>): FormFieldState<T> {
   return transform<T, FormFieldState<T>>(val, (ret, fieldValue, fieldName: keyof T) => {
-    ret[fieldName] = getInitialFieldState(fieldValue, formState[fieldName])
+    ret[fieldName] = getInitialFieldState<T[keyof T]>(fieldValue, formState[fieldName])
     return ret
   })
 }
+
 export default function initializeState<T>(val: T): FormFieldState<T> {
   return transform<T, FormFieldState<T>>(val, (ret, fieldValue, fieldName: keyof T) => {
     ret[fieldName] = getInitialFieldState(fieldValue)

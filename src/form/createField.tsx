@@ -4,7 +4,7 @@ import AbsentField from '../AbsentField'
 import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from '../'
 import { getInitialFieldState } from './getInitialState'
 
-const defaultFieldState: FieldState = getInitialFieldState('')
+const defaultFieldState: FieldState<null> = getInitialFieldState(null)
 
 function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   const InnerField = getInnerField<T>()
@@ -51,13 +51,13 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
 
 function getInnerField<T>() {
   const emptyArray = []
-  class InnerField extends React.Component<InnerFieldProps<T>> {
+  class InnerField extends React.Component<InnerFieldProps<T, keyof T>> {
     componentDidMount() {
       const { registerField, name, initialValue, validators } = this.props
       registerField(name, initialValue, validators || emptyArray)
     }
 
-    componentDidUpdate(pp: InnerFieldProps<T>) {
+    componentDidUpdate(pp: InnerFieldProps<T, keyof T>) {
       const { validators = emptyArray, registerValidator, name } = this.props
       if (validators !== pp.validators) {
         registerValidator(name, validators)
