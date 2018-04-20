@@ -7,14 +7,14 @@ import { getInitialFieldState } from './getInitialState'
 const defaultFieldState: FieldState<null> = getInitialFieldState(null)
 
 function wrapConsumer<T, K extends keyof T>(
-  Consumer: React.Consumer<ProviderValue<T>>,
+  Consumer: React.Consumer<ProviderValue<T, K>>,
   fieldName?: K
-) {
+): React.ComponentClass<FormFieldProps<T, K>> {
   const InnerField = getInnerField<T, K>()
   const emptyArray = []
 
   return class FormField extends React.Component<FormFieldProps<T, K>> {
-    _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T>) => {
+    _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T, K>) => {
       const { render, component, name, validators, ...props } = this.props
       const state = value[name] || defaultFieldState
       const validation = providerValue.validation[name] || emptyArray

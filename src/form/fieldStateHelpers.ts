@@ -31,8 +31,8 @@ export function untouchField<T>(field: FieldState<T>): FieldState<T> {
   return res
 }
 
-export function resetField(): FieldState<null> {
-  return createEmptyField()
+export function resetField<T>(): FieldState<T> {
+  return createEmptyField<T>()
 }
 
 export function formIsDirty<T>(value: FormFieldState<T>): boolean {

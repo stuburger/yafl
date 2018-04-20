@@ -2,33 +2,11 @@ import * as React from 'react'
 import wrapProvider from './form/createFormProvider'
 import createField from './form/createField'
 import createFormComponent from './form/createFormComponent'
-import initializeState from './form/getInitialState'
-
-declare module 'react' {
-  type Provider<T> = React.ComponentType<{
-    value: T
-    children?: React.ReactNode
-  }>
-  type Consumer<T> = React.ComponentType<{
-    children: (value: T) => React.ReactNode
-    unstable_observedBits?: number
-  }>
-  interface Context<T> {
-    Provider: Provider<T>
-    Consumer: Consumer<T>
-  }
-  function createContext<T>(
-    defaultValue: T,
-    calculateChangedBits?: (prev: T, next: T) => number
-  ): Context<T>
-}
+// import initializeState from './form/getInitialState'
 
 export interface BoolFunc {
   (props: any): boolean
 }
-
-export type FieldValue<T, K extends keyof T> = T[K]
-//{ [P in keyof T]: T[P] | null }
 
 export type Nullable<T> = { [P in keyof T]: T[P] | null }
 
@@ -87,7 +65,7 @@ export interface FormComponentWrapper<T> {
   [key: string]: any
 }
 
-export interface FormFieldProps<T, K extends keyof T> extends FormComponentWrapper<T> {
+export interface FormFieldProps<T, K extends keyof T> {
   name: K
   validators?: Validator<T, K>[]
   render?: (state: FormContextReceiverProps<T, K>) => React.ReactNode
@@ -146,7 +124,7 @@ export interface ReactContextForm<T> {
   createTypedField: any
 }
 
-export interface ProviderValue<T> {
+export interface ProviderValue<T, K extends keyof T> {
   value: FormFieldState<T>
   initialValue: T
   unload: () => void
@@ -159,16 +137,12 @@ export interface ProviderValue<T> {
   submitCount: number
   clearForm: () => void
   validation: FormValidationResult<T>
-  registerValidator: RegisterValidator<T, keyof T>
-  registerField: (
-    fieldName: keyof T,
-    initialValue: T[keyof T],
-    validators: Validator<T, keyof T>[]
-  ) => void
-  onFieldBlur: (fieldName: keyof T) => void
-  setFieldValue: (fieldName: keyof T, value: any) => void
-  touch: (fieldName: keyof T) => void
-  untouch: (fieldName: keyof T) => void
+  registerValidator: RegisterValidator<T, K>
+  registerField: (fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void
+  onFieldBlur: (fieldName: K) => void
+  setFieldValue: (fieldName: K, value: any) => void
+  touch: (fieldName: K) => void
+  untouch: (fieldName: K) => void
 }
 
 export interface BaseFormComponentProps<T> {
@@ -222,28 +196,32 @@ export interface RegisterValidator<T, K extends keyof T> {
   (fieldName: K, validators: Validator<T, K>[])
 }
 
-function getFormContext<T>(initialValue: T): React.Context<FormProviderState<T>> {
-  return React.createContext<FormProviderState<T>>({
-    value: initializeState<T>(initialValue),
-    loaded: false,
-    submitting: false,
-    isBusy: false,
-    submitCount: 0,
-    initialValue: {} as T
-  })
+function getFormContext<T>(initialValue: T): React.Context<ProviderValue<T, keyof T>> {
+  return React.createContext<ProviderValue<T, keyof T>>({
+    // value: initializeState<T>(initialValue),
+    // loaded: false,
+    // submitting: false,
+    // isBusy: false,
+    // submitCount: 0,
+    // initialValue: {} as T
+  } as ProviderValue<T, keyof T>)
 }
 
 export function createForm<T>(initialState: Partial<T> = {}) {
   const { Consumer, Provider } = getFormContext<Partial<T>>(initialState)
 
   return {
-    Form: wrapProvider<Partial<T>>(Provider, {
+    Form: wrapProvider<Partial<T>, keyof T>(Provider, {
       initialValue: initialState
     }),
     Field: createField<Partial<T>, keyof T>(Consumer),
     FormComponent: createFormComponent<Partial<T>>(Consumer),
-    createTypedField: function<K extends keyof T>(fieldName: K) {
-      return createField<Partial<T>, K>(Consumer, fieldName)
+    createTypedField: function<K extends keyof T>(fieldName: K, options?: any) {
+      return (function<O>(f: any) {
+        return f as O
+      })<React.ComponentClass<FormFieldProps<T, K>>>(
+        createField<Partial<T>, keyof T>(Consumer, fieldName)
+      )
     }
   }
 }

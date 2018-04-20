@@ -1,24 +1,8 @@
 /// <reference types="react" />
 import * as React from 'react';
-declare module 'react' {
-    type Provider<T> = React.ComponentType<{
-        value: T;
-        children?: React.ReactNode;
-    }>;
-    type Consumer<T> = React.ComponentType<{
-        children: (value: T) => React.ReactNode;
-        unstable_observedBits?: number;
-    }>;
-    interface Context<T> {
-        Provider: Provider<T>;
-        Consumer: Consumer<T>;
-    }
-    function createContext<T>(defaultValue: T, calculateChangedBits?: (prev: T, next: T) => number): Context<T>;
-}
 export interface BoolFunc {
     (props: any): boolean;
 }
-export declare type FieldValue<T, K extends keyof T> = T[K];
 export declare type Nullable<T> = {
     [P in keyof T]: T[P] | null;
 };
@@ -71,7 +55,7 @@ export interface FormComponentWrapper<T> {
     component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>;
     [key: string]: any;
 }
-export interface FormFieldProps<T, K extends keyof T> extends FormComponentWrapper<T> {
+export interface FormFieldProps<T, K extends keyof T> {
     name: K;
     validators?: Validator<T, K>[];
     render?: (state: FormContextReceiverProps<T, K>) => React.ReactNode;
@@ -125,7 +109,7 @@ export interface ReactContextForm<T> {
     FormComponent: React.ComponentClass<FormComponentWrapper<T>>;
     createTypedField: any;
 }
-export interface ProviderValue<T> {
+export interface ProviderValue<T, K extends keyof T> {
     value: FormFieldState<T>;
     initialValue: T;
     unload: () => void;
@@ -138,12 +122,12 @@ export interface ProviderValue<T> {
     submitCount: number;
     clearForm: () => void;
     validation: FormValidationResult<T>;
-    registerValidator: RegisterValidator<T, keyof T>;
-    registerField: (fieldName: keyof T, initialValue: T[keyof T], validators: Validator<T, keyof T>[]) => void;
-    onFieldBlur: (fieldName: keyof T) => void;
-    setFieldValue: (fieldName: keyof T, value: any) => void;
-    touch: (fieldName: keyof T) => void;
-    untouch: (fieldName: keyof T) => void;
+    registerValidator: RegisterValidator<T, K>;
+    registerField: (fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void;
+    onFieldBlur: (fieldName: K) => void;
+    setFieldValue: (fieldName: K, value: any) => void;
+    touch: (fieldName: K) => void;
+    untouch: (fieldName: K) => void;
 }
 export interface BaseFormComponentProps<T> {
     submitCount: number;
@@ -191,26 +175,42 @@ export interface RegisterValidator<T, K extends keyof T> {
     (fieldName: K, validators: Validator<T, K>[]): any;
 }
 export declare function createForm<T>(initialState?: Partial<T>): {
-    Form: React.ComponentClass<FormProviderProps<Partial<T>>>;
-    Field: {
-        new (props: FormFieldProps<Partial<T>, keyof T>, context?: any): {
-            _render: ({value, loaded, formIsDirty, ...providerValue}: ProviderValue<Partial<T>>) => JSX.Element;
+    Form: {
+        new (props: any): {
+            validators: Partial<ValidatorSet<Partial<T>>>;
+            state: FormProviderState<Partial<T>>;
+            submit(): void;
+            setFieldValue(fieldName: keyof T, val: Partial<T>[keyof T]): void;
+            touchField(fieldName: keyof T): void;
+            touchFields(fieldNames: (keyof T)[]): void;
+            untouchField(fieldName: keyof T): void;
+            untouchFields(fieldNames: (keyof T)[]): void;
+            onFieldBlur(fieldName: keyof T): void;
+            unload(): void;
+            forgetState(): void;
+            validateForm(): FormValidationResult<Partial<T>>;
+            clearForm(): void;
+            registerField(fieldName: keyof T, value: Partial<T>[keyof T], validators: Validator<Partial<T>, keyof T>[]): void;
+            formIsDirty(): boolean;
+            registerValidator(fieldName: keyof T, validators: Validator<Partial<T>, keyof T>[]): void;
+            getProviderValue(): ProviderValue<Partial<T>, keyof T>;
             render(): JSX.Element;
-            setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: FormFieldProps<Partial<T>, keyof T>) => {} | Pick<{}, K> | null) | Pick<{}, K> | null, callback?: (() => void) | undefined): void;
+            setState<K extends "value" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<Partial<T>> | ((prevState: Readonly<FormProviderState<Partial<T>>>, props: FormProviderProps<Partial<T>>) => FormProviderState<Partial<T>> | Pick<FormProviderState<Partial<T>>, K> | null) | Pick<FormProviderState<Partial<T>>, K> | null, callback?: (() => void) | undefined): void;
             forceUpdate(callBack?: (() => void) | undefined): void;
             props: Readonly<{
                 children?: React.ReactNode;
-            }> & Readonly<FormFieldProps<Partial<T>, keyof T>>;
-            state: Readonly<{}>;
+            }> & Readonly<FormProviderProps<Partial<T>>>;
             context: any;
             refs: {
                 [key: string]: React.ReactInstance;
             };
         };
+        getDerivedStateFromProps: (np: FormProviderProps<Partial<T>>, ps: FormProviderState<Partial<T>>) => Partial<FormProviderState<Partial<T>>>;
     };
+    Field: React.ComponentClass<FormFieldProps<Partial<T>, keyof T>>;
     FormComponent: {
         new (props: FormComponentWrapper<Partial<T>>, context?: any): {
-            _render: ({registerValidator, registerField, onFieldBlur, ...providerValue}: ProviderValue<Partial<T>>) => JSX.Element;
+            _render: ({registerValidator, registerField, onFieldBlur, ...providerValue}: ProviderValue<Partial<T>, keyof T>) => JSX.Element;
             render(): JSX.Element;
             setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: FormComponentWrapper<Partial<T>>) => {} | Pick<{}, K> | null) | Pick<{}, K> | null, callback?: (() => void) | undefined): void;
             forceUpdate(callBack?: (() => void) | undefined): void;
@@ -224,20 +224,5 @@ export declare function createForm<T>(initialState?: Partial<T>): {
             };
         };
     };
-    createTypedField: <K extends keyof T>(fieldName: K) => {
-        new (props: FormFieldProps<Partial<T>, K>, context?: any): {
-            _render: ({value, loaded, formIsDirty, ...providerValue}: ProviderValue<Partial<T>>) => JSX.Element;
-            render(): JSX.Element;
-            setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: FormFieldProps<Partial<T>, K>) => {} | Pick<{}, K> | null) | Pick<{}, K> | null, callback?: (() => void) | undefined): void;
-            forceUpdate(callBack?: (() => void) | undefined): void;
-            props: Readonly<{
-                children?: React.ReactNode;
-            }> & Readonly<FormFieldProps<Partial<T>, K>>;
-            state: Readonly<{}>;
-            context: any;
-            refs: {
-                [key: string]: React.ReactInstance;
-            };
-        };
-    };
+    createTypedField: <K extends keyof T>(fieldName: K, options?: any) => React.ComponentClass<FormFieldProps<T, K>>;
 };

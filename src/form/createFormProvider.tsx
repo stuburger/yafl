@@ -26,19 +26,13 @@ import {
 import { bind, clone, transform } from '../utils'
 import { touchField, untouchField } from './fieldStateHelpers'
 
-export type FPS<T> = FormProviderState<T>
-export type FCS<T> = FPS<T> //FormComponentState
-export type FPP<T> = FormProviderProps<T>
-export type FPO<T> = FormProviderOptions<T>
-export type FVR<T> = FormValidationResult<T>
-
 const noop = () => {}
 
-function wrapFormProvider<T>(
-  Provider: React.Provider<FPS<T>>,
-  opts: FPO<T>
-): React.ComponentClass<FPP<T>> {
-  class Form extends React.Component<FPP<T>, FCS<T>> {
+function wrapFormProvider<T, K extends keyof T>(
+  Provider: React.Provider<ProviderValue<T, K>>,
+  opts: FormProviderOptions<T>
+) {
+  return class Form extends React.Component<FormProviderProps<T>, FormProviderState<T>> {
     validators: Partial<ValidatorSet<T>> = {}
 
     constructor(props) {
@@ -85,21 +79,21 @@ function wrapFormProvider<T>(
       }
     }
 
-    setFieldValue(fieldName: keyof T, val: T[keyof T]) {
+    setFieldValue(fieldName: K, val: T[K]) {
       if (!this.state.value[fieldName]) return
       const value = clone(this.state.value)
       value[fieldName] = setFieldValue(value[fieldName], val)
       this.setState(state => ({ value }))
     }
 
-    touchField(fieldName: keyof T) {
+    touchField(fieldName: K) {
       if (!this.state.value[fieldName]) return
       const value = clone(this.state.value)
       value[fieldName] = touchField(value[fieldName])
       this.setState(state => ({ value }))
     }
 
-    touchFields(fieldNames: (keyof T)[]) {
+    touchFields(fieldNames: (K)[]) {
       let didUpdate = false
       const value = clone(this.state.value)
       fieldNames.forEach(fieldName => {
@@ -112,14 +106,14 @@ function wrapFormProvider<T>(
       if (didUpdate) this.setState(state => ({ value }))
     }
 
-    untouchField(fieldName: keyof T) {
+    untouchField(fieldName: K) {
       if (!this.state.value[fieldName]) return
       const value = clone(this.state.value)
       value[fieldName] = untouchField(value[fieldName])
       this.setState(state => ({ value }))
     }
 
-    untouchFields(fieldNames: (keyof T)[]) {
+    untouchFields(fieldNames: (K)[]) {
       let didUpdate = false
       const value = clone(this.state.value)
       fieldNames.forEach(fieldName => {
@@ -132,7 +126,7 @@ function wrapFormProvider<T>(
       if (didUpdate) this.setState(state => ({ value }))
     }
 
-    onFieldBlur(fieldName: keyof T) {
+    onFieldBlur(fieldName: K) {
       if (this.state.value[fieldName].didBlur) return
       const value = clone(this.state.value)
       value[fieldName] = blurField(value[fieldName])
@@ -150,10 +144,13 @@ function wrapFormProvider<T>(
     validateForm(): FormValidationResult<T> {
       type PVS = Partial<ValidatorSet<T>>
       const form = this.state.value
-      const result = transform<PVS, FVR<T>>(this.validators, (ret, validators, fieldName) => {
-        ret[fieldName] = validateField<T>(fieldName, form, validators)
-        return ret
-      })
+      const result = transform<PVS, FormValidationResult<T>>(
+        this.validators,
+        (ret, validators, fieldName) => {
+          ret[fieldName] = validateField<T>(fieldName, form, validators)
+          return ret
+        }
+      )
       return result
     }
 
@@ -161,7 +158,7 @@ function wrapFormProvider<T>(
       this.setState({ value: resetFields<T>(this.state.value) })
     }
 
-    registerField(fieldName: keyof T, value: T[keyof T], validators: Validator<T, keyof T>[]) {
+    registerField(fieldName: K, value: T[K], validators: Validator<T, K>[]) {
       this.registerValidator(fieldName, validators)
       if (this.state.value[fieldName]) return // field is already registered
       this.setState(s => {
@@ -177,11 +174,11 @@ function wrapFormProvider<T>(
       return formIsDirty(this.state.value)
     }
 
-    registerValidator(fieldName: keyof T, validators: Validator<T, keyof T>[]) {
+    registerValidator(fieldName: K, validators: Validator<T, K>[]) {
       this.validators[fieldName] = validators
     }
 
-    getProviderValue(): ProviderValue<T> {
+    getProviderValue(): ProviderValue<T, K> {
       return {
         ...this.state,
         unload: this.unload,
@@ -203,8 +200,6 @@ function wrapFormProvider<T>(
       return <Provider value={this.getProviderValue()}>{this.props.children}</Provider>
     }
   }
-
-  return Form
 }
 
 export default wrapFormProvider
