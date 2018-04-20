@@ -6,11 +6,14 @@ import { getInitialFieldState } from './getInitialState'
 
 const defaultFieldState: FieldState<null> = getInitialFieldState(null)
 
-function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
-  const InnerField = getInnerField<T>()
+function wrapConsumer<T, K extends keyof T>(
+  Consumer: React.Consumer<ProviderValue<T>>,
+  fieldName?: K
+) {
+  const InnerField = getInnerField<T, K>()
   const emptyArray = []
 
-  return class FormField extends React.Component<FormFieldProps<T>> {
+  return class FormField extends React.Component<FormFieldProps<T, K>> {
     _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T>) => {
       const { render, component, name, validators, ...props } = this.props
       const state = value[name] || defaultFieldState
@@ -49,15 +52,15 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
   }
 }
 
-function getInnerField<T>() {
+function getInnerField<T, K extends keyof T>() {
   const emptyArray = []
-  class InnerField extends React.Component<InnerFieldProps<T, keyof T>> {
+  class InnerField extends React.Component<InnerFieldProps<T, K>> {
     componentDidMount() {
       const { registerField, name, initialValue, validators } = this.props
       registerField(name, initialValue, validators || emptyArray)
     }
 
-    componentDidUpdate(pp: InnerFieldProps<T, keyof T>) {
+    componentDidUpdate(pp: InnerFieldProps<T, K>) {
       const { validators = emptyArray, registerValidator, name } = this.props
       if (validators !== pp.validators) {
         registerValidator(name, validators)

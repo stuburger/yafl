@@ -91,11 +91,11 @@ export interface FormComponentWrapper<T> {
   [key: string]: any
 }
 
-export interface FormFieldProps<T> extends FormComponentWrapper<T> {
-  name: FieldName<T>
-  validators?: Validator<T, keyof T>[]
-  render?: (state: FormContextReceiverProps<T>) => React.ReactNode
-  component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
+export interface FormFieldProps<T, K extends keyof T> extends FormComponentWrapper<T> {
+  name: K
+  validators?: Validator<T, K>[]
+  render?: (state: FormContextReceiverProps<T, K>) => React.ReactNode
+  component?: React.ComponentType<FormContextReceiverProps<T, K>> | React.ComponentType<any>
 }
 
 export interface FormProviderOptions<T> {
@@ -113,7 +113,7 @@ export type FormValidationResult<T> = { [K in keyof T]: string[] }
 
 export interface FormBaseContextReceiverProps<T> {
   submit: () => void
-  setFieldValue: (fieldName: FieldName<T>, value: FieldValue<T, keyof T>) => void
+  setFieldValue: (fieldName: FieldName<T>, value: T[keyof T]) => void
   submitCount: number
   value: FormFieldState<T>
   loaded: boolean
@@ -123,21 +123,31 @@ export interface FormBaseContextReceiverProps<T> {
   clearForm: () => void
   [key: string]: any
 }
-export interface FormContextReceiverProps<T> extends FormBaseContextReceiverProps<T> {
-  name: FieldName<T>
-  onChange: (value: any) => void
+export interface FormContextReceiverProps<T, K extends keyof T> {
+  name: K
+  onChange: (e) => void
   value: any
   didBlur: boolean
   isDirty: boolean
   touched: boolean
   onBlur: (e) => void
   unload: () => void
+  submit: () => void
+  setFieldValue: (fieldName: K, value: T[K]) => void
+  submitCount: number
+  // formValue: FormFieldState<T>
+  loaded: boolean
+  submitting: boolean
+  forgetState: () => void
+  clearForm: () => void
+  [key: string]: any
 }
 
 export interface ReactContextForm<T> {
   Form: React.ComponentClass<FormProviderProps<T>>
-  Field: React.ComponentClass<FormFieldProps<T>>
+  Field: React.ComponentClass<FormFieldProps<T, keyof T>>
   FormComponent: React.ComponentClass<FormComponentWrapper<T>>
+  createTypedField: any
 }
 
 export interface ProviderValue<T> {
@@ -178,22 +188,29 @@ export interface BaseFormComponentProps<T> {
   setFieldValue: (fieldName: FieldName<T>, value: any) => void
 }
 
-export interface BaseInnerFieldProps<T> extends BaseFormComponentProps<T> {
-  name: FieldName<T>
+export interface BaseInnerFieldProps<T, K extends keyof T> {
+  name: K
   isDirty: boolean
   initialValue?: any
   onBlur?: (e) => void
-  validators?: Validator<T, keyof T>[]
+  validators?: Validator<T, K>[]
   validation: ValidationResult
   registerValidator: RegisterValidator<T>
-  onFieldBlur: (fieldName: FieldName<T>) => void
+  onFieldBlur: (fieldName: K) => void
   render?: (value) => React.ReactNode
-  registerField: (
-    fieldName: FieldName<T>,
-    initialValue: any,
-    validators: Validator<T, keyof T>[]
-  ) => void
-  component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
+  registerField: (fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void
+  component?: React.ComponentType<FormContextReceiverProps<T, K>> | React.ComponentType<any>
+
+  submitCount: number
+  clearForm: () => void
+  unload: () => void
+  forgetState: () => void
+  submitting: boolean
+  formIsDirty: boolean
+  submit: () => void
+  touch: (fieldName: K) => void
+  untouch: (fieldName: K) => void
+  setFieldValue: (fieldName: K, value: T[K]) => void
 }
 
 export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
@@ -203,7 +220,7 @@ export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
   component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>
 }
 
-export type InnerFieldProps<T, P extends keyof T> = BaseInnerFieldProps<T> & FieldState<T[P]>
+export type InnerFieldProps<T, K extends keyof T> = BaseInnerFieldProps<T, K> & FieldState<T[K]>
 
 export interface RegisterValidator<T> {
   (fieldName: FieldName<T>, validators: Validator<T, keyof T>[])
@@ -220,14 +237,17 @@ function getFormContext<T>(initialValue: T): React.Context<FormProviderState<T>>
   })
 }
 
-export function createForm<T>(initialState: Partial<T> = {}): ReactContextForm<Partial<T>> {
+export function createForm<T>(initialState: Partial<T> = {}) {
   const { Consumer, Provider } = getFormContext<Partial<T>>(initialState)
 
   return {
     Form: wrapProvider<Partial<T>>(Provider, {
       initialValue: initialState
     }),
-    Field: createField<Partial<T>>(Consumer),
-    FormComponent: createFormComponent<Partial<T>>(Consumer)
+    Field: createField<Partial<T>, keyof T>(Consumer),
+    FormComponent: createFormComponent<Partial<T>>(Consumer),
+    createTypedField: function<K extends keyof T>(fieldName: K) {
+      return createField<Partial<T>, K>(Consumer, fieldName)
+    }
   }
 }
