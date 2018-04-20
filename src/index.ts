@@ -23,8 +23,6 @@ declare module 'react' {
   ): Context<T>
 }
 
-export type FieldName<T> = keyof T
-
 export interface BoolFunc {
   (props: any): boolean
 }
@@ -78,12 +76,10 @@ export interface FormProviderProps<T> {
 }
 
 export interface Validator<T, K extends keyof T> {
-  (value: FieldState<FieldValue<T, K>>, formValue: FormFieldState<T>, fieldName: FieldName<T>):
-    | string
-    | undefined
+  (value: FieldState<T[K]>, formValue: FormFieldState<T>, fieldName: K): string | undefined
 }
 
-export type ValidatorSet<T> = { [P in FieldName<T>]: Validator<T, P>[] }
+export type ValidatorSet<T> = { [P in keyof T]: Validator<T, P>[] }
 
 export interface FormComponentWrapper<T> {
   render?: (state: FormBaseContextReceiverProps<T>) => React.ReactNode
@@ -113,7 +109,7 @@ export type FormValidationResult<T> = { [K in keyof T]: string[] }
 
 export interface FormBaseContextReceiverProps<T> {
   submit: () => void
-  setFieldValue: (fieldName: FieldName<T>, value: T[keyof T]) => void
+  setFieldValue: (fieldName: keyof T, value: T[keyof T]) => void
   submitCount: number
   value: FormFieldState<T>
   loaded: boolean
@@ -163,16 +159,16 @@ export interface ProviderValue<T> {
   submitCount: number
   clearForm: () => void
   validation: FormValidationResult<T>
-  registerValidator: RegisterValidator<T>
+  registerValidator: RegisterValidator<T, keyof T>
   registerField: (
-    fieldName: FieldName<T>,
-    initialValue: any,
+    fieldName: keyof T,
+    initialValue: T[keyof T],
     validators: Validator<T, keyof T>[]
   ) => void
-  onFieldBlur: (fieldName: FieldName<T>) => void
-  setFieldValue: (fieldName: FieldName<T>, value: any) => void
-  touch: (fieldName: FieldName<T>) => void
-  untouch: (fieldName: FieldName<T>) => void
+  onFieldBlur: (fieldName: keyof T) => void
+  setFieldValue: (fieldName: keyof T, value: any) => void
+  touch: (fieldName: keyof T) => void
+  untouch: (fieldName: keyof T) => void
 }
 
 export interface BaseFormComponentProps<T> {
@@ -183,9 +179,9 @@ export interface BaseFormComponentProps<T> {
   submitting: boolean
   formIsDirty: boolean
   submit: () => void
-  touch: (fieldName: FieldName<T>) => void
-  untouch: (fieldName: FieldName<T>) => void
-  setFieldValue: (fieldName: FieldName<T>, value: any) => void
+  touch: (fieldName: keyof T) => void
+  untouch: (fieldName: keyof T) => void
+  setFieldValue: (fieldName: keyof T, value: any) => void
 }
 
 export interface BaseInnerFieldProps<T, K extends keyof T> {
@@ -195,7 +191,7 @@ export interface BaseInnerFieldProps<T, K extends keyof T> {
   onBlur?: (e) => void
   validators?: Validator<T, K>[]
   validation: ValidationResult
-  registerValidator: RegisterValidator<T>
+  registerValidator: RegisterValidator<T, K>
   onFieldBlur: (fieldName: K) => void
   render?: (value) => React.ReactNode
   registerField: (fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void
@@ -222,8 +218,8 @@ export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
 
 export type InnerFieldProps<T, K extends keyof T> = BaseInnerFieldProps<T, K> & FieldState<T[K]>
 
-export interface RegisterValidator<T> {
-  (fieldName: FieldName<T>, validators: Validator<T, keyof T>[])
+export interface RegisterValidator<T, K extends keyof T> {
+  (fieldName: K, validators: Validator<T, K>[])
 }
 
 function getFormContext<T>(initialValue: T): React.Context<FormProviderState<T>> {

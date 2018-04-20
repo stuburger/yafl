@@ -21,7 +21,6 @@ import {
   ProviderValue,
   Validator,
   FormValidationResult,
-  FieldName,
   ValidatorSet
 } from '../'
 import { bind, clone, transform } from '../utils'
@@ -86,21 +85,21 @@ function wrapFormProvider<T>(
       }
     }
 
-    setFieldValue(fieldName: FieldName<T>, val: any) {
+    setFieldValue(fieldName: keyof T, val: T[keyof T]) {
       if (!this.state.value[fieldName]) return
       const value = clone(this.state.value)
       value[fieldName] = setFieldValue(value[fieldName], val)
       this.setState(state => ({ value }))
     }
 
-    touchField(fieldName: FieldName<T>) {
+    touchField(fieldName: keyof T) {
       if (!this.state.value[fieldName]) return
       const value = clone(this.state.value)
       value[fieldName] = touchField(value[fieldName])
       this.setState(state => ({ value }))
     }
 
-    touchFields(fieldNames: FieldName<T>[]) {
+    touchFields(fieldNames: (keyof T)[]) {
       let didUpdate = false
       const value = clone(this.state.value)
       fieldNames.forEach(fieldName => {
@@ -113,14 +112,14 @@ function wrapFormProvider<T>(
       if (didUpdate) this.setState(state => ({ value }))
     }
 
-    untouchField(fieldName: FieldName<T>) {
+    untouchField(fieldName: keyof T) {
       if (!this.state.value[fieldName]) return
       const value = clone(this.state.value)
       value[fieldName] = untouchField(value[fieldName])
       this.setState(state => ({ value }))
     }
 
-    untouchFields(fieldNames: FieldName<T>[]) {
+    untouchFields(fieldNames: (keyof T)[]) {
       let didUpdate = false
       const value = clone(this.state.value)
       fieldNames.forEach(fieldName => {
@@ -133,7 +132,7 @@ function wrapFormProvider<T>(
       if (didUpdate) this.setState(state => ({ value }))
     }
 
-    onFieldBlur(fieldName: FieldName<T>) {
+    onFieldBlur(fieldName: keyof T) {
       if (this.state.value[fieldName].didBlur) return
       const value = clone(this.state.value)
       value[fieldName] = blurField(value[fieldName])
@@ -162,11 +161,7 @@ function wrapFormProvider<T>(
       this.setState({ value: resetFields<T>(this.state.value) })
     }
 
-    registerField(
-      fieldName: FieldName<T>,
-      value: T[keyof T],
-      validators: Validator<T, FieldName<T>>[]
-    ) {
+    registerField(fieldName: keyof T, value: T[keyof T], validators: Validator<T, keyof T>[]) {
       this.registerValidator(fieldName, validators)
       if (this.state.value[fieldName]) return // field is already registered
       this.setState(s => {
@@ -182,7 +177,7 @@ function wrapFormProvider<T>(
       return formIsDirty(this.state.value)
     }
 
-    registerValidator(fieldName: FieldName<T>, validators: Validator<T, FieldName<T>>[]) {
+    registerValidator(fieldName: keyof T, validators: Validator<T, keyof T>[]) {
       this.validators[fieldName] = validators
     }
 

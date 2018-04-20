@@ -26,7 +26,8 @@ const TTT = props => (
       render={field => (
         <input
           name={field.name}
-          onChange={e => field.setFieldValue('surname', 'bourhill')}
+          //onChange={e => field.setFieldValue('surname', 'bourhill')}
+          onChange={field.onChange}
           onBlur={field.onBlur}
           placeholder="First Name"
         />
