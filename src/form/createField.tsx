@@ -1,20 +1,25 @@
 import * as React from 'react'
 import { isEqual } from '../utils'
 import AbsentField from '../AbsentField'
-import { ProviderValue, FormFieldProps, FieldState, InnerFieldProps } from '../'
+import {
+  ProviderValue,
+  FormFieldProps,
+  FieldState,
+  InnerFieldProps,
+  TypedFormFieldProps
+} from '../'
 import { getInitialFieldState } from './getInitialState'
 
 const defaultFieldState: FieldState<null> = getInitialFieldState(null)
 
-function wrapConsumer<T, P extends keyof T = keyof T>(
-  Consumer: React.Consumer<ProviderValue<T>>,
-  fieldName?: P
-): React.ComponentClass<FormFieldProps<T, P>> {
-  const InnerField = getInnerField<T, P>()
+function wrapConsumer<T, K extends keyof T = keyof T>(
+  Consumer: React.Consumer<ProviderValue<T, K>>
+): React.ComponentClass<FormFieldProps<T, K>> {
+  const InnerField = getInnerField<T, K>()
   const emptyArray = []
 
-  return class FormField extends React.Component<FormFieldProps<T, P>> {
-    _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T>) => {
+  return class FormField extends React.Component<FormFieldProps<T, K>> {
+    _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T, K>) => {
       const { render, component, name, validators, ...props } = this.props
       const state = value[name] || defaultFieldState
       const validation = providerValue.validation[name] || emptyArray
@@ -23,7 +28,7 @@ function wrapConsumer<T, P extends keyof T = keyof T>(
         <InnerField
           {...state}
           {...props}
-          name={fieldName || name}
+          name={name}
           render={render}
           component={component}
           validation={validation}
@@ -48,6 +53,18 @@ function wrapConsumer<T, P extends keyof T = keyof T>(
 
     render() {
       return <Consumer>{this._render}</Consumer>
+    }
+  }
+}
+
+export function getTypedField<T, P extends keyof T = keyof T>(
+  Consumer: React.Consumer<ProviderValue<T, P>>,
+  fieldName: P
+): React.ComponentClass<TypedFormFieldProps<T, P>> {
+  const FormField = wrapConsumer<T, P>(Consumer)
+  return class TypedField extends React.Component<TypedFormFieldProps<T, P>> {
+    render() {
+      return <FormField {...this.props} name={fieldName} />
     }
   }
 }

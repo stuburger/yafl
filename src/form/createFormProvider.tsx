@@ -158,7 +158,11 @@ function wrapFormProvider<T>(
       this.setState({ value: resetFields<T>(this.state.value) })
     }
 
-    registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]) {
+    registerField<K extends keyof T>(
+      fieldName: K,
+      value: T[K] | null,
+      validators: Validator<T, K>[]
+    ) {
       this.registerValidator(fieldName, validators)
       if (this.state.value[fieldName]) return // field is already registered
       this.setState(s => {

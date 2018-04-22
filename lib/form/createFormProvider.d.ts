@@ -16,7 +16,7 @@ declare function wrapFormProvider<T>(Provider: React.Provider<ProviderValue<T>>,
         forgetState(): void;
         validateForm(): FormValidationResult<T>;
         clearForm(): void;
-        registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]): void;
+        registerField<K extends keyof T>(fieldName: K, value: T[K] | null, validators: Validator<T, K>[]): void;
         formIsDirty(): boolean;
         registerValidator<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void;
         getProviderValue(): ProviderValue<T, keyof T>;

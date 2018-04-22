@@ -10,7 +10,10 @@ export const createEmptyField = <T>(): FieldState<T> => {
   }
 }
 
-export const getInitialFieldState = <T>(value: T, copyFrom?: FieldState<T>): FieldState<T> => {
+export const getInitialFieldState = <T>(
+  value: T | null,
+  copyFrom?: FieldState<T>
+): FieldState<T> => {
   const field = copyFrom ? clone(copyFrom) : createEmptyField<T>()
   field.value = value ? clone(value) : null
   field.originalValue = value ? clone(value) : null

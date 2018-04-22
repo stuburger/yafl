@@ -1,6 +1,6 @@
 import * as React from 'react'
 import wrapProvider from './form/createFormProvider'
-import createField from './form/createField'
+import createField, { getTypedField } from './form/createField'
 import createFormComponent from './form/createFormComponent'
 // import initializeState from './form/getInitialState'
 
@@ -65,11 +65,17 @@ export interface FormComponentWrapper<T> {
   [key: string]: any
 }
 
-export interface FormFieldProps<T, P extends keyof T = keyof T> {
-  name: P
-  validators?: Validator<T, P>[]
-  render?: (state: FormContextReceiverProps<T, P>) => React.ReactNode
-  component?: React.ComponentType<FormContextReceiverProps<T, P>> | React.ComponentType<any>
+export interface FormFieldProps<T, K extends keyof T = keyof T> {
+  name: K
+  validators?: Validator<T, K>[]
+  render?: (state: FormContextReceiverProps<T, K>) => React.ReactNode
+  component?: React.ComponentType<FormContextReceiverProps<T, K>> | React.ComponentType<any>
+}
+
+export interface TypedFormFieldProps<T, K extends keyof T> {
+  validators?: Validator<T, K>[]
+  render?: (state: FormContextReceiverProps<T, K>) => React.ReactNode
+  component?: React.ComponentType<FormContextReceiverProps<T, K>> | React.ComponentType<any>
 }
 
 export interface FormProviderOptions<T> {
@@ -206,7 +212,7 @@ export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
 }
 
 export type InnerFieldProps<T, K extends keyof T = keyof T> = BaseInnerFieldProps<T, K> &
-  FieldState<T[keyof T]>
+  FieldState<T[K]>
 
 export interface RegisterValidator<T> {
   <K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void
@@ -259,7 +265,7 @@ export function createForm<T>(initialValue: T) {
     Field: field,
     FormComponent: component,
     createField: function<K extends keyof T>(fieldName: K, options?: any) {
-      return createField<T, K>(Consumer, fieldName)
+      return getTypedField<T, K>(Consumer, fieldName)
     }
   }
 }
