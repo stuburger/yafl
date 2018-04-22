@@ -6,7 +6,8 @@ import {
   FormFieldProps,
   FieldState,
   InnerFieldProps,
-  TypedFormFieldProps
+  TypedFormFieldProps,
+  FieldProps
 } from '../'
 import { getInitialFieldState } from './getInitialState'
 
@@ -29,6 +30,7 @@ function wrapConsumer<T, K extends keyof T = keyof T>(
           {...state}
           {...props}
           name={name}
+          loaded={loaded}
           render={render}
           component={component}
           validation={validation}
@@ -59,12 +61,13 @@ function wrapConsumer<T, K extends keyof T = keyof T>(
 
 export function getTypedField<T, P extends keyof T = keyof T>(
   Consumer: React.Consumer<ProviderValue<T, P>>,
-  fieldName: P
+  fieldName: P,
+  component?: React.ComponentType<FieldProps<T, P>>
 ): React.ComponentClass<TypedFormFieldProps<T, P>> {
   const FormField = wrapConsumer<T, P>(Consumer)
   return class TypedField extends React.Component<TypedFormFieldProps<T, P>> {
     render() {
-      return <FormField {...this.props} name={fieldName} />
+      return <FormField component={component} {...this.props} name={fieldName} />
     }
   }
 }
@@ -121,7 +124,7 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       untouch(name)
     }
 
-    collectProps() {
+    collectProps(): FieldProps<T, P> {
       const {
         touch,
         untouch,
@@ -134,25 +137,42 @@ function getInnerField<T, P extends keyof T = keyof T>() {
         ...props
       } = this.props
       return {
-        touch: this.touch,
-        untouch: this.untouch,
-        name: this.props.name,
-        value: this.props.value,
-        originalValue: this.props.originalValue,
-        didBlur: this.props.didBlur,
-        touched: this.props.touched,
-        isDirty: this.props.isDirty,
-        isValid: validation.length === 0,
-        messages: validation,
-        submitCount: this.props.submitCount,
-        onBlur: this.onBlur,
-        onChange: this.onChange,
-        ...props
+        // spread safe: input, forwardedProps
+        // spread unsafe: meta, utils
+
+        input: {
+          name: this.props.name,
+          value: this.props.value,
+          onBlur: this.onBlur,
+          onChange: this.onChange
+        },
+        meta: {
+          didBlur: this.props.didBlur,
+          isDirty: this.props.isDirty,
+          touched: this.props.touched,
+          submitCount: this.props.submitCount,
+          loaded: this.props.loaded,
+          submitting: this.props.submitting,
+          isValid: validation.length === 0,
+          messages: validation,
+          originalValue: this.props.originalValue
+        },
+        utils: {
+          touch: this.touch,
+          untouch: this.untouch,
+          unload: this.props.unload,
+          submit: this.props.submit,
+          setFieldValue: this.props.setFieldValue,
+          setValue: this.setValue,
+          forgetState: this.props.forgetState,
+          clearForm: this.props.clearForm
+        },
+        forward: props
       }
     }
 
     render() {
-      const { render, component: Component, name } = this.props
+      const { render, component: Component } = this.props
 
       const props = this.collectProps()
 
@@ -165,7 +185,9 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       }
 
       return (
-        <AbsentField message={`Please provide render or component prop for field: '${name}'`} />
+        <AbsentField
+          message={`Please provide render or component prop for field: '${this.props.name}'`}
+        />
       )
     }
   }
