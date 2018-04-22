@@ -1,7 +1,7 @@
 /// <reference types="react" />
 import * as React from 'react';
 import { ProviderValue, FormComponentWrapper } from '../';
-declare function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T, keyof T>>): {
+declare function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>): {
     new (props: FormComponentWrapper<T>, context?: any): {
         _render: ({registerValidator, registerField, onFieldBlur, ...providerValue}: ProviderValue<T, keyof T>) => JSX.Element;
         render(): JSX.Element;

@@ -53,7 +53,7 @@ export interface FormProviderProps<T> {
   rememberStateOnReinitialize?: boolean
 }
 
-export interface Validator<T, K extends keyof T> {
+export interface Validator<T, K extends keyof T = keyof T> {
   (value: FieldState<T[K]>, formValue: FormFieldState<T>, fieldName: K): string | undefined
 }
 
@@ -65,11 +65,11 @@ export interface FormComponentWrapper<T> {
   [key: string]: any
 }
 
-export interface FormFieldProps<T, K extends keyof T> {
-  name: K
-  validators?: Validator<T, K>[]
-  render?: (state: FormContextReceiverProps<T, K>) => React.ReactNode
-  component?: React.ComponentType<FormContextReceiverProps<T, K>> | React.ComponentType<any>
+export interface FormFieldProps<T, P extends keyof T = keyof T> {
+  name: P
+  validators?: Validator<T, P>[]
+  render?: (state: FormContextReceiverProps<T, P>) => React.ReactNode
+  component?: React.ComponentType<FormContextReceiverProps<T, P>> | React.ComponentType<any>
 }
 
 export interface FormProviderOptions<T> {
@@ -87,7 +87,7 @@ export type FormValidationResult<T> = { [K in keyof T]: string[] }
 
 export interface FormBaseContextReceiverProps<T> {
   submit: () => void
-  setFieldValue: (fieldName: keyof T, value: T[keyof T]) => void
+  setFieldValue: <K extends keyof T>(fieldName: K, value: T[K]) => void
   submitCount: number
   value: FormFieldState<T>
   loaded: boolean
@@ -97,17 +97,18 @@ export interface FormBaseContextReceiverProps<T> {
   clearForm: () => void
   [key: string]: any
 }
-export interface FormContextReceiverProps<T, K extends keyof T> {
-  name: K
+export interface FormContextReceiverProps<T, P extends keyof T = keyof T> {
+  name: P
   onChange: (e) => void
-  value: any
+  value: T[P]
   didBlur: boolean
   isDirty: boolean
   touched: boolean
   onBlur: (e) => void
   unload: () => void
   submit: () => void
-  setFieldValue: (fieldName: K, value: T[K]) => void
+  setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
+  setValue: (value: T[P]) => void
   submitCount: number
   // formValue: FormFieldState<T>
   loaded: boolean
@@ -119,33 +120,39 @@ export interface FormContextReceiverProps<T, K extends keyof T> {
 
 export interface ReactContextForm<T> {
   Form: React.ComponentClass<FormProviderProps<T>>
-  Field: React.ComponentClass<FormFieldProps<T, keyof T>>
+  Field: React.ComponentClass<FormFieldProps<T>>
   FormComponent: React.ComponentClass<FormComponentWrapper<T>>
   createTypedField: any
 }
 
-export interface ProviderValue<T, K extends keyof T> {
+export interface ProviderValue<T, P extends keyof T = keyof T> {
   value: FormFieldState<T>
   initialValue: T
-  unload: () => void
+  unload: (() => void) | Noop
   loaded: boolean
   submitting: boolean
   isBusy: boolean
   formIsDirty: boolean
-  forgetState: () => void
-  submit: () => void
+  forgetState: (() => void) | Noop
+  submit: (() => void) | Noop
   submitCount: number
-  clearForm: () => void
+  clearForm: (() => void) | Noop
   validation: FormValidationResult<T>
-  registerValidator: RegisterValidator<T, K>
-  registerField: (fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void
-  onFieldBlur: (fieldName: K) => void
-  setFieldValue: (fieldName: K, value: any) => void
-  touch: (fieldName: K) => void
-  untouch: (fieldName: K) => void
+  registerValidator: RegisterValidator<T> | Noop
+  registerField:
+    | (<K extends P>(
+        fieldName: K,
+        initialValue: T[K] | null,
+        validators: Validator<T, K>[]
+      ) => void)
+    | Noop
+  onFieldBlur: (<K extends P>(fieldName: K) => void) | Noop
+  setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void) | Noop
+  touch: (<K extends P>(fieldName: K) => void) | Noop
+  untouch: (<K extends P>(fieldName: K) => void) | Noop
 }
 
-export interface BaseFormComponentProps<T> {
+export interface BaseFormComponentProps<T, P extends keyof T = keyof T> {
   submitCount: number
   clearForm: () => void
   unload: () => void
@@ -153,24 +160,32 @@ export interface BaseFormComponentProps<T> {
   submitting: boolean
   formIsDirty: boolean
   submit: () => void
-  touch: (fieldName: keyof T) => void
-  untouch: (fieldName: keyof T) => void
-  setFieldValue: (fieldName: keyof T, value: any) => void
+  touch: (fieldName: P) => void
+  untouch: (fieldName: P) => void
+  setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
 }
 
-export interface BaseInnerFieldProps<T, K extends keyof T> {
-  name: K
+export type GenericFieldHTMLAttributes =
+  | React.InputHTMLAttributes<HTMLInputElement>
+  | React.SelectHTMLAttributes<HTMLSelectElement>
+  | React.TextareaHTMLAttributes<HTMLTextAreaElement>
+
+export interface BaseInnerFieldProps<T, P extends keyof T = keyof T> {
+  name: P
   isDirty: boolean
-  initialValue?: any
+  initialValue?: T[P]
   onBlur?: (e) => void
-  validators?: Validator<T, K>[]
+  validators?: Validator<T, P>[]
   validation: ValidationResult
-  registerValidator: RegisterValidator<T, K>
-  onFieldBlur: (fieldName: K) => void
+  registerValidator: RegisterValidator<T>
+  onFieldBlur: <K extends P>(fieldName: K) => void
   render?: (value) => React.ReactNode
-  registerField: (fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void
-  component?: React.ComponentType<FormContextReceiverProps<T, K>> | React.ComponentType<any>
-
+  registerField: <K extends P>(
+    fieldName: K,
+    initialValue: T[K] | null,
+    validators: Validator<T, K>[]
+  ) => void
+  component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>
   submitCount: number
   clearForm: () => void
   unload: () => void
@@ -178,9 +193,9 @@ export interface BaseInnerFieldProps<T, K extends keyof T> {
   submitting: boolean
   formIsDirty: boolean
   submit: () => void
-  touch: (fieldName: K) => void
-  untouch: (fieldName: K) => void
-  setFieldValue: (fieldName: K, value: T[K]) => void
+  touch: <K extends P>(fieldName: K) => void
+  untouch: <K extends P>(fieldName: K) => void
+  setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
 }
 
 export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
@@ -190,38 +205,68 @@ export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
   component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>
 }
 
-export type InnerFieldProps<T, K extends keyof T> = BaseInnerFieldProps<T, K> & FieldState<T[K]>
+export type InnerFieldProps<T, K extends keyof T = keyof T> = BaseInnerFieldProps<T, K> &
+  FieldState<T[keyof T]>
 
-export interface RegisterValidator<T, K extends keyof T> {
-  (fieldName: K, validators: Validator<T, K>[])
+export interface RegisterValidator<T> {
+  <K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void
 }
 
-function getFormContext<T>(initialValue: T): React.Context<ProviderValue<T, keyof T>> {
-  return React.createContext<ProviderValue<T, keyof T>>({
-    // value: initializeState<T>(initialValue),
-    // loaded: false,
-    // submitting: false,
-    // isBusy: false,
-    // submitCount: 0,
-    // initialValue: {} as T
-  } as ProviderValue<T, keyof T>)
+export interface Noop {
+  (): never
 }
 
-export function createForm<T>(initialState: Partial<T> = {}) {
-  const { Consumer, Provider } = getFormContext<Partial<T>>(initialState)
+const noop: Noop = function noop(): never {
+  throw new Error('A <Field /> component can only appear inside a <Form /> component')
+}
+
+function getDefaultProviderValue<T>(): ProviderValue<T> {
+  return {
+    value: {} as FormFieldState<T>,
+    loaded: false,
+    isBusy: true,
+    submitCount: 0,
+    submitting: false,
+    formIsDirty: false,
+    initialValue: {} as T,
+    validation: {} as FormValidationResult<T>,
+    unload: noop,
+    submit: noop,
+    clearForm: noop,
+    touch: noop,
+    untouch: noop,
+    forgetState: noop,
+    onFieldBlur: noop,
+    setFieldValue: noop,
+    registerField: noop,
+    registerValidator: noop
+  } as ProviderValue<T>
+}
+
+function getFormContext<T>(): React.Context<ProviderValue<T>> {
+  return React.createContext<ProviderValue<T>>(getDefaultProviderValue())
+}
+
+export function createForm<T>(initialValue: T) {
+  const { Consumer, Provider } = getFormContext<T>()
+
+  const form = wrapProvider<T>(Provider, { initialValue })
+  const field = createField<T>(Consumer)
+  const component = createFormComponent<T>(Consumer)
 
   return {
-    Form: wrapProvider<Partial<T>, keyof T>(Provider, {
-      initialValue: initialState
-    }),
-    Field: createField<Partial<T>, keyof T>(Consumer),
-    FormComponent: createFormComponent<Partial<T>>(Consumer),
-    createTypedField: function<K extends keyof T>(fieldName: K, options?: any) {
-      return (function<O>(f: any) {
-        return f as O
-      })<React.ComponentClass<FormFieldProps<T, K>>>(
-        createField<Partial<T>, keyof T>(Consumer, fieldName)
-      )
+    Form: form,
+    Field: field,
+    FormComponent: component,
+    createField: function<K extends keyof T>(fieldName: K, options?: any) {
+      return createField<T, K>(Consumer, fieldName)
     }
   }
 }
+
+export default createForm
+
+const formContext = createForm<any>({})
+export const Form = formContext.Form
+export const Field = formContext.Field
+export const FormComponent = formContext.FormComponent

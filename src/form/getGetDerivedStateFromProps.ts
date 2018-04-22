@@ -46,15 +46,3 @@ function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
 }
 
 export default getGetDerivedStateFromProps
-
-// if (opts.getInitialValueAsync) {
-// 	return (
-// 		np: FormProviderProps<T>,
-// 		ps: FormProviderState<FormFieldState<T>>
-// 	): Partial<FormProviderState<FormFieldState<T>>> => {
-// 		return {
-// 			isBusy: np.submitting,
-// 			submitting: np.submitting
-// 		}
-// 	}
-// }

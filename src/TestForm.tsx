@@ -1,49 +1,74 @@
 import * as React from 'react'
 import { createForm, Person } from '.'
 
-const { Form, Field, createTypedField } = createForm<Person>()
+const startingValue: Person = {
+  name: '',
+  surname: '',
+  gender: 'male',
+  age: 30,
+  contact: {
+    tel: '323423424'
+  },
+  favorites: ['']
+}
 
-const Surname = createTypedField('surname')
-const Age = createTypedField('age')
+const { Form, Field, createField } = createForm<Person>(startingValue)
+
+const Surname = createField('surname')
+const Age = createField('age')
 
 const TTT = props => (
-  <Form initialValue={{ name: 'stuart' }}>
+  <Form>
     <Field
       name="name"
-      render={field => (
-        <input
-          name={field.name}
-          // onChange={field.onChange}
-          onChange={e => field.setFieldValue('name', 44)}
-          onBlur={field.onBlur}
-          placeholder="First Name"
-        />
-      )}
+      render={field => {
+        const f = field.value as string
+        return (
+          <input
+            name={field.name}
+            onChange={e => field.setFieldValue('age', 99)}
+            value={f}
+            onBlur={field.onBlur}
+            placeholder="First Name"
+          />
+        )
+      }}
     />
 
     <Surname
       name="surname"
-      render={field => (
-        <input
-          name={field.name}
-          //onChange={e => field.setFieldValue('surname', 'bourhill')}
-          onChange={field.onChange}
-          onBlur={field.onBlur}
-          placeholder="First Name"
-        />
-      )}
+      render={field => {
+        const { value } = field
+
+        return (
+          <input
+            name={field.name}
+            value={value}
+            //onChange={e => field.setFieldValue('surname', 'bourhill')}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            placeholder="First Name"
+          />
+        )
+      }}
     />
 
     <Age
-      name="age"
-      render={field => (
-        <input
-          name={field.name}
-          onChange={e => field.setFieldValue('age', 33)}
-          onBlur={field.onBlur}
-          placeholder="First Name"
-        />
-      )}
+      // name="age"
+      render={field => {
+        const { value } = field
+        field.setValue(88)
+        field.setFieldValue('age', 0)
+        return (
+          <input
+            name={field.name}
+            onChange={e => field.setFieldValue('age', 89)}
+            onBlur={field.onBlur}
+            placeholder="First Name"
+            value={value}
+          />
+        )
+      }}
     />
   </Form>
 )

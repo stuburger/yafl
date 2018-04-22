@@ -6,15 +6,15 @@ import { getInitialFieldState } from './getInitialState'
 
 const defaultFieldState: FieldState<null> = getInitialFieldState(null)
 
-function wrapConsumer<T, K extends keyof T>(
-  Consumer: React.Consumer<ProviderValue<T, K>>,
-  fieldName?: K
-): React.ComponentClass<FormFieldProps<T, K>> {
-  const InnerField = getInnerField<T, K>()
+function wrapConsumer<T, P extends keyof T = keyof T>(
+  Consumer: React.Consumer<ProviderValue<T>>,
+  fieldName?: P
+): React.ComponentClass<FormFieldProps<T, P>> {
+  const InnerField = getInnerField<T, P>()
   const emptyArray = []
 
-  return class FormField extends React.Component<FormFieldProps<T, K>> {
-    _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T, K>) => {
+  return class FormField extends React.Component<FormFieldProps<T, P>> {
+    _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T>) => {
       const { render, component, name, validators, ...props } = this.props
       const state = value[name] || defaultFieldState
       const validation = providerValue.validation[name] || emptyArray
@@ -23,7 +23,7 @@ function wrapConsumer<T, K extends keyof T>(
         <InnerField
           {...state}
           {...props}
-          name={name}
+          name={fieldName || name}
           render={render}
           component={component}
           validation={validation}
@@ -52,22 +52,32 @@ function wrapConsumer<T, K extends keyof T>(
   }
 }
 
-function getInnerField<T, K extends keyof T>() {
+function getInnerField<T, P extends keyof T = keyof T>() {
   const emptyArray = []
-  class InnerField extends React.Component<InnerFieldProps<T, K>> {
+  class InnerField extends React.Component<InnerFieldProps<T, P>> {
+    constructor(props) {
+      super(props)
+      this.onChange = this.onChange.bind(this)
+      this.onBlur = this.onBlur.bind(this)
+      this.setValue = this.setValue.bind(this)
+      this.touch = this.touch.bind(this)
+      this.untouch = this.untouch.bind(this)
+      this.collectProps = this.collectProps.bind(this)
+    }
+
     componentDidMount() {
-      const { registerField, name, initialValue, validators } = this.props
+      const { registerField, name, initialValue = null, validators } = this.props
       registerField(name, initialValue, validators || emptyArray)
     }
 
-    componentDidUpdate(pp: InnerFieldProps<T, K>) {
+    componentDidUpdate(pp: InnerFieldProps<T, P>) {
       const { validators = emptyArray, registerValidator, name } = this.props
       if (validators !== pp.validators) {
         registerValidator(name, validators)
       }
     }
 
-    onBlur = e => {
+    onBlur(e) {
       const { onFieldBlur, name, onBlur } = this.props
       onFieldBlur(name)
       if (onBlur) {
@@ -75,22 +85,26 @@ function getInnerField<T, K extends keyof T>() {
       }
     }
 
-    onChange = e => {
-      const { setFieldValue, name } = this.props
-      setFieldValue(name, e.target.value)
+    onChange(e) {
+      this.setValue(e.target.value)
     }
 
-    touch = (name = this.props.name) => {
+    setValue(value: T[P]) {
+      const { setFieldValue, name } = this.props
+      setFieldValue(name, value)
+    }
+
+    touch(name = this.props.name) {
       const { touch } = this.props
       touch(this.props.name)
     }
 
-    untouch = (name = this.props.name) => {
+    untouch(name = this.props.name) {
       const { untouch } = this.props
       untouch(name)
     }
 
-    collectProps = () => {
+    collectProps() {
       const {
         touch,
         untouch,
