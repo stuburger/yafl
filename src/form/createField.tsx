@@ -7,7 +7,10 @@ import {
   FieldState,
   InnerFieldProps,
   TypedFormFieldProps,
-  FieldProps
+  FieldProps,
+  InputProps,
+  FieldMeta,
+  FieldUtils
 } from '../'
 import { getInitialFieldState } from './getInitialState'
 
@@ -82,6 +85,9 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       this.setValue = this.setValue.bind(this)
       this.touch = this.touch.bind(this)
       this.untouch = this.untouch.bind(this)
+      this.collectInputProps = this.collectInputProps.bind(this)
+      this.collectMetaProps = this.collectMetaProps.bind(this)
+      this.collectUtilProps = this.collectUtilProps.bind(this)
       this.collectProps = this.collectProps.bind(this)
     }
 
@@ -124,6 +130,44 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       untouch(name)
     }
 
+    collectInputProps(): InputProps<T, P> {
+      return {
+        name: this.props.name,
+        value: this.props.value,
+        onBlur: this.onBlur,
+        onChange: this.onChange
+      }
+    }
+
+    collectMetaProps(): FieldMeta<T, P> {
+      const { validation = emptyArray, ...props } = this.props
+
+      return {
+        didBlur: props.didBlur,
+        isDirty: props.isDirty,
+        touched: props.touched,
+        submitCount: props.submitCount,
+        loaded: props.loaded,
+        submitting: props.submitting,
+        isValid: validation.length === 0,
+        messages: validation,
+        originalValue: props.originalValue
+      }
+    }
+
+    collectUtilProps(): FieldUtils<T, P> {
+      return {
+        touch: this.touch,
+        untouch: this.untouch,
+        unload: this.props.unload,
+        submit: this.props.submit,
+        setFieldValue: this.props.setFieldValue,
+        setValue: this.setValue,
+        forgetState: this.props.forgetState,
+        clearForm: this.props.clearForm
+      }
+    }
+
     collectProps(): FieldProps<T, P> {
       const {
         touch,
@@ -137,36 +181,9 @@ function getInnerField<T, P extends keyof T = keyof T>() {
         ...props
       } = this.props
       return {
-        // spread safe: input, forwardedProps
-        // spread unsafe: meta, utils
-
-        input: {
-          name: this.props.name,
-          value: this.props.value,
-          onBlur: this.onBlur,
-          onChange: this.onChange
-        },
-        meta: {
-          didBlur: this.props.didBlur,
-          isDirty: this.props.isDirty,
-          touched: this.props.touched,
-          submitCount: this.props.submitCount,
-          loaded: this.props.loaded,
-          submitting: this.props.submitting,
-          isValid: validation.length === 0,
-          messages: validation,
-          originalValue: this.props.originalValue
-        },
-        utils: {
-          touch: this.touch,
-          untouch: this.untouch,
-          unload: this.props.unload,
-          submit: this.props.submit,
-          setFieldValue: this.props.setFieldValue,
-          setValue: this.setValue,
-          forgetState: this.props.forgetState,
-          clearForm: this.props.clearForm
-        },
+        input: this.collectInputProps(),
+        meta: this.collectMetaProps(),
+        utils: this.collectUtilProps(),
         forward: props
       }
     }
