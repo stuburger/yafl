@@ -2,9 +2,9 @@ import { FormProviderState, FormFieldState } from '../index'
 
 function getNullState<T>(): FormProviderState<T> {
   return {
-    value: {} as FormFieldState<T>,
+    fields: {} as FormFieldState<T>,
     loaded: false,
-    isBusy: true,
+    isBusy: false,
     submitting: false,
     submitCount: 0,
     initialValue: {} as T

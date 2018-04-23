@@ -10,16 +10,16 @@ export interface BoolFunc {
 export type Nullable<T> = { [P in keyof T]: T[P] | null }
 
 export interface FieldState<T> {
-  value: T | null
+  value: T
   didBlur: boolean
   touched: boolean
-  originalValue: T | null
+  originalValue: T
 }
 
 export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
 
 export interface FormProviderState<T> {
-  value: FormFieldState<T>
+  fields: FormFieldState<T>
   initialValue: T
   isBusy: boolean
   loaded: boolean
@@ -53,7 +53,7 @@ export interface FormProviderProps<T> {
 }
 
 export interface Validator<T, K extends keyof T = keyof T> {
-  (value: FieldState<T[K]>, formValue: FormFieldState<T>, fieldName: K): string | undefined
+  (value: FieldState<T[K]>, fields: FormFieldState<T>, fieldName: K): string | undefined
 }
 
 export type ValidatorSet<T> = { [P in keyof T]: Validator<T, P>[] }
@@ -66,15 +66,19 @@ export interface FormComponentWrapper<T> {
 
 export interface FormFieldProps<T, K extends keyof T = keyof T> {
   name: K
+  initialValue?: T[K]
   validators?: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T, K>> | React.ComponentType<any>
+  [key: string]: any
 }
 
 export interface TypedFormFieldProps<T, K extends keyof T> {
+  initialValue?: T[K]
   validators?: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T, K>> | React.ComponentType<any>
+  [key: string]: any
 }
 
 export interface FormProviderOptions<T> {
@@ -94,7 +98,7 @@ export interface FormBaseContextReceiverProps<T> {
   submit: () => void
   setFieldValue: <K extends keyof T>(fieldName: K, value: T[K]) => void
   submitCount: number
-  value: FormFieldState<T>
+  fields: FormFieldState<T>
   loaded: boolean
   unload: () => void
   submitting: boolean
@@ -143,7 +147,7 @@ export interface FieldMeta<T, K extends keyof T> {
   submitting: boolean
   isValid: boolean
   messages: string[]
-  originalValue: T[K] | null
+  originalValue: T[K]
 }
 
 export interface InputProps<T, K extends keyof T> {
@@ -153,13 +157,13 @@ export interface InputProps<T, K extends keyof T> {
   onChange: (e) => void
 }
 
-export interface ForwardProps<T, K extends keyof T> {
+export interface ForwardProps {
   [key: string]: any
 }
 
 export interface FieldProps<T, K extends keyof T> {
   input: InputProps<T, K> // spread safe
-  forward: ForwardProps<T, K> // probably spread safe
+  forward: ForwardProps // probably spread safe
   meta: FieldMeta<T, K> // not spread safe
   utils: FieldUtils<T, K> // not spread safe
 }
@@ -172,7 +176,7 @@ export interface ReactContextForm<T> {
 }
 
 export interface ProviderValue<T, P extends keyof T = keyof T> {
-  value: FormFieldState<T>
+  fields: FormFieldState<T>
   initialValue: T
   unload: (() => void) | Noop
   loaded: boolean
@@ -186,11 +190,7 @@ export interface ProviderValue<T, P extends keyof T = keyof T> {
   validation: FormValidationResult<T>
   registerValidator: RegisterValidator<T> | Noop
   registerField:
-    | (<K extends P>(
-        fieldName: K,
-        initialValue: T[K] | null,
-        validators: Validator<T, K>[]
-      ) => void)
+    | (<K extends P>(fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void)
     | Noop
   onFieldBlur: (<K extends P>(fieldName: K) => void) | Noop
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void) | Noop
@@ -228,7 +228,7 @@ export interface BaseInnerFieldProps<T, P extends keyof T = keyof T> {
   render?: (value: FieldProps<T, P>) => React.ReactNode
   registerField: <K extends P>(
     fieldName: K,
-    initialValue: T[K] | null,
+    initialValue: T[K],
     validators: Validator<T, K>[]
   ) => void
   component?: React.ComponentType<FieldProps<T, P>> | React.ComponentType<any>
@@ -247,13 +247,18 @@ export interface BaseInnerFieldProps<T, P extends keyof T = keyof T> {
 
 export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
   loaded: boolean
-  value: FormFieldState<T>
+  fields: FormFieldState<T>
   render?: (value: FormBaseContextReceiverProps<T>) => React.ReactNode
   component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>
 }
 
 export type InnerFieldProps<T, K extends keyof T = keyof T> = BaseInnerFieldProps<T, K> &
   FieldState<T[K]>
+
+// export type Primitive = string | number | boolean
+// export type BasicAllowedTypes = Primitive | null | undefined | Date
+// export type AllowedTypesOfArray = BasicAllowedTypes[]
+// export type AllowedTypes = BasicAllowedTypes | AllowedTypesOfArray | { [K in keyof any]: AllowedTypes }
 
 export interface RegisterValidator<T> {
   <K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void
@@ -269,7 +274,7 @@ const noop: Noop = function noop(): never {
 
 function getDefaultProviderValue<T>(): ProviderValue<T> {
   return {
-    value: {} as FormFieldState<T>,
+    fields: {} as FormFieldState<T>,
     loaded: false,
     isBusy: true,
     submitCount: 0,

@@ -1,9 +1,49 @@
 import { FormFieldState, FieldState } from '../'
-import { createEmptyField } from './getInitialState'
-import { transform, isEqual, clone } from '../utils'
+import {
+  transform,
+  isEqual,
+  clone,
+  isNullOrUndefined,
+  isBoolean,
+  isNumber,
+  isDate,
+  isString,
+  isObject
+} from '../utils'
 
 export interface FieldUpdater<T, K extends keyof T> {
   (fields: FieldState<T[K]>): FieldState<T[K]>
+}
+
+// untested
+export function getDefaultOfType<T>(value: T, defaultValue?: T): T {
+  if (defaultValue) {
+    return defaultValue
+  }
+  if (isNullOrUndefined(value)) {
+    return value
+  }
+  let res: any
+  if (isBoolean(value)) {
+    res = false
+  } else if (Array.isArray(value)) {
+    res = []
+  } else if (isNumber(value)) {
+    res = 0
+  } else if (isDate(value)) {
+    res = new Date()
+  } else if (isString(value)) {
+    res = ''
+  } else if (isObject(value)) {
+    res = {}
+    const keys = Object.keys(value) as (keyof T)[]
+    for (let key of keys) {
+      res[key] = getDefaultOfType(value[key])
+    }
+  } else {
+    throw new Error('unexpected value type ' + value)
+  }
+  return res as T
 }
 
 export function setFieldValue<T>(field: FieldState<T>, value: T): FieldState<T> {
@@ -31,8 +71,11 @@ export function untouchField<T>(field: FieldState<T>): FieldState<T> {
   return res
 }
 
-export function resetField<T>(): FieldState<T> {
-  return createEmptyField<T>()
+export function resetField<T>(field: FieldState<T>): FieldState<T> {
+  const result = clone(field)
+  result.originalValue = getDefaultOfType(field.originalValue)
+  result.value = clone(result.originalValue)
+  return result
 }
 
 export function formIsDirty<T>(value: FormFieldState<T>): boolean {
@@ -63,7 +106,7 @@ export function untouchAllFields<T>(fields: FormFieldState<T>): FormFieldState<T
 export function resetFields<T>(fields: FormFieldState<T>): FormFieldState<T> {
   const state = clone(fields)
   for (let key in state) {
-    state[key] = resetField()
+    state[key] = resetField(state[key])
   }
   return state
 }

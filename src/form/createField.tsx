@@ -4,17 +4,16 @@ import AbsentField from '../AbsentField'
 import {
   ProviderValue,
   FormFieldProps,
-  FieldState,
+  // FieldState,
   InnerFieldProps,
   TypedFormFieldProps,
   FieldProps,
   InputProps,
   FieldMeta,
-  FieldUtils
+  FieldUtils,
+  FieldState
 } from '../'
 import { getInitialFieldState } from './getInitialState'
-
-const defaultFieldState: FieldState<null> = getInitialFieldState(null)
 
 function wrapConsumer<T, K extends keyof T = keyof T>(
   Consumer: React.Consumer<ProviderValue<T, K>>
@@ -23,9 +22,14 @@ function wrapConsumer<T, K extends keyof T = keyof T>(
   const emptyArray = []
 
   return class FormField extends React.Component<FormFieldProps<T, K>> {
-    _render = ({ value, loaded, formIsDirty, ...providerValue }: ProviderValue<T, K>) => {
-      const { render, component, name, validators, ...props } = this.props
-      const state = value[name] || defaultFieldState
+    constructor(props) {
+      super(props)
+      this._render = this._render.bind(this)
+    }
+
+    _render({ fields, loaded, formIsDirty, ...providerValue }: ProviderValue<T, K>) {
+      const { render, component, name, validators, initialValue, ...props } = this.props
+      const state: FieldState<T[K]> = fields[name] || getInitialFieldState(initialValue)
       const validation = providerValue.validation[name] || emptyArray
 
       return (
@@ -39,6 +43,7 @@ function wrapConsumer<T, K extends keyof T = keyof T>(
           validation={validation}
           validators={validators}
           formIsDirty={formIsDirty}
+          initialValue={initialValue}
           touch={providerValue.touch}
           submit={providerValue.submit}
           unload={providerValue.unload}
@@ -92,7 +97,7 @@ function getInnerField<T, P extends keyof T = keyof T>() {
     }
 
     componentDidMount() {
-      const { registerField, name, initialValue = null, validators } = this.props
+      const { registerField, name, initialValue = this.props.value, validators } = this.props
       registerField(name, initialValue, validators || emptyArray)
     }
 

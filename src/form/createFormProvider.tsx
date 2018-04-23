@@ -66,71 +66,71 @@ function wrapFormProvider<T>(
     state = getNullState<T>()
 
     submit() {
-      this.setState(({ value, submitCount }) => ({
-        value: touchAllFields(value),
+      this.setState(({ fields, submitCount }) => ({
+        fields: touchAllFields(fields),
         submitCount: submitCount + 1
       }))
 
       if (formIsValid<T>(this.validateForm())) {
         const { submit = noop } = this.props
-        submit(getFormValue<T>(this.state.value))
+        submit(getFormValue<T>(this.state.fields))
       } else {
         console.warn('cannot submit, form is not valid...')
       }
     }
 
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]) {
-      if (!this.state.value[fieldName]) return
-      const value = clone(this.state.value)
-      value[fieldName] = setFieldValue(value[fieldName], val)
-      this.setState(state => ({ value }))
+      if (!this.state.fields[fieldName]) return
+      const fields = clone(this.state.fields)
+      fields[fieldName] = setFieldValue(fields[fieldName], val)
+      this.setState(state => ({ fields }))
     }
 
     touchField<K extends keyof T>(fieldName: K) {
-      if (!this.state.value[fieldName]) return
-      const value = clone(this.state.value)
-      value[fieldName] = touchField(value[fieldName])
-      this.setState(state => ({ value }))
+      if (!this.state.fields[fieldName]) return
+      const fields = clone(this.state.fields)
+      fields[fieldName] = touchField(fields[fieldName])
+      this.setState(state => ({ fields }))
     }
 
     touchFields<K extends keyof T>(fieldNames: K[]) {
       let didUpdate = false
-      const value = clone(this.state.value)
+      const fields = clone(this.state.fields)
       fieldNames.forEach(fieldName => {
-        if (value[fieldName]) {
-          value[fieldName] = touchField(value[fieldName])
+        if (fields[fieldName]) {
+          fields[fieldName] = touchField(fields[fieldName])
           didUpdate = true
         }
       })
 
-      if (didUpdate) this.setState(state => ({ value }))
+      if (didUpdate) this.setState(state => ({ fields }))
     }
 
     untouchField<K extends keyof T>(fieldName: K) {
-      if (!this.state.value[fieldName]) return
-      const value = clone(this.state.value)
-      value[fieldName] = untouchField(value[fieldName])
-      this.setState(state => ({ value }))
+      if (!this.state.fields[fieldName]) return
+      const fields = clone(this.state.fields)
+      fields[fieldName] = untouchField(fields[fieldName])
+      this.setState(state => ({ fields }))
     }
 
     untouchFields<K extends keyof T>(fieldNames: K[]) {
       let didUpdate = false
-      const value = clone(this.state.value)
+      const fields = clone(this.state.fields)
       fieldNames.forEach(fieldName => {
-        if (value[fieldName]) {
-          value[fieldName] = untouchField(value[fieldName])
+        if (fields[fieldName]) {
+          fields[fieldName] = untouchField(fields[fieldName])
           didUpdate = true
         }
       })
 
-      if (didUpdate) this.setState(state => ({ value }))
+      if (didUpdate) this.setState(state => ({ fields }))
     }
 
     onFieldBlur<K extends keyof T>(fieldName: K) {
-      if (this.state.value[fieldName].didBlur) return
-      const value = clone(this.state.value)
-      value[fieldName] = blurField(value[fieldName])
-      this.setState({ value })
+      if (this.state.fields[fieldName].didBlur) return
+      const fields = clone(this.state.fields)
+      fields[fieldName] = blurField(fields[fieldName])
+      this.setState({ fields })
     }
 
     unload() {
@@ -138,12 +138,12 @@ function wrapFormProvider<T>(
     }
 
     forgetState() {
-      this.setState(({ value }) => ({ value: untouchAllFields(value), submitCount: 0 }))
+      this.setState(({ fields }) => ({ fields: untouchAllFields(fields), submitCount: 0 }))
     }
 
     validateForm(): FormValidationResult<T> {
       type PVS = Partial<ValidatorSet<T>>
-      const form = this.state.value
+      const form = this.state.fields
       const result = transform<PVS, FormValidationResult<T>>(
         this.validators,
         (ret, validators, fieldName) => {
@@ -155,27 +155,21 @@ function wrapFormProvider<T>(
     }
 
     clearForm() {
-      this.setState({ value: resetFields<T>(this.state.value) })
+      this.setState({ fields: resetFields<T>(this.state.fields) })
     }
 
-    registerField<K extends keyof T>(
-      fieldName: K,
-      value: T[K] | null,
-      validators: Validator<T, K>[]
-    ) {
+    registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]) {
       this.registerValidator(fieldName, validators)
-      if (this.state.value[fieldName]) return // field is already registered
+      if (this.state.fields[fieldName]) return // field is already registered
       this.setState(s => {
         const state = clone(s)
-        const field = state.value[fieldName]
-        const val = field ? field.value || value : value
-        state.value[fieldName] = getInitialFieldState(val || value)
+        state.fields[fieldName] = getInitialFieldState(value)
         return state
       })
     }
 
     formIsDirty(): boolean {
-      return formIsDirty(this.state.value)
+      return formIsDirty(this.state.fields)
     }
 
     registerValidator<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]) {

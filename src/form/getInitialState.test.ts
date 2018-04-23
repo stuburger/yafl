@@ -18,6 +18,12 @@ const nullValue = {
   didBlur: false,
   touched: false
 }
+const undefinedValue = {
+  value: undefined,
+  originalValue: undefined,
+  didBlur: false,
+  touched: false
+}
 
 const objectValue = {
   value: {
@@ -54,9 +60,13 @@ describe('getting the initial state of a single form field with different value 
     test('string', () => {
       expect(getInitialFieldState('Bob')).toEqual(stringValue)
     })
-    test('undefined values initialized to null', () => {
-      const result = getInitialFieldState(undefined)
+    test('null values initialized to null', () => {
+      const result = getInitialFieldState(null)
       expect(result).toEqual(nullValue)
+    })
+    test('undefined values initialized to undefined', () => {
+      const result = getInitialFieldState(undefined)
+      expect(result).toEqual(undefinedValue)
     })
   })
 
@@ -95,8 +105,8 @@ const formResult = {
     touched: false
   },
   gender: {
-    value: null,
-    originalValue: null,
+    value: undefined,
+    originalValue: undefined,
     didBlur: false,
     touched: false
   },

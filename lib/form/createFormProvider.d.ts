@@ -16,12 +16,12 @@ declare function wrapFormProvider<T>(Provider: React.Provider<ProviderValue<T>>,
         forgetState(): void;
         validateForm(): FormValidationResult<T>;
         clearForm(): void;
-        registerField<K extends keyof T>(fieldName: K, value: T[K] | null, validators: Validator<T, K>[]): void;
+        registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]): void;
         formIsDirty(): boolean;
         registerValidator<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void;
         getProviderValue(): ProviderValue<T, keyof T>;
         render(): JSX.Element;
-        setState<K extends "value" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<T> | ((prevState: Readonly<FormProviderState<T>>, props: FormProviderProps<T>) => FormProviderState<T> | Pick<FormProviderState<T>, K> | null) | Pick<FormProviderState<T>, K> | null, callback?: (() => void) | undefined): void;
+        setState<K extends "fields" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<T> | ((prevState: Readonly<FormProviderState<T>>, props: FormProviderProps<T>) => FormProviderState<T> | Pick<FormProviderState<T>, K> | null) | Pick<FormProviderState<T>, K> | null, callback?: (() => void) | undefined): void;
         forceUpdate(callBack?: (() => void) | undefined): void;
         props: Readonly<{
             children?: React.ReactNode;

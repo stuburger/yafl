@@ -10,18 +10,18 @@ function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
     if (!ps.loaded && loaded) {
       let initialValue = np.initialValue || opts.initialValue || ({} as T)
       state.initialValue = initialValue
-      state.value = Object.assign({}, ps.value, initializeState<T>(initialValue))
+      state.fields = Object.assign({}, ps.fields, initializeState<T>(initialValue))
     } else if (ps.loaded && !loaded) {
       state = getNullState<T>()
-      state.value = resetFields(ps.value)
+      state.fields = resetFields(ps.fields)
     }
 
     if (np.allowReinitialize && !isEqual(ps.initialValue, np.initialValue)) {
       if (np.initialValue) {
         if (np.rememberStateOnReinitialize) {
-          state.value = reinitializeState<T>(np.initialValue, ps.value)
+          state.fields = reinitializeState<T>(np.initialValue, ps.fields)
         } else {
-          state.value = initializeState<T>(np.initialValue)
+          state.fields = initializeState<T>(np.initialValue)
           state.submitCount = 0
         }
         state.initialValue = np.initialValue
@@ -29,8 +29,8 @@ function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
         if (np.rememberStateOnReinitialize) {
           state.submitCount = 0
         }
-        state.initialValue = getFormValue<T>(resetFields(ps.value))
-        state.value = initializeState<T>(state.initialValue)
+        state.initialValue = getFormValue<T>(resetFields(ps.fields))
+        state.fields = initializeState<T>(state.initialValue)
       }
     }
 

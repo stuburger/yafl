@@ -1,23 +1,20 @@
 import { transform, clone } from '../utils/index'
 import { FieldState, FormFieldState } from '../'
 
-export const createEmptyField = <T>(): FieldState<T> => {
+export const createEmptyField = (): FieldState<undefined> => {
   return {
-    value: null,
-    originalValue: null,
+    value: undefined,
+    originalValue: undefined,
     didBlur: false,
     touched: false
   }
 }
 
-export const getInitialFieldState = <T>(
-  value: T | null,
-  copyFrom?: FieldState<T>
-): FieldState<T> => {
-  const field = copyFrom ? clone(copyFrom) : createEmptyField<T>()
-  field.value = value ? clone(value) : null
-  field.originalValue = value ? clone(value) : null
-  return field
+export const getInitialFieldState = <T>(value: T, copyFrom?: FieldState<T>): FieldState<T> => {
+  const field = copyFrom ? clone(copyFrom) : createEmptyField()
+  field.value = clone(value)
+  field.originalValue = clone(value)
+  return field as FieldState<T>
 }
 
 export function reinitializeState<T>(val: T, formState: FormFieldState<T>): FormFieldState<T> {

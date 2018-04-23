@@ -7,16 +7,16 @@ export declare type Nullable<T> = {
     [P in keyof T]: T[P] | null;
 };
 export interface FieldState<T> {
-    value: T | null;
+    value: T;
     didBlur: boolean;
     touched: boolean;
-    originalValue: T | null;
+    originalValue: T;
 }
 export declare type FormFieldState<T> = {
     [K in keyof T]: FieldState<T[K]>;
 };
 export interface FormProviderState<T> {
-    value: FormFieldState<T>;
+    fields: FormFieldState<T>;
     initialValue: T;
     isBusy: boolean;
     loaded: boolean;
@@ -45,7 +45,7 @@ export interface FormProviderProps<T> {
     rememberStateOnReinitialize?: boolean;
 }
 export interface Validator<T, K extends keyof T = keyof T> {
-    (value: FieldState<T[K]>, formValue: FormFieldState<T>, fieldName: K): string | undefined;
+    (value: FieldState<T[K]>, fields: FormFieldState<T>, fieldName: K): string | undefined;
 }
 export declare type ValidatorSet<T> = {
     [P in keyof T]: Validator<T, P>[];
@@ -57,14 +57,18 @@ export interface FormComponentWrapper<T> {
 }
 export interface FormFieldProps<T, K extends keyof T = keyof T> {
     name: K;
+    initialValue?: T[K];
     validators?: Validator<T, K>[];
-    render?: (state: FormContextReceiverProps<T, K>) => React.ReactNode;
-    component?: React.ComponentType<FormContextReceiverProps<T, K>> | React.ComponentType<any>;
+    render?: (state: FieldProps<T, K>) => React.ReactNode;
+    component?: React.ComponentType<FieldProps<T, K>> | React.ComponentType<any>;
+    [key: string]: any;
 }
 export interface TypedFormFieldProps<T, K extends keyof T> {
+    initialValue?: T[K];
     validators?: Validator<T, K>[];
-    render?: (state: FormContextReceiverProps<T, K>) => React.ReactNode;
-    component?: React.ComponentType<FormContextReceiverProps<T, K>> | React.ComponentType<any>;
+    render?: (state: FieldProps<T, K>) => React.ReactNode;
+    component?: React.ComponentType<FieldProps<T, K>> | React.ComponentType<any>;
+    [key: string]: any;
 }
 export interface FormProviderOptions<T> {
     initialValue?: T;
@@ -82,7 +86,7 @@ export interface FormBaseContextReceiverProps<T> {
     submit: () => void;
     setFieldValue: <K extends keyof T>(fieldName: K, value: T[K]) => void;
     submitCount: number;
-    value: FormFieldState<T>;
+    fields: FormFieldState<T>;
     loaded: boolean;
     unload: () => void;
     submitting: boolean;
@@ -109,6 +113,42 @@ export interface FormContextReceiverProps<T, P extends keyof T = keyof T> {
     clearForm: () => void;
     [key: string]: any;
 }
+export interface FieldUtils<T, P extends keyof T> {
+    touch: <K extends P>(fieldName: K) => void;
+    untouch: <K extends P>(fieldName: K) => void;
+    unload: () => void;
+    submit: () => void;
+    setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void;
+    setValue: (value: T[P]) => void;
+    forgetState: () => void;
+    clearForm: () => void;
+}
+export interface FieldMeta<T, K extends keyof T> {
+    didBlur: boolean;
+    isDirty: boolean;
+    touched: boolean;
+    submitCount: number;
+    loaded: boolean;
+    submitting: boolean;
+    isValid: boolean;
+    messages: string[];
+    originalValue: T[K];
+}
+export interface InputProps<T, K extends keyof T> {
+    name: K;
+    value: T[K];
+    onBlur: (e) => void;
+    onChange: (e) => void;
+}
+export interface ForwardProps {
+    [key: string]: any;
+}
+export interface FieldProps<T, K extends keyof T> {
+    input: InputProps<T, K>;
+    forward: ForwardProps;
+    meta: FieldMeta<T, K>;
+    utils: FieldUtils<T, K>;
+}
 export interface ReactContextForm<T> {
     Form: React.ComponentClass<FormProviderProps<T>>;
     Field: React.ComponentClass<FormFieldProps<T>>;
@@ -116,7 +156,7 @@ export interface ReactContextForm<T> {
     createTypedField: any;
 }
 export interface ProviderValue<T, P extends keyof T = keyof T> {
-    value: FormFieldState<T>;
+    fields: FormFieldState<T>;
     initialValue: T;
     unload: (() => void) | Noop;
     loaded: boolean;
@@ -129,7 +169,7 @@ export interface ProviderValue<T, P extends keyof T = keyof T> {
     clearForm: (() => void) | Noop;
     validation: FormValidationResult<T>;
     registerValidator: RegisterValidator<T> | Noop;
-    registerField: (<K extends P>(fieldName: K, initialValue: T[K] | null, validators: Validator<T, K>[]) => void) | Noop;
+    registerField: (<K extends P>(fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void) | Noop;
     onFieldBlur: (<K extends P>(fieldName: K) => void) | Noop;
     setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void) | Noop;
     touch: (<K extends P>(fieldName: K) => void) | Noop;
@@ -157,13 +197,14 @@ export interface BaseInnerFieldProps<T, P extends keyof T = keyof T> {
     validation: ValidationResult;
     registerValidator: RegisterValidator<T>;
     onFieldBlur: <K extends P>(fieldName: K) => void;
-    render?: (value) => React.ReactNode;
-    registerField: <K extends P>(fieldName: K, initialValue: T[K] | null, validators: Validator<T, K>[]) => void;
-    component?: React.ComponentType<FormContextReceiverProps<T>> | React.ComponentType<any>;
+    render?: (value: FieldProps<T, P>) => React.ReactNode;
+    registerField: <K extends P>(fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void;
+    component?: React.ComponentType<FieldProps<T, P>> | React.ComponentType<any>;
     submitCount: number;
     clearForm: () => void;
     unload: () => void;
     forgetState: () => void;
+    loaded: boolean;
     submitting: boolean;
     formIsDirty: boolean;
     submit: () => void;
@@ -173,7 +214,7 @@ export interface BaseInnerFieldProps<T, P extends keyof T = keyof T> {
 }
 export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
     loaded: boolean;
-    value: FormFieldState<T>;
+    fields: FormFieldState<T>;
     render?: (value: FormBaseContextReceiverProps<T>) => React.ReactNode;
     component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>;
 }
@@ -200,12 +241,12 @@ export declare function createForm<T>(initialValue: T): {
             forgetState(): void;
             validateForm(): FormValidationResult<T>;
             clearForm(): void;
-            registerField<K extends keyof T>(fieldName: K, value: T[K] | null, validators: Validator<T, K>[]): void;
+            registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]): void;
             formIsDirty(): boolean;
             registerValidator<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void;
             getProviderValue(): ProviderValue<T, keyof T>;
             render(): JSX.Element;
-            setState<K extends "value" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<T> | ((prevState: Readonly<FormProviderState<T>>, props: FormProviderProps<T>) => FormProviderState<T> | Pick<FormProviderState<T>, K> | null) | Pick<FormProviderState<T>, K> | null, callback?: (() => void) | undefined): void;
+            setState<K extends "fields" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<T> | ((prevState: Readonly<FormProviderState<T>>, props: FormProviderProps<T>) => FormProviderState<T> | Pick<FormProviderState<T>, K> | null) | Pick<FormProviderState<T>, K> | null, callback?: (() => void) | undefined): void;
             forceUpdate(callBack?: (() => void) | undefined): void;
             props: Readonly<{
                 children?: React.ReactNode;
@@ -234,7 +275,7 @@ export declare function createForm<T>(initialValue: T): {
             };
         };
     };
-    createField: <K extends keyof T>(fieldName: K, options?: any) => React.ComponentClass<TypedFormFieldProps<T, K>>;
+    createField: <K extends keyof T>(fieldName: K, component?: React.ComponentClass<FieldProps<T, K>> | React.StatelessComponent<FieldProps<T, K>> | undefined) => React.ComponentClass<TypedFormFieldProps<T, K>>;
 };
 export default createForm;
 export declare const Form: {
@@ -257,7 +298,7 @@ export declare const Form: {
         registerValidator<K extends string>(fieldName: K, validators: Validator<any, K>[]): void;
         getProviderValue(): ProviderValue<any, string>;
         render(): JSX.Element;
-        setState<K extends "value" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<any> | ((prevState: Readonly<FormProviderState<any>>, props: FormProviderProps<any>) => FormProviderState<any> | Pick<FormProviderState<any>, K> | null) | Pick<FormProviderState<any>, K> | null, callback?: (() => void) | undefined): void;
+        setState<K extends "fields" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<any> | ((prevState: Readonly<FormProviderState<any>>, props: FormProviderProps<any>) => FormProviderState<any> | Pick<FormProviderState<any>, K> | null) | Pick<FormProviderState<any>, K> | null, callback?: (() => void) | undefined): void;
         forceUpdate(callBack?: (() => void) | undefined): void;
         props: Readonly<{
             children?: React.ReactNode;

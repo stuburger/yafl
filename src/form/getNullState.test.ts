@@ -1,9 +1,9 @@
 import getNullState from './getNullState'
 
 const result = {
-  value: {},
+  fields: {},
   loaded: false,
-  isBusy: true,
+  isBusy: false,
   submitting: false,
   submitCount: 0,
   initialValue: {}
