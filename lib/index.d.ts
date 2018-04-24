@@ -229,7 +229,6 @@ export declare function createForm<T>(initialValue: T): {
     Form: {
         new (props: any): {
             validators: Partial<ValidatorSet<T>>;
-            state: FormProviderState<T>;
             submit(): void;
             setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void;
             touchField<K extends keyof T>(fieldName: K): void;
@@ -251,6 +250,7 @@ export declare function createForm<T>(initialValue: T): {
             props: Readonly<{
                 children?: React.ReactNode;
             }> & Readonly<FormProviderProps<T>>;
+            state: Readonly<FormProviderState<T>>;
             context: any;
             refs: {
                 [key: string]: React.ReactInstance;
@@ -281,7 +281,6 @@ export default createForm;
 export declare const Form: {
     new (props: any): {
         validators: Partial<ValidatorSet<any>>;
-        state: FormProviderState<any>;
         submit(): void;
         setFieldValue<P extends string>(fieldName: P, val: any): void;
         touchField<K extends string>(fieldName: K): void;
@@ -303,6 +302,7 @@ export declare const Form: {
         props: Readonly<{
             children?: React.ReactNode;
         }> & Readonly<FormProviderProps<any>>;
+        state: Readonly<FormProviderState<any>>;
         context: any;
         refs: {
             [key: string]: React.ReactInstance;

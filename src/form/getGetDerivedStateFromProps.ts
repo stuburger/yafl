@@ -1,18 +1,18 @@
-import { FormProviderOptions, FormProviderProps, FormProviderState } from '../'
-import { resetFields, getNullState, getFormValue } from '../form'
+import { FormProviderProps, FormProviderState } from '../'
+import { resetFields, getStartingState, getFormValue } from '../form'
 import { trueIfAbsent, isEqual } from '../utils'
 import initializeState, { reinitializeState } from './getInitialState'
 
-function getGetDerivedStateFromProps<T>(opts: FormProviderOptions<T>) {
+function getGetDerivedStateFromProps<T>() {
   return (np: FormProviderProps<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {
     let state: Partial<FormProviderState<T>> = {}
     const loaded = trueIfAbsent(np.loaded)
     if (!ps.loaded && loaded) {
-      let initialValue = np.initialValue || opts.initialValue || ({} as T)
+      let initialValue = np.initialValue || ({} as T)
       state.initialValue = initialValue
       state.fields = Object.assign({}, ps.fields, initializeState<T>(initialValue))
     } else if (ps.loaded && !loaded) {
-      state = getNullState<T>()
+      state = getStartingState<T>()
       state.fields = resetFields(ps.fields)
     }
 

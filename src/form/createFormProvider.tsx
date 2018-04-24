@@ -1,9 +1,8 @@
 import * as React from 'react'
 import { getInitialFieldState } from './getInitialState'
 import {
-  // noops,
   getGetDerivedStateFromProps,
-  getNullState,
+  getStartingState,
   validateField,
   untouchAllFields,
   touchAllFields,
@@ -59,11 +58,10 @@ function wrapFormProvider<T>(
       this.registerField = bind(this, this.registerField)
       this.registerValidator = bind(this, this.registerValidator)
       this.getProviderValue = bind(this, this.getProviderValue)
+      this.state = getStartingState<T>(opts.initialValue)
     }
 
-    static getDerivedStateFromProps = getGetDerivedStateFromProps<T>(opts)
-
-    state = getNullState<T>()
+    static getDerivedStateFromProps = getGetDerivedStateFromProps<T>()
 
     submit() {
       this.setState(({ fields, submitCount }) => ({
@@ -134,7 +132,7 @@ function wrapFormProvider<T>(
     }
 
     unload() {
-      this.setState(getNullState<T>())
+      this.setState(getStartingState<T>())
     }
 
     forgetState() {

@@ -4,7 +4,6 @@ import { FormProviderState, FormProviderOptions, FormProviderProps, ProviderValu
 declare function wrapFormProvider<T>(Provider: React.Provider<ProviderValue<T>>, opts: FormProviderOptions<T>): {
     new (props: any): {
         validators: Partial<ValidatorSet<T>>;
-        state: FormProviderState<T>;
         submit(): void;
         setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void;
         touchField<K extends keyof T>(fieldName: K): void;
@@ -26,6 +25,7 @@ declare function wrapFormProvider<T>(Provider: React.Provider<ProviderValue<T>>,
         props: Readonly<{
             children?: React.ReactNode;
         }> & Readonly<FormProviderProps<T>>;
+        state: Readonly<FormProviderState<T>>;
         context: any;
         refs: {
             [key: string]: React.ReactInstance;

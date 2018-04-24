@@ -1,4 +1,4 @@
-import getNullState from './getNullState'
+import getStartingState from './getStartingState'
 
 const result = {
   fields: {},
@@ -11,6 +11,6 @@ const result = {
 
 describe('getNullState of form component', () => {
   test('should equal', () => {
-    expect(getNullState<any>()).toEqual(result)
+    expect(getStartingState<any>()).toEqual(result)
   })
 })

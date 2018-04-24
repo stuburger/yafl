@@ -4,7 +4,6 @@ import AbsentField from '../AbsentField'
 import {
   ProviderValue,
   FormFieldProps,
-  // FieldState,
   InnerFieldProps,
   TypedFormFieldProps,
   FieldProps,
@@ -27,10 +26,10 @@ function wrapConsumer<T, K extends keyof T = keyof T>(
       this._render = this._render.bind(this)
     }
 
-    _render({ fields, loaded, formIsDirty, ...providerValue }: ProviderValue<T, K>) {
+    _render({ fields, loaded, formIsDirty, ...provider }: ProviderValue<T, K>) {
       const { render, component, name, validators, initialValue, ...props } = this.props
       const state: FieldState<T[K]> = fields[name] || getInitialFieldState(initialValue)
-      const validation = providerValue.validation[name] || emptyArray
+      const validation = provider.validation[name] || emptyArray
 
       return (
         <InnerField
@@ -44,18 +43,18 @@ function wrapConsumer<T, K extends keyof T = keyof T>(
           validators={validators}
           formIsDirty={formIsDirty}
           initialValue={initialValue}
-          touch={providerValue.touch}
-          submit={providerValue.submit}
-          unload={providerValue.unload}
-          untouch={providerValue.untouch}
-          clearForm={providerValue.clearForm}
-          submitting={providerValue.submitting}
-          forgetState={providerValue.forgetState}
-          submitCount={providerValue.submitCount}
-          onFieldBlur={providerValue.onFieldBlur}
-          setFieldValue={providerValue.setFieldValue}
-          registerField={providerValue.registerField}
-          registerValidator={providerValue.registerValidator}
+          touch={provider.touch}
+          submit={provider.submit}
+          unload={provider.unload}
+          untouch={provider.untouch}
+          clearForm={provider.clearForm}
+          submitting={provider.submitting}
+          forgetState={provider.forgetState}
+          submitCount={provider.submitCount}
+          onFieldBlur={provider.onFieldBlur}
+          setFieldValue={provider.setFieldValue}
+          registerField={provider.registerField}
+          registerValidator={provider.registerValidator}
           isDirty={formIsDirty && !isEqual(state.originalValue, state.value)}
         />
       )
@@ -83,7 +82,7 @@ export function getTypedField<T, P extends keyof T = keyof T>(
 function getInnerField<T, P extends keyof T = keyof T>() {
   const emptyArray = []
   class InnerField extends React.Component<InnerFieldProps<T, P>> {
-    constructor(props) {
+    constructor(props: InnerFieldProps<T, P>) {
       super(props)
       this.onChange = this.onChange.bind(this)
       this.onBlur = this.onBlur.bind(this)
@@ -94,10 +93,7 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       this.collectMetaProps = this.collectMetaProps.bind(this)
       this.collectUtilProps = this.collectUtilProps.bind(this)
       this.collectProps = this.collectProps.bind(this)
-    }
-
-    componentDidMount() {
-      const { registerField, name, initialValue = this.props.value, validators } = this.props
+      const { registerField, name, initialValue = props.value, validators } = props
       registerField(name, initialValue, validators || emptyArray)
     }
 
@@ -194,6 +190,7 @@ function getInnerField<T, P extends keyof T = keyof T>() {
     }
 
     render() {
+      console.log(this.props.value)
       const { render, component: Component } = this.props
 
       const props = this.collectProps()
