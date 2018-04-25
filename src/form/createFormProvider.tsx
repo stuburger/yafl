@@ -17,18 +17,34 @@ import {
   FormProviderState,
   FormProviderOptions,
   FormProviderProps,
-  ProviderValue,
   Validator,
   FormValidationResult,
-  ValidatorSet
+  ValidatorSet,
+  FormFieldState,
+  FieldState,
+  ProviderValueLoaded
 } from '../'
-import { bind, clone, transform } from '../utils'
+import { bind, transform } from '../utils'
 import { touchField, untouchField } from './fieldStateHelpers'
 
 const noop = () => {}
 
+function shallowCopy<T>(obj: T): T {
+  return Object.assign({}, obj)
+}
+
+function set<T, K extends keyof T>(
+  fields: FormFieldState<T>,
+  fieldName: K,
+  updatedField: FieldState<T[K]>
+): FormFieldState<T> {
+  const result = shallowCopy(fields)
+  result[fieldName] = updatedField
+  return result
+}
+
 function wrapFormProvider<T>(
-  Provider: React.Provider<ProviderValue<T>>,
+  Provider: React.Provider<ProviderValueLoaded<T>>,
   opts: FormProviderOptions<T>
 ) {
   return class Form extends React.Component<FormProviderProps<T>, FormProviderState<T>> {
@@ -63,7 +79,19 @@ function wrapFormProvider<T>(
 
     static getDerivedStateFromProps = getGetDerivedStateFromProps<T>()
 
-    submit() {
+    registerValidator<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void {
+      this.validators[fieldName] = validators
+    }
+
+    registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]) {
+      this.registerValidator(fieldName, validators)
+      if (this.state.fields[fieldName]) return // field is already registered
+      this.setState(({ fields }) => ({
+        fields: set(fields, fieldName, getInitialFieldState(value))
+      }))
+    }
+
+    submit(): void {
       this.setState(({ fields, submitCount }) => ({
         fields: touchAllFields(fields),
         submitCount: submitCount + 1
@@ -77,65 +105,48 @@ function wrapFormProvider<T>(
       }
     }
 
-    setFieldValue<P extends keyof T>(fieldName: P, val: T[P]) {
+    setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void {
       if (!this.state.fields[fieldName]) return
-
-      this.setState(state => {
-        const { fields } = state
-        const field = state.fields[fieldName]
-        fields[fieldName] = setFieldValue(field, val)
-        return { fields }
-      })
+      this.setState(({ fields }) => ({
+        fields: set(fields, fieldName, setFieldValue(fields[fieldName], val))
+      }))
     }
 
-    touchField<K extends keyof T>(fieldName: K) {
+    touchField<K extends keyof T>(fieldName: K): void {
       if (!this.state.fields[fieldName]) return
-      const fields = clone(this.state.fields)
-      fields[fieldName] = touchField(fields[fieldName])
-      this.setState(state => ({ fields }))
+      this.setState(({ fields }) => ({
+        fields: set(fields, fieldName, touchField(fields[fieldName]))
+      }))
     }
 
-    touchFields<K extends keyof T>(fieldNames: K[]) {
-      let didUpdate = false
-      const fields = clone(this.state.fields)
-      fieldNames.forEach(fieldName => {
-        if (fields[fieldName]) {
-          fields[fieldName] = touchField(fields[fieldName])
-          didUpdate = true
-        }
-      })
-
-      if (didUpdate) this.setState(state => ({ fields }))
+    // todo touch/untouch specific fields
+    touchFields<K extends keyof T>(fieldNames: K[]): void {
+      this.setState(({ fields }) => ({ fields: touchAllFields(fields) }))
     }
 
-    untouchField<K extends keyof T>(fieldName: K) {
+    untouchField<K extends keyof T>(fieldName: K): void {
       if (!this.state.fields[fieldName]) return
-      const fields = clone(this.state.fields)
-      fields[fieldName] = untouchField(fields[fieldName])
-      this.setState(state => ({ fields }))
+      this.setState(({ fields }) => ({
+        fields: set(fields, fieldName, untouchField(fields[fieldName]))
+      }))
     }
 
-    untouchFields<K extends keyof T>(fieldNames: K[]) {
-      let didUpdate = false
-      const fields = clone(this.state.fields)
-      fieldNames.forEach(fieldName => {
-        if (fields[fieldName]) {
-          fields[fieldName] = untouchField(fields[fieldName])
-          didUpdate = true
-        }
-      })
-
-      if (didUpdate) this.setState(state => ({ fields }))
+    untouchFields<K extends keyof T>(fieldNames: K[]): void {
+      this.setState(({ fields }) => ({ fields: untouchAllFields(fields) }))
     }
 
-    onFieldBlur<K extends keyof T>(fieldName: K) {
+    onFieldBlur<K extends keyof T>(fieldName: K): void {
       if (this.state.fields[fieldName].didBlur) return
-      const fields = clone(this.state.fields)
-      fields[fieldName] = blurField(fields[fieldName])
-      this.setState({ fields })
+      this.setState(({ fields }) => ({
+        fields: set(fields, fieldName, blurField(fields[fieldName]))
+      }))
     }
 
-    unload() {
+    clearForm(): void {
+      this.setState({ fields: resetFields<T>(this.state.fields) })
+    }
+
+    unload(): void {
       this.setState(getStartingState<T>())
     }
 
@@ -156,29 +167,11 @@ function wrapFormProvider<T>(
       return result
     }
 
-    clearForm() {
-      this.setState({ fields: resetFields<T>(this.state.fields) })
-    }
-
-    registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]) {
-      this.registerValidator(fieldName, validators)
-      if (this.state.fields[fieldName]) return // field is already registered
-      this.setState(s => {
-        const state = clone(s)
-        state.fields[fieldName] = getInitialFieldState(value)
-        return state
-      })
-    }
-
     formIsDirty(): boolean {
       return formIsDirty(this.state.fields)
     }
 
-    registerValidator<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]) {
-      this.validators[fieldName] = validators
-    }
-
-    getProviderValue(): ProviderValue<T> {
+    getProviderValue(): ProviderValueLoaded<T> {
       return {
         ...this.state,
         unload: this.unload,

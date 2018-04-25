@@ -258,6 +258,8 @@ export declare function createForm<T>(initialValue: T): {
     Form: {
         new (props: any): {
             validators: Partial<ValidatorSet<T>>;
+            registerValidator<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void;
+            registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]): void;
             submit(): void;
             setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void;
             touchField<K extends keyof T>(fieldName: K): void;
@@ -265,14 +267,12 @@ export declare function createForm<T>(initialValue: T): {
             untouchField<K extends keyof T>(fieldName: K): void;
             untouchFields<K extends keyof T>(fieldNames: K[]): void;
             onFieldBlur<K extends keyof T>(fieldName: K): void;
+            clearForm(): void;
             unload(): void;
             forgetState(): void;
             validateForm(): FormValidationResult<T>;
-            clearForm(): void;
-            registerField<K extends keyof T>(fieldName: K, value: T[K], validators: Validator<T, K>[]): void;
             formIsDirty(): boolean;
-            registerValidator<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void;
-            getProviderValue(): ProviderValue<T, keyof T>;
+            getProviderValue(): ProviderValueLoaded<T, keyof T>;
             render(): JSX.Element;
             setState<K extends "fields" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<T> | ((prevState: Readonly<FormProviderState<T>>, props: FormProviderProps<T>) => FormProviderState<T> | Pick<FormProviderState<T>, K> | null) | Pick<FormProviderState<T>, K> | null, callback?: (() => void) | undefined): void;
             forceUpdate(callBack?: (() => void) | undefined): void;
@@ -310,6 +310,8 @@ export default createForm;
 export declare const Form: {
     new (props: any): {
         validators: Partial<ValidatorSet<any>>;
+        registerValidator<K extends string>(fieldName: K, validators: Validator<any, K>[]): void;
+        registerField<K extends string>(fieldName: K, value: any, validators: Validator<any, K>[]): void;
         submit(): void;
         setFieldValue<P extends string>(fieldName: P, val: any): void;
         touchField<K extends string>(fieldName: K): void;
@@ -317,14 +319,12 @@ export declare const Form: {
         untouchField<K extends string>(fieldName: K): void;
         untouchFields<K extends string>(fieldNames: K[]): void;
         onFieldBlur<K extends string>(fieldName: K): void;
+        clearForm(): void;
         unload(): void;
         forgetState(): void;
         validateForm(): FormValidationResult<any>;
-        clearForm(): void;
-        registerField<K extends string>(fieldName: K, value: any, validators: Validator<any, K>[]): void;
         formIsDirty(): boolean;
-        registerValidator<K extends string>(fieldName: K, validators: Validator<any, K>[]): void;
-        getProviderValue(): ProviderValue<any, string>;
+        getProviderValue(): ProviderValueLoaded<any, string>;
         render(): JSX.Element;
         setState<K extends "fields" | "initialValue" | "isBusy" | "loaded" | "submitting" | "submitCount">(state: FormProviderState<any> | ((prevState: Readonly<FormProviderState<any>>, props: FormProviderProps<any>) => FormProviderState<any> | Pick<FormProviderState<any>, K> | null) | Pick<FormProviderState<any>, K> | null, callback?: (() => void) | undefined): void;
         forceUpdate(callBack?: (() => void) | undefined): void;

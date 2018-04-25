@@ -2,7 +2,6 @@ import * as React from 'react'
 import { isEqual } from '../utils'
 import AbsentField from '../AbsentField'
 import {
-  ProviderValue,
   FormFieldProps,
   InnerFieldProps,
   TypedFormFieldProps,
@@ -15,7 +14,7 @@ import {
 } from '../'
 
 function wrapConsumer<T, K extends keyof T = keyof T>(
-  Consumer: React.Consumer<ProviderValue<T, K>>
+  Consumer: React.Consumer<ProviderValueLoaded<T, K>>
 ): React.ComponentClass<FormFieldProps<T, K>> {
   const InnerField = getInnerField<T, K>()
   const emptyArray = []
@@ -65,7 +64,7 @@ function wrapConsumer<T, K extends keyof T = keyof T>(
 }
 
 export function getTypedField<T, P extends keyof T = keyof T>(
-  Consumer: React.Consumer<ProviderValue<T, P>>,
+  Consumer: React.Consumer<ProviderValueLoaded<T, P>>,
   fieldName: P,
   component?: React.ComponentType<FieldProps<T, P>>
 ): React.ComponentClass<TypedFormFieldProps<T, P>> {

@@ -162,8 +162,8 @@ export interface ForwardProps {
 }
 
 export interface FieldProps<T, K extends keyof T> {
-  input: InputProps<T, K> // spread safe
-  forward: ForwardProps // probably spread safe
+  input: InputProps<T, K> // spread safe on <input />
+  forward: ForwardProps // presumably spread safe on <input />
   meta: FieldMeta<T, K> // not spread safe
   utils: FieldUtils<T, K> // not spread safe
 }
@@ -291,14 +291,6 @@ export interface InnerFieldProps<T, K extends keyof T = keyof T>
   forwardProps: UnrecognizedFieldProps
 }
 
-// export type InnerFieldProps<T, K extends keyof T = keyof T> = BaseInnerFieldProps<T, K> &
-//   FieldState<T[K]>
-
-// export type Primitive = string | number | boolean
-// export type BasicAllowedTypes = Primitive | null | undefined | Date
-// export type AllowedTypesOfArray = BasicAllowedTypes[]
-// export type AllowedTypes = BasicAllowedTypes | AllowedTypesOfArray | { [K in keyof any]: AllowedTypes }
-
 export interface RegisterValidator<T> {
   <K extends keyof T>(fieldName: K, validators: Validator<T, K>[]): void
 }
@@ -331,11 +323,11 @@ function getDefaultProviderValue<T>(): ProviderValue<T> {
     setFieldValue: noop,
     registerField: noop,
     registerValidator: noop
-  } as ProviderValue<T>
+  }
 }
 
-function getFormContext<T>(): React.Context<ProviderValue<T>> {
-  return React.createContext<ProviderValue<T>>(getDefaultProviderValue())
+function getFormContext<T>(): React.Context<ProviderValueLoaded<T>> {
+  return React.createContext<ProviderValueLoaded<T>>(getDefaultProviderValue())
 }
 
 export function createForm<T>(initialValue: T) {

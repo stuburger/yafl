@@ -15,6 +15,15 @@ export interface FieldUpdater<T, K extends keyof T> {
   (fields: FieldState<T[K]>): FieldState<T[K]>
 }
 
+function copy<T>(field: FieldState<T>): FieldState<T> {
+  return {
+    value: clone(field.value),
+    didBlur: field.didBlur,
+    touched: field.touched,
+    originalValue: clone(field.originalValue)
+  }
+}
+
 // untested
 export function getDefaultOfType<T>(value: T, defaultValue?: T): T {
   if (defaultValue) {
@@ -46,6 +55,10 @@ export function getDefaultOfType<T>(value: T, defaultValue?: T): T {
   return res as T
 }
 
+export function isDirty<T>({ value, originalValue }: FieldState<T>): boolean {
+  return !isEqual(originalValue, value)
+}
+
 export function setFieldValue<T>(field: FieldState<T>, value: T): FieldState<T> {
   const res = touchField<T>(field)
   res.value = value
@@ -54,25 +67,25 @@ export function setFieldValue<T>(field: FieldState<T>, value: T): FieldState<T> 
 
 export function blurField<T>(field: FieldState<T>): FieldState<T> {
   if (field.didBlur) return field
-  const res = clone(field)
+  const res = copy(field)
   res.didBlur = true
   return res
 }
 
 export function touchField<T>(field: FieldState<T>): FieldState<T> {
-  const res = clone(field)
+  const res = copy(field)
   res.touched = true
   return res
 }
 
 export function untouchField<T>(field: FieldState<T>): FieldState<T> {
-  const res = clone(field)
+  const res = copy(field)
   res.touched = false
   return res
 }
 
 export function resetField<T>(field: FieldState<T>): FieldState<T> {
-  const result = clone(field)
+  const result = copy(field)
   result.originalValue = getDefaultOfType(field.originalValue)
   result.value = clone(result.originalValue)
   return result
@@ -88,7 +101,7 @@ export function formIsDirty<T>(value: FormFieldState<T>): boolean {
 }
 
 export function touchAllFields<T>(fields: FormFieldState<T>) {
-  const state = clone(fields)
+  const state = clone(fields) // shallow copy would be fine if all fields are cloned
   for (let key in state) {
     state[key] = touchField(state[key])
   }

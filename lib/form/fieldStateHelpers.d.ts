@@ -3,6 +3,7 @@ export interface FieldUpdater<T, K extends keyof T> {
     (fields: FieldState<T[K]>): FieldState<T[K]>;
 }
 export declare function getDefaultOfType<T>(value: T, defaultValue?: T): T;
+export declare function isDirty<T>({value, originalValue}: FieldState<T>): boolean;
 export declare function setFieldValue<T>(field: FieldState<T>, value: T): FieldState<T>;
 export declare function blurField<T>(field: FieldState<T>): FieldState<T>;
 export declare function touchField<T>(field: FieldState<T>): FieldState<T>;
