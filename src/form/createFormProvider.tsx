@@ -79,9 +79,13 @@ function wrapFormProvider<T>(
 
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]) {
       if (!this.state.fields[fieldName]) return
-      const fields = clone(this.state.fields)
-      fields[fieldName] = setFieldValue(fields[fieldName], val)
-      this.setState(state => ({ fields }))
+
+      this.setState(state => {
+        const { fields } = state
+        const field = state.fields[fieldName]
+        fields[fieldName] = setFieldValue(field, val)
+        return { fields }
+      })
     }
 
     touchField<K extends keyof T>(fieldName: K) {

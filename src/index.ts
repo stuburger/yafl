@@ -198,6 +198,25 @@ export interface ProviderValue<T, P extends keyof T = keyof T> {
   untouch: (<K extends P>(fieldName: K) => void) | Noop
 }
 
+export interface ProviderValueLoaded<T, P extends keyof T = keyof T> extends ProviderValue<T, P> {
+  unload: (() => void)
+  forgetState: (() => void)
+  submit: (() => void)
+  submitCount: number
+  clearForm: (() => void)
+  validation: FormValidationResult<T>
+  registerValidator: RegisterValidator<T>
+  registerField: (<K extends P>(
+    fieldName: K,
+    initialValue: T[K],
+    validators: Validator<T, K>[]
+  ) => void)
+  onFieldBlur: (<K extends P>(fieldName: K) => void)
+  setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
+  touch: (<K extends P>(fieldName: K) => void)
+  untouch: (<K extends P>(fieldName: K) => void)
+}
+
 export interface BaseFormComponentProps<T, P extends keyof T = keyof T> {
   submitCount: number
   clearForm: () => void
@@ -252,8 +271,28 @@ export interface FormComponentProps<T> extends BaseFormComponentProps<T> {
   component?: React.ComponentType<FormBaseContextReceiverProps<T>> | React.ComponentType<any>
 }
 
-export type InnerFieldProps<T, K extends keyof T = keyof T> = BaseInnerFieldProps<T, K> &
-  FieldState<T[K]>
+export interface UnrecognizedFieldProps {
+  children?: React.ReactNode
+  [key: string]: any
+}
+
+export interface RecognizedFieldProps<T, K extends keyof T> {
+  name: K
+  initialValue?: T[K]
+  validators: Validator<T, K>[]
+  render?: (state: FieldProps<T, K>) => React.ReactNode
+  component?: React.ComponentType<FieldProps<T, K>> | React.ComponentType<any>
+}
+
+export interface InnerFieldProps<T, K extends keyof T = keyof T>
+  extends RecognizedFieldProps<T, K> {
+  provider: ProviderValueLoaded<T, K>
+  field: FieldState<T[K]>
+  forwardProps: UnrecognizedFieldProps
+}
+
+// export type InnerFieldProps<T, K extends keyof T = keyof T> = BaseInnerFieldProps<T, K> &
+//   FieldState<T[K]>
 
 // export type Primitive = string | number | boolean
 // export type BasicAllowedTypes = Primitive | null | undefined | Date
@@ -325,3 +364,4 @@ const formContext = createForm<any>({})
 export const Form = formContext.Form
 export const Field = formContext.Field
 export const FormComponent = formContext.FormComponent
+export { required, maxLength, minLength } from './validators'

@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { ProviderValue, FormComponentProps, FormComponentWrapper } from '../'
+import { ProviderValueLoaded, FormComponentProps, FormComponentWrapper } from '../'
 
-function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
+function wrapConsumer<T>(Consumer: React.Consumer<ProviderValueLoaded<T>>) {
   const Component = getComponent<T>()
 
   return class FormComponent extends React.Component<FormComponentWrapper<T>> {
@@ -10,7 +10,7 @@ function wrapConsumer<T>(Consumer: React.Consumer<ProviderValue<T>>) {
       registerField,
       onFieldBlur,
       ...providerValue
-    }: ProviderValue<T>) => {
+    }: ProviderValueLoaded<T>) => {
       return <Component {...this.props} {...providerValue} />
     }
 
