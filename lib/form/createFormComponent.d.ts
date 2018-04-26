@@ -1,15 +1,15 @@
 /// <reference types="react" />
 import * as React from 'react';
-import { ProviderValueLoaded, FormComponentWrapper } from '../';
+import { ProviderValueLoaded, FormComponentProps } from '../';
 declare function wrapConsumer<T>(Consumer: React.Consumer<ProviderValueLoaded<T>>): {
-    new (props: FormComponentWrapper<T>, context?: any): {
-        _render: ({registerValidator, registerField, onFieldBlur, ...providerValue}: ProviderValueLoaded<T, keyof T>) => JSX.Element;
+    new (props: any): {
+        _render(provider: ProviderValueLoaded<T, keyof T>): JSX.Element;
         render(): JSX.Element;
-        setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: FormComponentWrapper<T>) => {} | Pick<{}, K> | null) | Pick<{}, K> | null, callback?: (() => void) | undefined): void;
+        setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: FormComponentProps<T, keyof T>) => {} | Pick<{}, K> | null) | Pick<{}, K> | null, callback?: (() => void) | undefined): void;
         forceUpdate(callBack?: (() => void) | undefined): void;
         props: Readonly<{
             children?: React.ReactNode;
-        }> & Readonly<FormComponentWrapper<T>>;
+        }> & Readonly<FormComponentProps<T, keyof T>>;
         state: Readonly<{}>;
         context: any;
         refs: {

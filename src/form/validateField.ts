@@ -1,11 +1,11 @@
-import { FormFieldState, Validator, ValidationResult } from '../index'
+import { FormFieldState, Validator } from '../index'
 
 function validateField<T>(
   fieldName: keyof T,
   form: FormFieldState<T>,
   validators = [] as Validator<T, keyof T>[]
-): ValidationResult {
-  const messages: ValidationResult = []
+): string[] {
+  const messages: string[] = []
   const value = form[fieldName]
   for (let validate of validators) {
     const message = validate(value, form, fieldName)

@@ -3,6 +3,8 @@ export { default as clone } from './clone'
 export { default as isEqual } from './isEqual'
 export { default as trueIfAbsent } from './trueIfAbsent'
 export { default as bind } from './bind'
+export { default as getDefaultOfType } from './getDefaultOfType'
+export { default as shallowCopy } from './shallowCopy'
 export {
   isString,
   isBoolean,

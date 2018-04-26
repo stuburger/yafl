@@ -1,19 +1,5 @@
 import { FormFieldState, FieldState } from '../'
-import {
-  transform,
-  isEqual,
-  clone,
-  isNullOrUndefined,
-  isBoolean,
-  isNumber,
-  isDate,
-  isString,
-  isObject
-} from '../utils'
-
-export interface FieldUpdater<T, K extends keyof T> {
-  (fields: FieldState<T[K]>): FieldState<T[K]>
-}
+import { transform, isEqual, clone, getDefaultOfType, shallowCopy } from '../utils'
 
 function copy<T>(field: FieldState<T>): FieldState<T> {
   return {
@@ -22,37 +8,6 @@ function copy<T>(field: FieldState<T>): FieldState<T> {
     touched: field.touched,
     originalValue: clone(field.originalValue)
   }
-}
-
-// untested
-export function getDefaultOfType<T>(value: T, defaultValue?: T): T {
-  if (defaultValue) {
-    return defaultValue
-  }
-  if (isNullOrUndefined(value)) {
-    return value
-  }
-  let res: any
-  if (isBoolean(value)) {
-    res = false
-  } else if (Array.isArray(value)) {
-    res = []
-  } else if (isNumber(value)) {
-    res = 0
-  } else if (isDate(value)) {
-    res = new Date()
-  } else if (isString(value)) {
-    res = ''
-  } else if (isObject(value)) {
-    res = {}
-    const keys = Object.keys(value) as (keyof T)[]
-    for (let key of keys) {
-      res[key] = getDefaultOfType(value[key])
-    }
-  } else {
-    throw new Error('unexpected value type ' + value)
-  }
-  return res as T
 }
 
 export function isDirty<T>({ value, originalValue }: FieldState<T>): boolean {
@@ -86,6 +41,12 @@ export function untouchField<T>(field: FieldState<T>): FieldState<T> {
 
 export function resetField<T>(field: FieldState<T>): FieldState<T> {
   const result = copy(field)
+  result.value = clone(field.originalValue)
+  return result
+}
+
+export function clearField<T>(field: FieldState<T>): FieldState<T> {
+  const result = copy(field)
   result.originalValue = getDefaultOfType(field.originalValue)
   result.value = clone(result.originalValue)
   return result
@@ -116,10 +77,28 @@ export function untouchAllFields<T>(fields: FormFieldState<T>): FormFieldState<T
   return state
 }
 
+export function clearFields<T>(fields: FormFieldState<T>): FormFieldState<T> {
+  const state = clone(fields)
+  for (let key in state) {
+    state[key] = clearField(state[key])
+  }
+  return state
+}
+
 export function resetFields<T>(fields: FormFieldState<T>): FormFieldState<T> {
   const state = clone(fields)
   for (let key in state) {
     state[key] = resetField(state[key])
   }
   return state
+}
+
+export function set<T, K extends keyof T>(
+  fields: FormFieldState<T>,
+  fieldName: K,
+  updatedField: FieldState<T[K]>
+): FormFieldState<T> {
+  const result = shallowCopy(fields)
+  result[fieldName] = updatedField
+  return result
 }

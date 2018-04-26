@@ -1,5 +1,5 @@
 import { FormProviderProps, FormProviderState } from '../'
-import { resetFields, getStartingState, getFormValue } from '../form'
+import { clearFields, getStartingState, getFormValue } from '../form'
 import { trueIfAbsent, isEqual } from '../utils'
 import initializeState, { reinitializeState } from './getInitialState'
 
@@ -13,7 +13,7 @@ function getGetDerivedStateFromProps<T>() {
       state.fields = Object.assign({}, ps.fields, initializeState<T>(initialValue))
     } else if (ps.loaded && !loaded) {
       state = getStartingState<T>()
-      state.fields = resetFields(ps.fields)
+      state.fields = clearFields(ps.fields)
     }
 
     if (np.allowReinitialize && !isEqual(ps.initialValue, np.initialValue)) {
@@ -29,7 +29,7 @@ function getGetDerivedStateFromProps<T>() {
         if (np.rememberStateOnReinitialize) {
           state.submitCount = 0
         }
-        state.initialValue = getFormValue<T>(resetFields(ps.fields))
+        state.initialValue = getFormValue<T>(clearFields(ps.fields))
         state.fields = initializeState<T>(state.initialValue)
       }
     }

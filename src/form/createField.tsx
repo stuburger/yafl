@@ -9,9 +9,9 @@ import {
   InputProps,
   FieldMeta,
   FieldUtils,
-  FieldState,
   ProviderValueLoaded
 } from '../'
+import { isDirty } from './fieldStateHelpers'
 
 function wrapConsumer<T, K extends keyof T = keyof T>(
   Consumer: React.Consumer<ProviderValueLoaded<T, K>>
@@ -23,13 +23,6 @@ function wrapConsumer<T, K extends keyof T = keyof T>(
     constructor(props) {
       super(props)
       this._render = this._render.bind(this)
-    }
-
-    componentDidUpdate(pp) {
-      const { validators = emptyArray } = this.props
-      if (validators !== pp.validators) {
-        console.log('validators changed')
-      }
     }
 
     _render(provider: ProviderValueLoaded<T, K>) {
@@ -76,10 +69,6 @@ export function getTypedField<T, P extends keyof T = keyof T>(
   }
 }
 
-function isDirty<T>(field: FieldState<T>): boolean {
-  return !isEqual(field.originalValue, field.value)
-}
-
 function getInnerField<T, P extends keyof T = keyof T>() {
   const emptyArray = []
   class InnerField extends React.Component<InnerFieldProps<T, P>> {
@@ -111,7 +100,6 @@ function getInnerField<T, P extends keyof T = keyof T>() {
     componentDidUpdate(pp: InnerFieldProps<T, P>) {
       const { name, validators = emptyArray, provider } = this.props
       if (validators !== pp.validators) {
-        console.log('validators changed')
         provider.registerValidator(name, validators)
       }
     }
@@ -177,10 +165,12 @@ function getInnerField<T, P extends keyof T = keyof T>() {
         untouch: this.untouch,
         unload: provider.unload,
         submit: provider.submit,
+        resetForm: provider.resetForm,
         setFieldValue: provider.setFieldValue,
         setValue: this.setValue,
         forgetState: provider.forgetState,
-        clearForm: provider.clearForm
+        clearForm: provider.clearForm,
+        getFormValue: provider.getFormValue
       }
     }
 

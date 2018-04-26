@@ -6,7 +6,7 @@ export { default as getGetDerivedStateFromProps } from './getGetDerivedStateFrom
 export {
   touchAllFields,
   untouchAllFields,
-  resetFields,
+  clearFields,
   formIsDirty,
   setFieldValue,
   blurField

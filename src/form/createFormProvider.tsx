@@ -8,45 +8,25 @@ import {
   touchAllFields,
   formIsValid,
   getFormValue,
-  resetFields,
-  formIsDirty,
+  clearFields,
   setFieldValue,
   blurField
 } from './index'
 import {
   FormProviderState,
-  FormProviderOptions,
   FormProviderProps,
   Validator,
   FormValidationResult,
   ValidatorSet,
-  FormFieldState,
-  FieldState,
-  ProviderValueLoaded
+  ProviderValueLoaded,
+  ComputedFormState
 } from '../'
 import { bind, transform } from '../utils'
-import { touchField, untouchField } from './fieldStateHelpers'
+import { touchField, untouchField, isDirty, resetFields, set } from './fieldStateHelpers'
 
 const noop = () => {}
 
-function shallowCopy<T>(obj: T): T {
-  return Object.assign({}, obj)
-}
-
-function set<T, K extends keyof T>(
-  fields: FormFieldState<T>,
-  fieldName: K,
-  updatedField: FieldState<T[K]>
-): FormFieldState<T> {
-  const result = shallowCopy(fields)
-  result[fieldName] = updatedField
-  return result
-}
-
-function wrapFormProvider<T>(
-  Provider: React.Provider<ProviderValueLoaded<T>>,
-  opts: FormProviderOptions<T>
-) {
+function wrapFormProvider<T>(Provider: React.Provider<ProviderValueLoaded<T>>, initialValue?: T) {
   return class Form extends React.Component<FormProviderProps<T>, FormProviderState<T>> {
     validators: Partial<ValidatorSet<T>> = {}
 
@@ -62,6 +42,7 @@ function wrapFormProvider<T>(
         })
       }
       this.submit = onlyIfLoaded(this.submit)
+      this.getFormValue = onlyIfLoaded(this.getFormValue)
       this.setFieldValue = onlyIfLoaded(this.setFieldValue)
       this.onFieldBlur = onlyIfLoaded(this.onFieldBlur)
       this.unload = onlyIfLoaded(this.unload)
@@ -69,12 +50,13 @@ function wrapFormProvider<T>(
       this.clearForm = onlyIfLoaded(this.clearForm)
       this.touchField = onlyIfLoaded(this.touchField)
       this.untouchField = onlyIfLoaded(this.untouchField)
-      this.formIsDirty = onlyIfLoaded(this.formIsDirty, () => false)
+      this.resetForm = onlyIfLoaded(this.resetForm)
       this.validateForm = onlyIfLoaded(this.validateForm, () => ({}))
       this.registerField = bind(this, this.registerField)
       this.registerValidator = bind(this, this.registerValidator)
+      this.getComputedState = bind(this, this.getComputedState)
       this.getProviderValue = bind(this, this.getProviderValue)
-      this.state = getStartingState<T>(opts.initialValue)
+      this.state = getStartingState<T>(initialValue)
     }
 
     static getDerivedStateFromProps = getGetDerivedStateFromProps<T>()
@@ -99,10 +81,14 @@ function wrapFormProvider<T>(
 
       if (formIsValid<T>(this.validateForm())) {
         const { submit = noop } = this.props
-        submit(getFormValue<T>(this.state.fields))
+        submit(this.getFormValue())
       } else {
         console.warn('cannot submit, form is not valid...')
       }
+    }
+
+    getFormValue(): T {
+      return getFormValue<T>(this.state.fields)
     }
 
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void {
@@ -143,6 +129,10 @@ function wrapFormProvider<T>(
     }
 
     clearForm(): void {
+      this.setState({ fields: clearFields<T>(this.state.fields) })
+    }
+
+    resetForm(): void {
       this.setState({ fields: resetFields<T>(this.state.fields) })
     }
 
@@ -167,22 +157,43 @@ function wrapFormProvider<T>(
       return result
     }
 
-    formIsDirty(): boolean {
-      return formIsDirty(this.state.fields)
+    getComputedState(): ComputedFormState<T> {
+      const { fields } = this.state
+      const keys = Object.keys(fields) as (keyof T)[]
+      let formIsDirty = false
+      let formIsInvalid = false
+      let formIsTouched = false
+      let validation = {} as FormValidationResult<T>
+
+      for (let fieldName of keys) {
+        formIsDirty = formIsDirty || isDirty(fields[fieldName])
+        formIsTouched = formIsTouched || fields[fieldName].touched
+        const messages = validateField<T>(fieldName, fields, this.validators[fieldName])
+        validation[fieldName] = messages
+        formIsInvalid = formIsInvalid || messages.length > 0
+      }
+
+      return {
+        formIsDirty,
+        formIsTouched,
+        validation,
+        formIsValid: !formIsInvalid
+      }
     }
 
     getProviderValue(): ProviderValueLoaded<T> {
       return {
         ...this.state,
+        ...this.getComputedState(),
         unload: this.unload,
         submit: this.submit,
         clearForm: this.clearForm,
         touch: this.touchField,
         untouch: this.untouchField,
+        resetForm: this.resetForm,
         forgetState: this.forgetState,
-        formIsDirty: this.formIsDirty(),
+        getFormValue: this.getFormValue,
         onFieldBlur: this.onFieldBlur,
-        validation: this.validateForm(),
         setFieldValue: this.setFieldValue,
         registerField: this.registerField,
         registerValidator: this.registerValidator
