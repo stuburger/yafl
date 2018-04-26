@@ -159,11 +159,7 @@ export interface InputProps<T, K extends keyof T> {
     onBlur: (e) => void;
     onChange: (e) => void;
 }
-export interface ForwardProps {
-    [key: string]: any;
-}
 export interface UnrecognizedProps {
-    children?: React.ReactNode;
     [key: string]: any;
 }
 export interface BaseRequiredInnerComponentProps<T, K extends keyof T> {
@@ -176,16 +172,15 @@ export interface ComputedFormState<T> {
     formIsValid: boolean;
     validation: FormValidationResult<T>;
 }
-export interface GeneralComponentProps<T, K extends keyof T = keyof T> {
-    forward: ForwardProps;
+export interface GeneralComponentProps<T, K extends keyof T = keyof T> extends UnrecognizedProps {
     utils: FormUtils<T, K>;
     state: FormMeta<T>;
 }
-export interface FieldProps<T, K extends keyof T> {
-    forward: ForwardProps;
+export interface FieldProps<T, K extends keyof T> extends UnrecognizedProps {
     input: InputProps<T, K>;
     meta: FieldMeta<T, K>;
     utils: FieldUtils<T, K>;
+    [key: string]: any;
 }
 export interface RecognizedFieldProps<T, K extends keyof T> {
     name: K;

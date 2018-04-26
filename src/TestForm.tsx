@@ -38,7 +38,7 @@ const TTT = props => (
       placeholder="First Name"
       // initialValue={33}
       render={field => {
-        return <input {...props.input} {...props.forward} />
+        return <input {...props.input} {...field.meta} />
       }}
     />
     <Age placeholder="First Name" />

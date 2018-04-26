@@ -140,7 +140,7 @@ function wrapFormProvider<T>(Provider: React.Provider<ProviderValueLoaded<T>>, i
       this.setState(getStartingState<T>())
     }
 
-    forgetState() {
+    forgetState(): void {
       this.setState(({ fields }) => ({ fields: untouchAllFields(fields), submitCount: 0 }))
     }
 

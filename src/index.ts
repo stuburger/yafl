@@ -188,12 +188,8 @@ export interface InputProps<T, K extends keyof T> {
   onChange: (e) => void
 }
 
-export interface ForwardProps {
-  [key: string]: any
-}
-
 export interface UnrecognizedProps {
-  children?: React.ReactNode
+  // children?: React.ReactNode
   [key: string]: any
 }
 
@@ -209,17 +205,16 @@ export interface ComputedFormState<T> {
   validation: FormValidationResult<T>
 }
 
-export interface GeneralComponentProps<T, K extends keyof T = keyof T> {
-  forward: ForwardProps
+export interface GeneralComponentProps<T, K extends keyof T = keyof T> extends UnrecognizedProps {
   utils: FormUtils<T, K>
   state: FormMeta<T>
 }
 
-export interface FieldProps<T, K extends keyof T> {
-  forward: ForwardProps
+export interface FieldProps<T, K extends keyof T> extends UnrecognizedProps {
   input: InputProps<T, K>
   meta: FieldMeta<T, K>
   utils: FieldUtils<T, K>
+  [key: string]: any
 }
 
 export interface RecognizedFieldProps<T, K extends keyof T> {

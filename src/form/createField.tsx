@@ -179,7 +179,7 @@ function getInnerField<T, P extends keyof T = keyof T>() {
         input: this.collectInputProps(),
         meta: this.collectMetaProps(),
         utils: this.collectUtilProps(),
-        forward: this.props.forwardProps
+        ...this.props.forwardProps
       }
     }
 

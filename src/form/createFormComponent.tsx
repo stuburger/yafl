@@ -65,7 +65,7 @@ function getComponent<T>() {
       return {
         state: this.collectMetaProps(),
         utils: this.collectUtilProps(),
-        forward: this.props.forwardProps
+        ...this.props.forwardProps
       }
     }
 
