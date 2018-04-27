@@ -1,4 +1,4 @@
-import { FormFieldState, FieldState } from '../';
+import { FormFieldState, FieldState } from '../export';
 export declare function isDirty<T>({value, originalValue}: FieldState<T>): boolean;
 export declare function setFieldValue<T>(field: FieldState<T>, value: T): FieldState<T>;
 export declare function blurField<T>(field: FieldState<T>): FieldState<T>;

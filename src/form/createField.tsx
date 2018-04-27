@@ -1,16 +1,15 @@
 import * as React from 'react'
 import { isEqual } from '../utils'
 import AbsentField from '../AbsentField'
+import { InnerFieldProps, ProviderValueLoaded } from '../internal'
 import {
   FormFieldProps,
-  InnerFieldProps,
   TypedFormFieldProps,
   FieldProps,
   InputProps,
   FieldMeta,
-  FieldUtils,
-  ProviderValueLoaded
-} from '../'
+  FieldUtils
+} from '../export'
 import { isDirty } from './fieldStateHelpers'
 
 function wrapConsumer<T, K extends keyof T = keyof T>(

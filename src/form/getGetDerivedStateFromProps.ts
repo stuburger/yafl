@@ -1,7 +1,8 @@
-import { FormProviderProps, FormProviderState } from '../'
 import { clearFields, getStartingState, getFormValue } from '../form'
 import { trueIfAbsent, isEqual } from '../utils'
 import initializeState, { reinitializeState } from './getInitialState'
+import { FormProviderState } from '../internal'
+import { FormProviderProps } from '../export'
 
 function getGetDerivedStateFromProps<T>() {
   return (np: FormProviderProps<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {

@@ -12,17 +12,15 @@ import {
   setFieldValue,
   blurField
 } from './index'
+import { bind, transform } from '../utils'
+import { touchField, untouchField, isDirty, resetFields, set } from './fieldStateHelpers'
 import {
   FormProviderState,
-  FormProviderProps,
-  Validator,
-  FormValidationResult,
   ValidatorSet,
   ProviderValueLoaded,
   ComputedFormState
-} from '../'
-import { bind, transform } from '../utils'
-import { touchField, untouchField, isDirty, resetFields, set } from './fieldStateHelpers'
+} from '../internal'
+import { Validator, FormValidationResult, FormProviderProps } from '../export'
 
 const noop = () => {}
 

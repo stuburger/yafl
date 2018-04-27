@@ -1,12 +1,6 @@
 import * as React from 'react'
-import {
-  ProviderValueLoaded,
-  InnerGeneralComponentProps,
-  FormComponentProps,
-  FormUtils,
-  GeneralComponentProps,
-  FormMeta
-} from '../'
+import { ProviderValueLoaded, InnerGeneralComponentProps } from '../internal'
+import { FormComponentProps, GeneralComponentProps, FormUtils, FormMeta } from '../export'
 
 function wrapConsumer<T>(Consumer: React.Consumer<ProviderValueLoaded<T>>) {
   const Component = getComponent<T>()

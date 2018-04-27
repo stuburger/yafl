@@ -1,5 +1,5 @@
 import { transform, clone } from '../utils/index'
-import { FieldState, FormFieldState } from '../'
+import { FieldState, FormFieldState } from '../export'
 
 export const createEmptyField = (): FieldState<undefined> => {
   return {

@@ -1,4 +1,5 @@
-import { FieldState, FormFieldState, StringOrNothing } from '../index'
+import { StringOrNothing } from '../internal'
+import { FieldState, FormFieldState } from '../export'
 
 function required<T>(message?: string) {
   const test = function<P extends keyof T>(

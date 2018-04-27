@@ -1,4 +1,4 @@
-import { FormFieldState, Validator } from '../index'
+import { Validator, FormFieldState } from '../export'
 
 function validateField<T>(
   fieldName: keyof T,

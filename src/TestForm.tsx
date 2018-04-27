@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { createForm, Person, FieldProps } from '.'
+import { Person } from './internal'
+import { FieldProps } from './export'
+import { createForm } from './index'
 
 export const TextInput: React.SFC<FieldProps<any, any>> = props => {
   const { value } = props.input

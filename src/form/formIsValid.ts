@@ -1,4 +1,4 @@
-import { FormValidationResult } from '../index'
+import { FormValidationResult } from '../export'
 
 function formIsValid<T>(validation: FormValidationResult<T>): boolean {
   for (let k in validation) {

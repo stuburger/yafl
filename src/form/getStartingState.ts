@@ -1,4 +1,4 @@
-import { FormProviderState } from '../index'
+import { FormProviderState } from '../internal'
 import initializeState from './getInitialState'
 function getStartingState<T>(initialValue: T = {} as T): FormProviderState<T> {
   return {

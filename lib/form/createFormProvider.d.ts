@@ -1,6 +1,7 @@
 /// <reference types="react" />
 import * as React from 'react';
-import { FormProviderState, FormProviderProps, Validator, FormValidationResult, ValidatorSet, ProviderValueLoaded, ComputedFormState } from '../';
+import { FormProviderState, ValidatorSet, ProviderValueLoaded, ComputedFormState } from '../internal';
+import { Validator, FormValidationResult, FormProviderProps } from '../export';
 declare function wrapFormProvider<T>(Provider: React.Provider<ProviderValueLoaded<T>>, initialValue?: T): {
     new (props: any): {
         validators: Partial<ValidatorSet<T>>;

@@ -1,5 +1,6 @@
 import minLength from './minLength'
-import { FormFieldState, Person } from '..'
+import { Person } from '../internal'
+import { FormFieldState } from '../export'
 
 const formUntouchedInvalid: FormFieldState<Person> = {
   name: {

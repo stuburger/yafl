@@ -1,4 +1,4 @@
-import { FormFieldState, FieldState } from '../'
+import { FormFieldState, FieldState } from '../export'
 import { transform, isEqual, clone, getDefaultOfType, shallowCopy } from '../utils'
 
 function copy<T>(field: FieldState<T>): FieldState<T> {

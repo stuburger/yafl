@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "./lib",
-    "target": "es5",
+    "target": "es2017",
     "lib": ["es7", "dom"],
-    "strict": true,
+		"strict": true,
+		"moduleResolution": "node",
     "module": "commonjs",
     "noImplicitAny": false,
     "removeComments": false,

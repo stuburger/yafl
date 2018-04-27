@@ -1,6 +1,7 @@
 /// <reference types="react" />
 import * as React from 'react';
-import { ProviderValueLoaded, FormComponentProps } from '../';
+import { ProviderValueLoaded } from '../internal';
+import { FormComponentProps } from '../export';
 declare function wrapConsumer<T>(Consumer: React.Consumer<ProviderValueLoaded<T>>): {
     new (props: any): {
         _render(provider: ProviderValueLoaded<T, keyof T>): JSX.Element;
