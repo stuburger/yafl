@@ -36,7 +36,6 @@ const TTT = props => (
     <Field name="name" initialValue={44} component={TextInput} />
     <Surname
       placeholder="First Name"
-      // initialValue={33}
       render={field => {
         return <input {...props.input} {...field.meta} />
       }}
@@ -46,3 +45,24 @@ const TTT = props => (
 )
 
 export default TTT
+
+/*
+
+ <Field
+        name="spiritAnimal"
+        className="input_spirit-animal"
+        render={({ input, utils, meta, ...props }) => (
+          <input
+            {...input}
+            {...props.forward}
+            onChange={e => {
+              const spiritAnimal = e.target.value
+              utils.setFieldValue('spiritAnimal', spiritAnimal)
+              if (spiritAnimal === 'monkey') {
+                utils.setFieldValue('status', 'famousandcool')
+              }
+            }}
+          />
+        )}
+      />
+*/

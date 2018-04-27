@@ -2,23 +2,15 @@
 
 _Warning: This library is a work in progress - as is this readme_
 
-There are a lot of form libraries out there to choose from. `react-form-provider` focus is on:
-
-1.  being strongly typed - useful for typescript users
-2.  having a small, imperative API
-3.  utilizing Reacts new context API to manage your forms state
-
 ## Installation
 
 _Not available on npm yet._
 
-## Usage
+## Recommended Usage (Typescript)
 
 ```tsx
-// PersonForm
-
+// PersonForm.tsx
 ...
-
 import { createForm } from 'react-form-provider'
 
 interface Person {
@@ -26,17 +18,15 @@ interface Person {
   fullName: string
   height: number
   status: 'cool' | 'famous' | 'famousandcool'
-  spiritAnimal: string
 }
 
 const defaultPerson: Person = {
   fullName: '',
   height: 0,
   status: 'cool',
-  spiritAnimal: ''
 }
 
-const { Form, Field, FormComponent, createField } = createForm<Person>(defaultPerson)
+const { Form, createField } = createForm<Person>(defaultPerson)
 
 /*
   The following is verbose but required if you want the type safety.
@@ -63,9 +53,9 @@ interface Props {
 export const UserForm: React.SFC<Props> = ({ loading, submitting, save, initialValue, userId }) => {
   return (
     <Form
-      onSubmit={({ fullName, height, status, spiritAnimal }) => {
+      onSubmit={({ fullName, height, status }) => {
         // destructuring for illustrative purposes
-        save({ id: userId, fullName, height, status, spiritAnimal })
+        save({ id: userId, fullName, height, status })
       }}
       loading={loading}
       submitting={submitting}
@@ -74,23 +64,6 @@ export const UserForm: React.SFC<Props> = ({ loading, submitting, save, initialV
       <FullName />
       <Height />
       <CoolStatus />
-      <Field
-        name="spiritAnimal"
-        className="input_spirit-animal"
-        render={({ input, utils, meta, ...props }) => (
-          <input
-            {...input}
-            {...props.forward}
-            onChange={e => {
-              const spiritAnimal = e.target.value
-              utils.setFieldValue('spiritAnimal', spiritAnimal)
-              if (spiritAnimal === 'monkey') {
-                utils.setFieldValue('status', 'famousandcool')
-              }
-            }}
-          />
-        )}
-      />
       <FormComponent render={props => <button onClick={props.utils.submit}>Save</button>} />
     </Form>
   )
