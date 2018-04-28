@@ -58,7 +58,7 @@ const expectedResult2 = {
 }
 
 describe('transform objects', () => {
-  const func = (ret, value, key) => {
+  const func = (ret: any, value: any, key: any) => {
     ret[key] = {
       value: value,
       originalValue: value,
@@ -68,7 +68,7 @@ describe('transform objects', () => {
     return ret
   }
 
-  const func2 = (ret, value, key) => {
+  const func2 = (ret: any, value: any, key: any) => {
     ret[key + '_' + key] = value
     return ret
   }

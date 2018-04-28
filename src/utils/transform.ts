@@ -1,4 +1,4 @@
-import { clone } from './index'
+import clone from './clone'
 export interface TransformCallback<T, TResult> {
   (ret: TResult, value: T[keyof T], key: keyof T): TResult
 }

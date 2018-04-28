@@ -1,29 +1,4 @@
 {
-  "compilerOptions": {
-    "outDir": "./lib",
-    "target": "es2017",
-    "lib": ["es7", "dom"],
-		"strict": true,
-		"moduleResolution": "node",
-    "module": "commonjs",
-    "noImplicitAny": false,
-    "removeComments": false,
-    "baseUrl": ".",
-    "declaration": true,
-    "sourceMap": true,
-    "jsx": "react",
-    "skipDefaultLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": false,
-    "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true,
-    "paths": {
-      "*": ["*", "src/*"],
-      "react": ["node_modules/@types/react"]
-    }
-  },
-  "include": ["./src/**/*.tsx", "./src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "extends": "./tsconfig.base.json",
+  "include": ["src", "test"]
 }

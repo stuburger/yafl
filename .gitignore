@@ -1,5 +1,18 @@
 /node_modules
 *.tgz
 
+.rpt2_cache
+
+dist
+compiled
+*.log
+coverage
+.DS_Store
+next.d.ts
+legacy.d.ts
+
 *.test.js
 *.test.d.ts
+*.test.d.ts
+
+TestForm.tsx

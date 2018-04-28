@@ -1,1 +1,0 @@
-{"version":3,"file":"getNullState.js","sourceRoot":"","sources":["../../src/form/getNullState.ts"],"names":[],"mappings":";;AAEA;IACE,MAAM,CAAC;QACL,MAAM,EAAE,EAAuB;QAC/B,MAAM,EAAE,KAAK;QACb,MAAM,EAAE,KAAK;QACb,UAAU,EAAE,KAAK;QACjB,WAAW,EAAE,CAAC;QACd,YAAY,EAAE,EAAO;KACtB,CAAA;AACH,CAAC;AAED,kBAAe,YAAY,CAAA"}
