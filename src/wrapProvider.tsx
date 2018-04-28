@@ -1,24 +1,25 @@
 import * as React from 'react'
-import { getInitialFieldState } from './getInitialState'
 import { bind, transform } from './utils'
 import {
+  set,
   touchField,
   untouchField,
   isDirty,
   resetFields,
-  set,
   setFieldValue,
   touchAllFields,
   blurField,
   untouchAllFields,
-  clearFields
-} from './fieldStateHelpers'
+  validateField,
+  clearFields,
+  getFormValue,
+  formIsValid,
+  getInitialFieldState,
+  getStartingState,
+  initializeState,
+  reinitializeState
+} from './state'
 import { trueIfAbsent, isEqual } from './utils'
-import initializeState, { reinitializeState } from './getInitialState'
-import getStartingState from './getStartingState'
-import getFormValue from './getFormValue'
-import formIsValid from './formIsValid'
-import validateField from './validateField'
 import { Validator, FormProviderState, FormProviderConfig } from './form'
 import { FormFieldState } from './sharedTypes'
 

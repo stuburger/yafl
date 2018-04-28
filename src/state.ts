@@ -1,5 +1,63 @@
 import { transform, isEqual, clone, getDefaultOfType, shallowCopy } from './utils'
-import { FieldState, FormFieldState } from './sharedTypes'
+import { FieldState, FormFieldState, Nullable } from './sharedTypes'
+import { FormProviderState, Validator } from './form'
+
+export function getStartingState<T>(initialValue: T = {} as T): FormProviderState<T> {
+  return {
+    fields: initializeState(initialValue),
+    loaded: false,
+    isBusy: false,
+    submitting: false,
+    submitCount: 0,
+    initialValue
+  }
+}
+
+export function createEmptyField(): FieldState<undefined> {
+  return {
+    value: undefined,
+    originalValue: undefined,
+    didBlur: false,
+    touched: false
+  }
+}
+
+export function validateField<T>(
+  fieldName: keyof T,
+  form: FormFieldState<T>,
+  validators = [] as Validator<T, keyof T>[]
+): string[] {
+  const messages: string[] = []
+  const value = form[fieldName]
+  for (let validate of validators) {
+    const message = validate(value, form, fieldName)
+    if (message) {
+      messages.push(message)
+    }
+  }
+  return messages
+}
+
+export function getInitialFieldState<T>(value: T, copyFrom?: FieldState<T>): FieldState<T> {
+  const field = copyFrom ? clone(copyFrom) : createEmptyField()
+  field.value = clone(value)
+  field.originalValue = clone(value)
+  return field as FieldState<T>
+}
+
+export function reinitializeState<T>(val: T, formState: FormFieldState<T>): FormFieldState<T> {
+  return transform<T, FormFieldState<T>>(val, (ret, fieldValue, fieldName: keyof T) => {
+    ret[fieldName] = getInitialFieldState<T[keyof T]>(fieldValue, formState[fieldName])
+    return ret
+  })
+}
+
+export function initializeState<T>(val: T): FormFieldState<T> {
+  return transform<T, FormFieldState<T>>(val, (ret, fieldValue, fieldName: keyof T) => {
+    ret[fieldName] = getInitialFieldState(fieldValue)
+    return ret
+  })
+}
 
 function copy<T>(field: FieldState<T>): FieldState<T> {
   return {
@@ -101,4 +159,20 @@ export function set<T, K extends keyof T>(
   const result = shallowCopy(fields)
   result[fieldName] = updatedField
   return result
+}
+
+export function getFormValue<T extends Nullable<T>>(fields: FormFieldState<T>): T {
+  return transform<FormFieldState<T>, T>(fields, (ret, field, fieldName) => {
+    ret[fieldName] = field.value
+    return ret
+  })
+}
+
+export function formIsValid<T>(validation: { [K in keyof T]: string[] }): boolean {
+  for (let k in validation) {
+    if (validation[k].length > 0) {
+      return false
+    }
+  }
+  return true
 }

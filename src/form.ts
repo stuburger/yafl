@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { wrapProvider, Provider } from './createFormProvider'
-import { wrapConsumer, wrapFormConsumer, getTypedField } from './wrapFieldConsumer'
+import { wrapProvider, Provider } from './wrapProvider'
+import { wrapConsumer, wrapFormConsumer, getTypedField } from './wrapConsumer'
 import { Noop, Nullable, FormFieldState, FieldState } from './sharedTypes'
 
 export interface FormProviderConfig<T> {

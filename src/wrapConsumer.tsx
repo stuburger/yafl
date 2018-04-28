@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { isEqual } from './utils'
-import { isDirty } from './fieldStateHelpers'
+import { isDirty } from './state'
 import {
   FieldConfig,
   Validator,
@@ -15,7 +15,7 @@ import {
   FormMeta,
   ComponentConfig
 } from './form'
-import { Provider } from './createFormProvider'
+import { Provider } from './wrapProvider'
 
 interface InnerGeneralComponentProps<T, K extends keyof T = keyof T> {
   provider: Provider<T, K>
