@@ -1,6 +1,5 @@
 import { transform, isEqual, clone, getDefaultOfType, shallowCopy } from './utils'
-import { FieldState, FormFieldState, Nullable } from './sharedTypes'
-import { FormProviderState, Validator } from './form'
+import { FieldState, FormFieldState, Nullable, Validator, FormProviderState } from './sharedTypes'
 
 export function getStartingState<T>(initialValue: T = {} as T): FormProviderState<T> {
   return {

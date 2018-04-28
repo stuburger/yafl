@@ -20,37 +20,7 @@ import {
   reinitializeState
 } from './state'
 import { trueIfAbsent, isEqual } from './utils'
-import { Validator, FormProviderState, FormProviderConfig } from './form'
-import { FormFieldState } from './sharedTypes'
-
-export interface Provider<T, P extends keyof T = keyof T> {
-  fields: FormFieldState<T>
-  initialValue: T
-  loaded: boolean
-  submitting: boolean
-  isBusy: boolean
-  formIsTouched: boolean
-  formIsValid: boolean
-  formIsDirty: boolean
-  unload: (() => void)
-  getFormValue: () => T
-  forgetState: (() => void)
-  submit: (() => void)
-  resetForm: (() => void)
-  submitCount: number
-  clearForm: (() => void)
-  validation: { [K in keyof T]: string[] }
-  registerValidator: (<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]) => void)
-  registerField: (<K extends P>(
-    fieldName: K,
-    initialValue: T[K],
-    validators: Validator<T, K>[]
-  ) => void)
-  onFieldBlur: (<K extends P>(fieldName: K) => void)
-  setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
-  touch: (<K extends P>(fieldName: K) => void)
-  untouch: (<K extends P>(fieldName: K) => void)
-}
+import { FormProviderConfig, FormProviderState, Validator, Provider } from './sharedTypes'
 
 const noop = () => {}
 
