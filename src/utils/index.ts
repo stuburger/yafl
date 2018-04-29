@@ -6,6 +6,7 @@ export { default as bind } from './bind'
 export { default as getDefaultOfType } from './getDefaultOfType'
 export { default as shallowCopy } from './shallowCopy'
 export {
+  isArray,
   isString,
   isBoolean,
   isDate,

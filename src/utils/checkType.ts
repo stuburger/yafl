@@ -7,6 +7,9 @@ export function isDate(value: any): value is Date {
 export function isString(value: any): value is string {
   return !isNullOrUndefined(value) && typeof value === 'string'
 }
+export function isArray(value: any): value is any[] {
+  return Array.isArray(value)
+}
 export function isBoolean(value: any): value is boolean {
   return typeof value === 'boolean'
 }

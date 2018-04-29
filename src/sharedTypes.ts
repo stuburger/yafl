@@ -45,8 +45,11 @@ export interface Provider<T, P extends keyof T = keyof T> {
   ) => void)
   onFieldBlur: (<K extends P>(fieldName: K) => void)
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
-  touch: (<K extends P>(fieldName: K) => void)
-  untouch: (<K extends P>(fieldName: K) => void)
+  setFieldValues: (partialUpdate: Partial<T>) => void
+  touchField: (<K extends P>(fieldName: K | keyof T) => void)
+  untouchField: (<K extends P>(fieldName: K | keyof T) => void)
+  touchFields: (fieldNames: (keyof T)[]) => void
+  untouchFields: (fieldNames: (keyof T)[]) => void
 }
 
 export interface FieldState<T> {
@@ -88,10 +91,11 @@ export interface FieldUtils<T, P extends keyof T> {
   unload: () => void
   submit: () => void
   setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
+  setFieldValues: (partialUpdate: Partial<T>) => void
   forgetState: () => void
   clearForm: () => void
-  touch: () => void
-  untouch: () => void
+  touch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
+  untouch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
   setValue: (value: T[P]) => void
 }
 
@@ -151,13 +155,14 @@ export interface ComponentConfig<T, K extends keyof T = keyof T> {
 }
 
 export interface FormUtils<T, P extends keyof T> {
-  touch: <K extends P>(fieldName: K) => void
-  untouch: <K extends P>(fieldName: K) => void
+  touch: (<K extends P>(fieldName: K | (keyof T)[]) => void)
+  untouch: (<K extends P>(fieldName: K | (keyof T)[]) => void)
   resetForm: () => void
   getFormValue: () => T
   unload: () => void
   submit: () => void
   setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
+  setFieldValues: (partialUpdate: Partial<T>) => void
   forgetState: () => void
   clearForm: () => void
 }

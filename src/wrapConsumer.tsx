@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { isEqual } from './utils'
+import { isEqual, isString } from './utils'
 import { isDirty } from './state'
 import {
   Validator,
@@ -16,6 +16,7 @@ import {
   ComponentConfig,
   Provider
 } from './sharedTypes'
+import { isArray } from './utils'
 
 interface InnerGeneralComponentProps<T, K extends keyof T = keyof T> {
   provider: Provider<T, K>
@@ -133,14 +134,26 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       provider.setFieldValue(name, value)
     }
 
-    touch() {
+    touch<K extends keyof T>(fieldNames?: K | (keyof T)[]) {
       const { provider, name } = this.props
-      provider.touch(name)
+      if (fieldNames && isArray(fieldNames)) {
+        provider.touchFields(fieldNames)
+      } else if (isString(fieldNames)) {
+        provider.touchField(fieldNames)
+      } else {
+        provider.touchField(name)
+      }
     }
 
-    untouch() {
+    untouch<K extends keyof T>(fieldNames?: K | (keyof T)[]) {
       const { provider, name } = this.props
-      provider.untouch(name)
+      if (fieldNames && isArray(fieldNames)) {
+        provider.untouchFields(fieldNames)
+      } else if (isString(fieldNames)) {
+        provider.untouchField(fieldNames)
+      } else {
+        provider.untouchField(name)
+      }
     }
 
     collectInputProps(): InputProps<T, P> {
@@ -178,6 +191,7 @@ function getInnerField<T, P extends keyof T = keyof T>() {
         unload: provider.unload,
         submit: provider.submit,
         resetForm: provider.resetForm,
+        setFieldValues: provider.setFieldValues,
         setFieldValue: provider.setFieldValue,
         setValue: this.setValue,
         forgetState: provider.forgetState,
@@ -239,6 +253,33 @@ export function wrapFormConsumer<T>(Consumer: React.Consumer<Provider<T>>) {
 
 function getComponent<T>() {
   class FormComponent extends React.Component<InnerGeneralComponentProps<T, keyof T>> {
+    constructor(props: InnerGeneralComponentProps<T, keyof T>) {
+      super(props)
+      this.touch = this.touch.bind(this)
+      this.untouch = this.untouch.bind(this)
+      this.collectMetaProps = this.collectMetaProps.bind(this)
+      this.collectUtilProps = this.collectUtilProps.bind(this)
+      this.collectProps = this.collectProps.bind(this)
+    }
+
+    touch<K extends keyof T>(fieldNames: K | (keyof T)[]) {
+      const { provider } = this.props
+      if (fieldNames && isArray(fieldNames)) {
+        provider.touchFields(fieldNames)
+      } else {
+        provider.touchField(fieldNames)
+      }
+    }
+
+    untouch<K extends keyof T>(fieldNames: K | (keyof T)[]) {
+      const { provider } = this.props
+      if (fieldNames && isArray(fieldNames)) {
+        provider.untouchFields(fieldNames)
+      } else {
+        provider.untouchField(fieldNames)
+      }
+    }
+
     collectMetaProps(): FormMeta<T> {
       const { provider } = this.props
       return {
@@ -256,13 +297,14 @@ function getComponent<T>() {
     collectUtilProps(): FormUtils<T, keyof T> {
       const { provider } = this.props
       return {
-        touch: provider.touch,
-        untouch: provider.untouch,
+        touch: this.touch,
+        untouch: this.untouch,
         unload: provider.unload,
         submit: provider.submit,
         resetForm: provider.resetForm,
         getFormValue: provider.getFormValue,
         setFieldValue: provider.setFieldValue,
+        setFieldValues: provider.setFieldValues,
         forgetState: provider.forgetState,
         clearForm: provider.clearForm
       }

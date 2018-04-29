@@ -10,13 +10,16 @@ import {
   ComponentConfig,
   FieldConfig,
   FormProviderConfig,
-  BaseFieldConfig
+  BaseFieldConfig,
+  ComponentProps
 } from './sharedTypes'
 
 export type FPC<T> = FormProviderConfig<T>
-export type GCC<T, K extends keyof T> = ComponentConfig<T, K>
-export type FCC<T, K extends keyof T> = FieldConfig<T, K>
-export type FC<T, K extends keyof T> = BaseFieldConfig<T, K>
+export type GCC<T, K extends keyof T = keyof T> = ComponentConfig<T, K>
+export type GCP<T, K extends keyof T = keyof T> = ComponentProps<T, K>
+export type FCC<T, K extends keyof T = keyof T> = FieldConfig<T, K>
+export type FC<T, K extends keyof T = keyof T> = BaseFieldConfig<T, K>
+export type FP<T, K extends keyof T = keyof T> = FieldProps<T, K>
 
 /* @internal */
 interface DefaultProviderValue<T, P extends keyof T = keyof T> {
@@ -44,8 +47,11 @@ interface DefaultProviderValue<T, P extends keyof T = keyof T> {
     | Noop
   onFieldBlur: (<K extends P>(fieldName: K) => void) | Noop
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void) | Noop
-  touch: (<K extends P>(fieldName: K) => void) | Noop
-  untouch: (<K extends P>(fieldName: K) => void) | Noop
+  setFieldValues: ((partialUpdate: Partial<T>) => void) | Noop
+  touchField: (<K extends P>(fieldName: K) => void) | Noop
+  untouchField: (<K extends P>(fieldName: K) => void) | Noop
+  touchFields: ((fieldNames: (keyof T)[]) => void) | Noop
+  untouchFields: ((fieldNames: (keyof T)[]) => void) | Noop
 }
 
 function noop(): never {
@@ -69,11 +75,14 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     submit: noop,
     resetForm: noop,
     clearForm: noop,
-    touch: noop,
-    untouch: noop,
+    touchField: noop,
+    untouchField: noop,
+    touchFields: noop,
+    untouchFields: noop,
     forgetState: noop,
     onFieldBlur: noop,
     setFieldValue: noop,
+    setFieldValues: noop,
     registerField: noop,
     registerValidator: noop
   }

@@ -17,10 +17,18 @@ import {
   getInitialFieldState,
   getStartingState,
   initializeState,
-  reinitializeState
+  reinitializeState,
+  setAll,
+  modifyFields
 } from './state'
 import { trueIfAbsent, isEqual } from './utils'
-import { FormProviderConfig, FormProviderState, Validator, Provider } from './sharedTypes'
+import {
+  FormProviderConfig,
+  FormProviderState,
+  Validator,
+  Provider,
+  FieldState
+} from './sharedTypes'
 
 const noop = () => {}
 
@@ -79,7 +87,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
       this.registerValidator(fieldName, validators)
       if (this.state.fields[fieldName]) return // field is already registered
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, getInitialFieldState(value))
+        fields: set(fields, fieldName, () => getInitialFieldState(value))
       }))
     }
 
@@ -104,37 +112,44 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void {
       if (!this.state.fields[fieldName]) return
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, setFieldValue(fields[fieldName], val))
+        fields: set(fields, fieldName, (field: FieldState<T[P]>) => setFieldValue(field, val))
+      }))
+    }
+
+    setFieldValues(partialUpdate: Partial<T>): void {
+      this.setState(({ fields }) => ({
+        fields: modifyFields(fields, partialUpdate, setFieldValue)
       }))
     }
 
     touchField<K extends keyof T>(fieldName: K): void {
       if (!this.state.fields[fieldName]) return
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, touchField(fields[fieldName]))
+        fields: set(fields, fieldName, touchField)
       }))
     }
 
-    // todo touch/untouch specific fields
-    touchFields<K extends keyof T>(fieldNames: K[]): void {
-      this.setState(({ fields }) => ({ fields: touchAllFields(fields) }))
+    touchFields(fieldNames: (keyof T)[]): void {
+      fieldNames = fieldNames || (Object.keys(this.state.fields) as (keyof T)[])
+      this.setState(({ fields }) => ({ fields: setAll(fields, fieldNames, touchField) }))
     }
 
     untouchField<K extends keyof T>(fieldName: K): void {
       if (!this.state.fields[fieldName]) return
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, untouchField(fields[fieldName]))
+        fields: set(fields, fieldName, untouchField)
       }))
     }
 
-    untouchFields<K extends keyof T>(fieldNames: K[]): void {
-      this.setState(({ fields }) => ({ fields: untouchAllFields(fields) }))
+    untouchFields(fieldNames: (keyof T)[]): void {
+      fieldNames = fieldNames || (Object.keys(this.state.fields) as (keyof T)[])
+      this.setState(({ fields }) => ({ fields: setAll(fields, fieldNames, untouchField) }))
     }
 
     onFieldBlur<K extends keyof T>(fieldName: K): void {
       if (this.state.fields[fieldName].didBlur) return
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, blurField(fields[fieldName]))
+        fields: set(fields, fieldName, blurField)
       }))
     }
 
@@ -194,13 +209,16 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
         unload: this.unload,
         submit: this.submit,
         clearForm: this.clearForm,
-        touch: this.touchField,
-        untouch: this.untouchField,
+        touchFields: this.touchFields,
+        untouchFields: this.untouchFields,
+        touchField: this.touchField,
+        untouchField: this.untouchField,
         resetForm: this.resetForm,
         forgetState: this.forgetState,
         getFormValue: this.getFormValue,
         onFieldBlur: this.onFieldBlur,
         setFieldValue: this.setFieldValue,
+        setFieldValues: this.setFieldValues,
         registerField: this.registerField,
         registerValidator: this.registerValidator
       }

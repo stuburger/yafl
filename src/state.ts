@@ -150,13 +150,46 @@ export function resetFields<T>(fields: FormFieldState<T>): FormFieldState<T> {
   return state
 }
 
+export function modifyFields<T>(
+  fields: FormFieldState<T>,
+  update: Partial<T>,
+  updater: (
+    field: FieldState<T[keyof T]>,
+    value: T[keyof T],
+    key: keyof T
+  ) => FieldState<T[keyof T]>
+): FormFieldState<T> {
+  const result = shallowCopy(fields)
+  for (let x in update) {
+    if (!fields[x]) continue
+    const value = update[x] as T[keyof T]
+    result[x] = updater(fields[x], value, x)
+  }
+  return result
+}
+
 export function set<T, K extends keyof T>(
   fields: FormFieldState<T>,
   fieldName: K,
-  updatedField: FieldState<T[K]>
+  updater: (field: FieldState<T[K]>) => FieldState<T[K]>
+): FormFieldState<T> {
+  if (!fields[fieldName]) return fields
+  const result = shallowCopy(fields)
+  result[fieldName] = updater(fields[fieldName])
+  return result
+}
+
+export function setAll<T, K extends keyof T>(
+  fields: FormFieldState<T>,
+  fieldNames: K[],
+  updater: (field: FieldState<T[K]>) => FieldState<T[K]>
 ): FormFieldState<T> {
   const result = shallowCopy(fields)
-  result[fieldName] = updatedField
+  for (let x of fieldNames) {
+    if (fields[x]) {
+      result[x] = updater(fields[x])
+    }
+  }
   return result
 }
 
