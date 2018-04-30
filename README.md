@@ -1,4 +1,6 @@
-# kwik-form
+# kwik-form 
+
+[![Build Status](https://travis-ci.org/stuburger/kwik-form.svg?branch=master)](https://travis-ci.org/stuburger/kwik-form)
 
 _Warning: This library is a work in progress - as is this readme_
 
