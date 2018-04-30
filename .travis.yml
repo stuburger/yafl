@@ -5,4 +5,4 @@ env:
   - CI=true
 
 script:
-  - yarn test -- -i --no-cache --coverage
+  - yarn test -i --no-cache --coverage
