@@ -2,33 +2,24 @@
   "name": "kwik-form",
   "version": "1.0.0",
   "description": "A library for creating forms in react using react's new context api",
-  "main": "dist/react-form-provider.js",
-  "module": "dist/react-form-provider.es6.js",
-  "typings": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "main": "lib/kwik-form.js",
+  "module": "lib/kwik-form.es6.js",
+  "typings": "lib/index.d.ts",
+  "files": ["lib"],
   "scripts": {
-		"prebuild": "rimraf dist",
+    "prebuild": "rimraf lib",
     "build": "tsc -p tsconfig.base.json && rollup -c && rimraf compiled",
     "watch": "tsc --watch",
     "test": "jest",
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "prettier --parser typescript --write",
-      "git add"
-    ]
+    "*.{ts,tsx}": ["prettier --parser typescript --write", "git add"]
   },
   "author": "Stuart Bourhill",
   "license": "MIT",
   "dependencies": {},
-  "keywords": [
-    "react",
-    "form",
-    "context"
-  ],
+  "keywords": ["react", "form", "context"],
   "peerDependencies": {
     "react": ">=16.3"
   },
@@ -58,17 +49,12 @@
     "uglify-es": "^3.3.9"
   },
   "jest": {
+    "collectCoverage": true,
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
+    "collectCoverageFrom": ["src/**/*.{ts,tsx}", "!src/**/index.{ts,tsx}"],
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"]
   }
 }

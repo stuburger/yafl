@@ -14,13 +14,13 @@ function getUMDConfig({ env }) {
     input,
     external: ['react', 'react-native'],
     output: {
-      name: 'react-form-provider',
+      name: 'kwik-form',
       format: 'umd',
       sourcemap: true,
       file:
         env === 'production'
-          ? './dist/react-form-provider.umd.min.js'
-          : './dist/react-form-provider.umd.js',
+          ? './lib/kwik-form.umd.min.js'
+          : './lib/kwik-form.umd.js',
       exports: 'named',
       globals: {
         react: 'React',

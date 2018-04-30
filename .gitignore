@@ -3,7 +3,7 @@
 
 .rpt2_cache
 
-dist
+lib
 compiled
 *.log
 coverage

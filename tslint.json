@@ -24,6 +24,6 @@
     "webpack",
     "jest",
     "src/setupTests.ts",
-    "dist"
+    "lib"
   ]
 }

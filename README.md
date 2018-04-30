@@ -1,4 +1,4 @@
-# react-form-provider
+# kwik-form
 
 _Warning: This library is a work in progress - as is this readme_
 
@@ -11,7 +11,7 @@ _Not available on npm yet._
 ```tsx
 // PersonForm.tsx
 ...
-import { createForm } from 'react-form-provider'
+import { createForm } from 'kwik-form'
 
 interface Person {
   id?: string

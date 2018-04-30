@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "declarationDir": "dist",
+    "declarationDir": "lib",
     "emitDecoratorMetadata": false,
     "experimentalDecorators": false,
     "importHelpers": true,
@@ -26,5 +26,5 @@
     "target": "es5"
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "lib"]
 }
