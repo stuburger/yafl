@@ -40,13 +40,13 @@ export interface Provider<T, P extends keyof T = keyof T> {
   registerValidator: (<K extends keyof T>(
     fieldName: K,
     validators: Validator<T, K>[],
-    opts: ValidationOptions
+    validateOn?: ValidateOn<T, K>
   ) => void)
   registerField: (<K extends P>(
     fieldName: K,
     initialValue: T[K],
     validators: Validator<T, K>[],
-    opts: ValidationOptions
+    opts?: Partial<FieldOptions<T, K>>
   ) => void)
   onFieldBlur: (<K extends P>(fieldName: K) => void)
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
@@ -80,14 +80,22 @@ export type FormProviderState<T> = {
   submitCount: number
 }
 
-export interface ValidationOptions {
-  validateIfDirty: boolean
-  validateIfTouched: boolean
-  validateIfVisited: boolean
-  validateOnSubmit: boolean
+export interface FieldOptions<T, K extends keyof T = keyof T> {
+  validateOn: ValidateOn<T, K>
 }
 
-export interface FormProviderConfig<T> extends Partial<ValidationOptions> {
+export type ValidationType = 'change' | 'blur' | 'submit'
+
+export interface ValidateOnCustom<T, K extends keyof T> {
+  (field: FieldState<T[K]>, fields: FormFieldState<T>): boolean
+}
+
+export type ValidateOn<T, K extends keyof T = keyof T> =
+  | ValidationType
+  | ValidationType[]
+  | ValidateOnCustom<T, K>
+
+export interface FormProviderConfig<T> extends Partial<FieldOptions<T>> {
   initialValue?: T
   submit?: (formValue: Nullable<T>) => void
   children: React.ReactNode
@@ -112,7 +120,7 @@ export interface FieldUtils<T, P extends keyof T> {
 }
 
 export interface InnerFieldProps<T, K extends keyof T = keyof T>
-  extends Partial<ValidationOptions> {
+  extends Partial<FieldOptions<T, K>> {
   name: K
   initialValue?: T[K]
   validators: Validator<T, K>[]
@@ -149,7 +157,7 @@ export interface FieldProps<T, K extends keyof T> {
   [key: string]: any
 }
 
-export interface BaseFieldConfig<T, K extends keyof T> extends Partial<ValidationOptions> {
+export interface BaseFieldConfig<T, K extends keyof T> extends Partial<FieldOptions<T, K>> {
   initialValue?: T[K]
   validators?: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode

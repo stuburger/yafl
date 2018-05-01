@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { bind, transform } from './utils'
+import { bind, transform, isString, isArray } from './utils'
 import {
   set,
   touchField,
@@ -7,7 +7,6 @@ import {
   isDirty,
   resetFields,
   setFieldValue,
-  // touchAllFields,
   blurField,
   untouchAllFields,
   validateField,
@@ -28,37 +27,40 @@ import {
   Validator,
   Provider,
   FieldState,
-  ValidationOptions
+  FieldOptions,
+  ValidationType,
+  ValidateOn
 } from './sharedTypes'
 
-const noop = () => {}
-
-const validationOptions: ValidationOptions = {
-  validateOnSubmit: true,
-  validateIfDirty: true,
-  validateIfTouched: true,
-  validateIfVisited: true
+const noop = (...params: any[]) => {
+  console.log('not loaded or field non existent')
 }
+
+const default_validate_on: ValidationType = 'submit'
 
 function onlyIfLoaded(func: Function, defaultFunc = noop) {
   func = bind(this, func)
   // todo check what affect this has on component prototype
-  return (...params: any[]) => {
+  return bind(this, function(...params: any[]) {
     if (!this.state.isBusy) {
       return func(...params)
     }
-    return defaultFunc
-  }
+    return defaultFunc(...params)
+  })
 }
 
 function onlyIfFieldExists(func: Function, defaultFunc = noop) {
   func = bind(this, func)
-  return (fieldName: string, ...params: any[]) => {
-    if (this.state[fieldName]) {
-      return func(...params)
+  return bind(this, function(fieldName: string, ...params: any[]) {
+    if (this.state.fields[fieldName]) {
+      return func(fieldName, ...params)
     }
-    return defaultFunc
-  }
+    return defaultFunc(...params)
+  })
+}
+
+const incl = (arrayOrString: ValidationType[] | ValidationType, value: ValidationType) => {
+  return (arrayOrString as string[] & string).includes(value)
 }
 
 const defaultMessages: string[] = []
@@ -66,7 +68,7 @@ const defaultMessages: string[] = []
 export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialValue?: T) {
   type VR = { [K in keyof T]: string[] }
   type PVS = { [P in keyof T]: Validator<T, P>[] }
-  type FVO = { [P in keyof T]: ValidationOptions }
+  type FVO = { [P in keyof T]: FieldOptions<T, P> }
   type FPP = FormProviderConfig<T>
   type FPS = FormProviderState<T>
 
@@ -87,12 +89,15 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
       const loadedGuard = bind(this, onlyIfLoaded)
       const existsGuard = bind(this, onlyIfFieldExists)
       const loadedAndExists = (func: Function, defaultFunc = noop) => {
-        return loadedGuard(existsGuard(func, defaultFunc), defaultFunc)
+        func = loadedGuard(func, defaultFunc)
+        func = existsGuard(func, defaultFunc)
+        return func as any
       }
 
       this.submit = loadedGuard(this.submit)
       this.getFormValue = loadedGuard(this.getFormValue)
       this.setFieldValue = loadedAndExists(this.setFieldValue)
+      this.setFieldValues = loadedGuard(this.setFieldValues)
       this.onFieldBlur = loadedAndExists(this.onFieldBlur)
       this.unload = loadedGuard(this.unload)
       this.forgetState = loadedGuard(this.forgetState)
@@ -114,28 +119,17 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
 
     static defaultProps = {
       allowReinitialize: false,
-      ...validationOptions
+      validateOn: default_validate_on
     }
 
     registerValidator<K extends keyof T>(
       fieldName: K,
       validators: Validator<T, K>[],
-      opts: ValidationOptions
+      validateOn: ValidateOn<T, K> = this.props.validateOn || default_validate_on
     ): void {
       this.validators[fieldName] = validators
-
-      const {
-        validateIfDirty = !!this.props.validateIfDirty,
-        validateIfTouched = !!this.props.validateIfTouched,
-        validateIfVisited = !!this.props.validateIfVisited,
-        validateOnSubmit = !!this.props.validateOnSubmit
-      } = opts
-
       this.validationOptions[fieldName] = {
-        validateIfDirty,
-        validateIfTouched,
-        validateIfVisited,
-        validateOnSubmit
+        validateOn
       }
     }
 
@@ -143,9 +137,9 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
       fieldName: K,
       value: T[K],
       validators: Validator<T, K>[],
-      opts: ValidationOptions
+      opts: Partial<FieldOptions<T, K>> = {}
     ) {
-      this.registerValidator(fieldName, validators, opts)
+      this.registerValidator(fieldName, validators, opts.validateOn)
       if (this.state.fields[fieldName]) return // field is already registered
       this.setState(({ fields }) => ({
         fields: set(fields, fieldName, () => getInitialFieldState(value))
@@ -237,22 +231,32 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
     }
 
     shouldFieldValidate(fieldName: keyof T): boolean {
-      const {
-        validateIfTouched = validationOptions.validateIfTouched,
-        validateIfVisited = validationOptions.validateIfVisited,
-        validateOnSubmit = validationOptions.validateOnSubmit,
-        validateIfDirty = validationOptions.validateIfDirty
-      } = this.props
-
       const o = this.validationOptions[fieldName]
-      const field = this.state.fields[fieldName],
-        didSubmit = this.state.submitCount > 0,
-        validateTouched = (o.validateIfTouched || validateIfTouched) && field.touched,
-        validateVisited = (o.validateIfVisited || validateIfVisited) && field.didBlur,
-        validateSubmitted = (o.validateOnSubmit || validateOnSubmit) && didSubmit,
-        validateDirty = (o.validateIfDirty || validateIfDirty) && isDirty(field)
+      // if a field was not registered the below will be
+      // have to return false. this is the case when a field is 'registered'
+      // via an initial value on the provider but no field consumer was mounted
+      // todo register fields from initial value on provider props
+      if (!o) return false
+      const validateOn = o.validateOn || this.props.validateOn || default_validate_on
+      const { fields, submitCount } = this.state
+      const field = fields[fieldName]
 
-      return validateTouched || validateVisited || validateDirty || validateSubmitted
+      if (typeof validateOn === 'function') {
+        return validateOn(field, fields)
+      }
+      if (!isArray(validateOn) && !isString(validateOn)) {
+        return false
+      }
+      if (incl(validateOn, 'change') && field.touched) {
+        return true
+      }
+      if (incl(validateOn, 'blur') && field.didBlur) {
+        return true
+      }
+      if (incl(validateOn, 'submit') && submitCount > 0) {
+        return true
+      }
+      return false
     }
 
     getMessagesFor(fieldName: keyof T): string[] {

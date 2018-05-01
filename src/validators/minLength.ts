@@ -8,7 +8,7 @@ function minLength<T>(length: number, message?: string) {
   ): string | undefined {
     const val = value.value || ''
     if (typeof val === 'string') {
-      if (value.touched && val.length < length) {
+      if (val.length < length) {
         return message || `${fieldName} should be at least ${length} characters`
       }
     }

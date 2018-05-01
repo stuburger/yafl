@@ -6,7 +6,7 @@ function required<T>(message?: string) {
     formValue: FormFieldState<T>,
     fieldName: P
   ): string | undefined {
-    if (value.touched && !value.value) {
+    if (!value.value) {
       return message || `${fieldName} is required`
     }
     return undefined

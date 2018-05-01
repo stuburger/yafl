@@ -12,7 +12,10 @@ import {
   FormProviderConfig,
   BaseFieldConfig,
   ComponentProps,
-  ValidationOptions
+  FieldOptions,
+  ValidationType,
+  ValidateOnCustom,
+  ValidateOn
 } from './sharedTypes'
 
 export {
@@ -22,7 +25,10 @@ export {
   FieldConfig,
   BaseFieldConfig,
   FieldProps,
-  ValidationOptions
+  FieldOptions,
+  ValidationType,
+  ValidateOnCustom,
+  ValidateOn
 }
 
 export type FPC<T> = FormProviderConfig<T>

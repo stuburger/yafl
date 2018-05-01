@@ -14,17 +14,9 @@ import {
   FormUtils,
   FormMeta,
   ComponentConfig,
-  Provider,
-  ValidationOptions
+  Provider
 } from './sharedTypes'
 import { isArray } from './utils'
-
-const defaultValidationOptions: ValidationOptions = {
-  validateOnSubmit: true,
-  validateIfDirty: true,
-  validateIfTouched: true,
-  validateIfVisited: true
-}
 
 interface InnerGeneralComponentProps<T, K extends keyof T = keyof T> {
   provider: Provider<T, K>
@@ -51,6 +43,7 @@ export function wrapConsumer<T, K extends keyof T = keyof T>(
         name,
         render,
         component,
+        validateOn,
         initialValue,
         validators = emptyArray,
         ...props
@@ -59,6 +52,7 @@ export function wrapConsumer<T, K extends keyof T = keyof T>(
       return (
         <InnerField
           name={name}
+          validateOn={validateOn}
           validators={validators}
           initialValue={initialValue}
           render={render}
@@ -104,10 +98,9 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       this.collectMetaProps = this.collectMetaProps.bind(this)
       this.collectUtilProps = this.collectUtilProps.bind(this)
       this.collectProps = this.collectProps.bind(this)
-      this.getValidationOptions = this.getValidationOptions.bind(this)
 
-      const { name, validators, initialValue = props.field.value, provider } = props
-      provider.registerField(name, initialValue, validators, defaultValidationOptions)
+      const { name, validators, initialValue = props.field.value, provider, validateOn } = props
+      provider.registerField(name, initialValue, validators, { validateOn })
     }
 
     shouldComponentUpdate(nextProps: InnerFieldProps<T, P>) {
@@ -120,21 +113,10 @@ function getInnerField<T, P extends keyof T = keyof T>() {
     }
 
     componentDidUpdate(pp: InnerFieldProps<T, P>) {
-      const { name, validators = emptyValidators, provider } = this.props
+      const { name, validators = emptyValidators, provider, validateOn } = this.props
       if (validators !== pp.validators) {
-        provider.registerValidator(name, validators, this.getValidationOptions())
+        provider.registerValidator(name, validators, validateOn)
       }
-    }
-
-    getValidationOptions(): ValidationOptions {
-      const o = defaultValidationOptions
-      const {
-        validateIfDirty = o.validateIfDirty,
-        validateIfTouched = o.validateIfTouched,
-        validateIfVisited = o.validateIfVisited,
-        validateOnSubmit = o.validateOnSubmit
-      } = this.props
-      return { validateIfDirty, validateIfTouched, validateIfVisited, validateOnSubmit }
     }
 
     onBlur(e: any): void {
@@ -259,7 +241,7 @@ export function wrapFormConsumer<T>(Consumer: React.Consumer<Provider<T>>) {
     }
 
     _render(provider: Provider<T>) {
-      const { name, render, component, initialValue, validators, ...props } = this.props
+      const { render, component, ...props } = this.props
       return (
         <Component render={render} component={component} provider={provider} forwardProps={props} />
       )
