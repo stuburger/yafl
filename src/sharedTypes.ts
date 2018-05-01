@@ -37,11 +37,16 @@ export interface Provider<T, P extends keyof T = keyof T> {
   submitCount: number
   clearForm: (() => void)
   validation: { [K in keyof T]: string[] }
-  registerValidator: (<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]) => void)
+  registerValidator: (<K extends keyof T>(
+    fieldName: K,
+    validators: Validator<T, K>[],
+    opts: ValidationOptions
+  ) => void)
   registerField: (<K extends P>(
     fieldName: K,
     initialValue: T[K],
-    validators: Validator<T, K>[]
+    validators: Validator<T, K>[],
+    opts: ValidationOptions
   ) => void)
   onFieldBlur: (<K extends P>(fieldName: K) => void)
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
@@ -75,7 +80,14 @@ export type FormProviderState<T> = {
   submitCount: number
 }
 
-export interface FormProviderConfig<T> {
+export interface ValidationOptions {
+  validateIfDirty: boolean
+  validateIfTouched: boolean
+  validateIfVisited: boolean
+  validateOnSubmit: boolean
+}
+
+export interface FormProviderConfig<T> extends Partial<ValidationOptions> {
   initialValue?: T
   submit?: (formValue: Nullable<T>) => void
   children: React.ReactNode
@@ -99,7 +111,8 @@ export interface FieldUtils<T, P extends keyof T> {
   setValue: (value: T[P]) => void
 }
 
-export interface InnerFieldProps<T, K extends keyof T = keyof T> {
+export interface InnerFieldProps<T, K extends keyof T = keyof T>
+  extends Partial<ValidationOptions> {
   name: K
   initialValue?: T[K]
   validators: Validator<T, K>[]
@@ -136,7 +149,7 @@ export interface FieldProps<T, K extends keyof T> {
   [key: string]: any
 }
 
-export interface BaseFieldConfig<T, K extends keyof T> {
+export interface BaseFieldConfig<T, K extends keyof T> extends Partial<ValidationOptions> {
   initialValue?: T[K]
   validators?: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode

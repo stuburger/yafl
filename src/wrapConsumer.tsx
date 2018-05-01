@@ -14,9 +14,17 @@ import {
   FormUtils,
   FormMeta,
   ComponentConfig,
-  Provider
+  Provider,
+  ValidationOptions
 } from './sharedTypes'
 import { isArray } from './utils'
+
+const defaultValidationOptions: ValidationOptions = {
+  validateOnSubmit: true,
+  validateIfDirty: true,
+  validateIfTouched: true,
+  validateIfVisited: true
+}
 
 interface InnerGeneralComponentProps<T, K extends keyof T = keyof T> {
   provider: Provider<T, K>
@@ -96,9 +104,10 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       this.collectMetaProps = this.collectMetaProps.bind(this)
       this.collectUtilProps = this.collectUtilProps.bind(this)
       this.collectProps = this.collectProps.bind(this)
+      this.getValidationOptions = this.getValidationOptions.bind(this)
 
       const { name, validators, initialValue = props.field.value, provider } = props
-      provider.registerField(name, initialValue, validators)
+      provider.registerField(name, initialValue, validators, defaultValidationOptions)
     }
 
     shouldComponentUpdate(nextProps: InnerFieldProps<T, P>) {
@@ -113,8 +122,19 @@ function getInnerField<T, P extends keyof T = keyof T>() {
     componentDidUpdate(pp: InnerFieldProps<T, P>) {
       const { name, validators = emptyValidators, provider } = this.props
       if (validators !== pp.validators) {
-        provider.registerValidator(name, validators)
+        provider.registerValidator(name, validators, this.getValidationOptions())
       }
+    }
+
+    getValidationOptions(): ValidationOptions {
+      const o = defaultValidationOptions
+      const {
+        validateIfDirty = o.validateIfDirty,
+        validateIfTouched = o.validateIfTouched,
+        validateIfVisited = o.validateIfVisited,
+        validateOnSubmit = o.validateOnSubmit
+      } = this.props
+      return { validateIfDirty, validateIfTouched, validateIfVisited, validateOnSubmit }
     }
 
     onBlur(e: any): void {

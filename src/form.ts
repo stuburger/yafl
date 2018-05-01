@@ -11,8 +11,19 @@ import {
   FieldConfig,
   FormProviderConfig,
   BaseFieldConfig,
-  ComponentProps
+  ComponentProps,
+  ValidationOptions
 } from './sharedTypes'
+
+export {
+  FormProviderConfig,
+  ComponentConfig,
+  ComponentProps,
+  FieldConfig,
+  BaseFieldConfig,
+  FieldProps,
+  ValidationOptions
+}
 
 export type FPC<T> = FormProviderConfig<T>
 export type GCC<T, K extends keyof T = keyof T> = ComponentConfig<T, K>
