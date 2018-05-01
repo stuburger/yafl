@@ -2,48 +2,6 @@ import minLength from './minLength'
 import { FormFieldState } from '../sharedTypes'
 import { Person } from '../sharedTypes'
 
-const formUntouchedInvalid: FormFieldState<Person> = {
-  name: {
-    value: 'S',
-    originalValue: '',
-    didBlur: false,
-    touched: false
-  },
-  age: {
-    value: 0,
-    originalValue: 0,
-    didBlur: false,
-    touched: false
-  },
-  surname: {
-    value: 'B',
-    originalValue: '',
-    didBlur: false,
-    touched: false
-  },
-  gender: {
-    value: 'M',
-    originalValue: '',
-    didBlur: false,
-    touched: false
-  },
-  contact: {
-    value: {
-      tel: ''
-    },
-    originalValue: {
-      tel: ''
-    },
-    didBlur: false,
-    touched: false
-  },
-  favorites: {
-    value: [],
-    originalValue: [],
-    didBlur: false,
-    touched: false
-  }
-}
 const formTouchedInvalid: FormFieldState<Person> = {
   name: {
     value: 'j',
@@ -176,14 +134,6 @@ describe('minLength validator correctly validates field', () => {
   const validate2 = minLength<any>(2, 'abcdefg')
 
   describe('valid results return undefinded', () => {
-    test('valid because form is untouched', () => {
-      expect(validate1(formUntouchedInvalid.name, formUntouchedInvalid, 'name')).toBe(undefined)
-      expect(validate1(formUntouchedInvalid.surname, formUntouchedInvalid, 'surname')).toBe(
-        undefined
-      )
-      expect(validate1(formUntouchedInvalid.gender, formUntouchedInvalid, 'gender')).toBe(undefined)
-    })
-
     test('valid because form is touched and valid', () => {
       expect(validate1(formTouchedValid.name, formTouchedValid, 'name')).toBe(undefined)
       expect(validate1(formTouchedValid.surname, formTouchedValid, 'surname')).toBe(undefined)

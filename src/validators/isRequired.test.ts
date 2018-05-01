@@ -133,12 +133,16 @@ describe('required validator correctly validates field', () => {
   const validate2 = required<any>('abcdefg')
 
   describe('valid results return undefinded', () => {
-    test('valid because form is untouched', () => {
-      expect(validate1(formUntouchedInvalid.name, formUntouchedInvalid, 'name')).toBe(undefined)
-      expect(validate1(formUntouchedInvalid.surname, formUntouchedInvalid, 'surname')).toBe(
-        undefined
+    test('invalid because form is invalid', () => {
+      expect(validate1(formUntouchedInvalid.name, formUntouchedInvalid, 'name')).toBe(
+        'name is required'
       )
-      expect(validate1(formUntouchedInvalid.gender, formUntouchedInvalid, 'gender')).toBe(undefined)
+      expect(validate1(formUntouchedInvalid.surname, formUntouchedInvalid, 'surname')).toBe(
+        'surname is required'
+      )
+      expect(validate1(formUntouchedInvalid.gender, formUntouchedInvalid, 'gender')).toBe(
+        'gender is required'
+      )
     })
 
     test('valid because form is touched and valid', () => {
