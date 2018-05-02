@@ -231,6 +231,18 @@ function getInnerField<T, P extends keyof T = keyof T>() {
   return InnerField
 }
 
+export function createFormComponent<T>(
+  Consumer: React.Consumer<Provider<T>>,
+  component: React.ComponentType<ComponentProps<T>>
+): React.ComponentClass<ComponentConfig<T>> {
+  const FormComponent = wrapFormConsumer<T>(Consumer)
+  return class GeneralFormComponent extends React.Component<ComponentConfig<T>> {
+    render() {
+      return <FormComponent component={component} {...this.props} />
+    }
+  }
+}
+
 export function wrapFormConsumer<T>(Consumer: React.Consumer<Provider<T>>) {
   const Component = getComponent<T>()
 

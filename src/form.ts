@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { wrapProvider } from './wrapProvider'
-import { wrapConsumer, wrapFormConsumer, getTypedField } from './wrapConsumer'
+import { wrapConsumer, wrapFormConsumer, getTypedField, createFormComponent } from './wrapConsumer'
 import {
   Noop,
   Provider,
@@ -121,6 +121,11 @@ export const createForm = <T>(initialValue: T) => {
       component?: React.ComponentType<FieldProps<T, K>>
     ) {
       return getTypedField<T, K>(Consumer, fieldName, component)
+    },
+    createFormComponent: function<K extends keyof T>(
+      component: React.ComponentType<ComponentProps<T, K>>
+    ) {
+      return createFormComponent<T>(Consumer, component)
     }
   }
 }

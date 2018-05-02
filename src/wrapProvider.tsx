@@ -38,9 +38,12 @@ const noop = (...params: any[]) => {
 
 const default_validate_on: ValidationType = 'submit'
 
+/*
+  guard function for functions that rely on the form being loaded - ie. async loading
+  of form data.
+*/
 function onlyIfLoaded(func: Function, defaultFunc = noop) {
   func = bind(this, func)
-  // todo check what affect this has on component prototype
   return bind(this, function(...params: any[]) {
     if (!this.state.isBusy) {
       return func(...params)
@@ -49,6 +52,12 @@ function onlyIfLoaded(func: Function, defaultFunc = noop) {
   })
 }
 
+/*
+  for functions that rely on the existance of a field - wrap the function
+  in a guard function to prevent any unexpected behaviour. i.e. if a field
+  does not exist it could accidently be dynamically created when setting a value
+  todo perhaps this is a feature that is desirable in some situations
+*/
 function onlyIfFieldExists(func: Function, defaultFunc = noop) {
   func = bind(this, func)
   return bind(this, function(fieldName: string, ...params: any[]) {
@@ -65,7 +74,7 @@ const incl = (arrayOrString: ValidationType[] | ValidationType, value: Validatio
 
 const defaultMessages: string[] = []
 
-export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialValue?: T) {
+export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultValue?: T) {
   type VR = { [K in keyof T]: string[] }
   type PVS = { [P in keyof T]: Validator<T, P>[] }
   type FVO = { [P in keyof T]: FieldOptions<T, P> }
@@ -112,7 +121,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
       this.getProviderValue = bind(this, this.getProviderValue)
       this.shouldFieldValidate = loadedAndExists(this.shouldFieldValidate, () => false)
       this.getMessagesFor = loadedAndExists(this.getMessagesFor, () => [])
-      this.state = getStartingState<T>(initialValue)
+      this.state = getStartingState<T>(defaultValue)
     }
 
     static getDerivedStateFromProps = getGetDerivedStateFromProps<T>()
@@ -148,7 +157,6 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, initialVa
 
     submit(): void {
       this.setState(({ fields, submitCount }) => ({
-        // fields: touchAllFields(fields),
         submitCount: submitCount + 1
       }))
 
@@ -320,16 +328,21 @@ function getGetDerivedStateFromProps<T>() {
   return (np: FormProviderConfig<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {
     let state: Partial<FormProviderState<T>> = {}
     const loaded = trueIfAbsent(np.loaded)
-    if (!ps.loaded && loaded) {
+
+    const formWillLoad = !ps.loaded && loaded
+    const formWillUnload = ps.loaded && !loaded
+
+    if (formWillLoad) {
       let initialValue = np.initialValue || ({} as T)
       state.initialValue = initialValue
       state.fields = Object.assign({}, ps.fields, initializeState<T>(initialValue))
-    } else if (ps.loaded && !loaded) {
+    } else if (formWillUnload) {
       state = getStartingState<T>()
       state.fields = clearFields(ps.fields)
     }
 
-    if (np.allowReinitialize && !isEqual(ps.initialValue, np.initialValue)) {
+    const initialValueDidChange = !isEqual(ps.initialValue, np.initialValue)
+    if (np.allowReinitialize && initialValueDidChange) {
       if (np.initialValue) {
         if (np.rememberStateOnReinitialize) {
           state.fields = reinitializeState<T>(np.initialValue, ps.fields)
@@ -339,7 +352,7 @@ function getGetDerivedStateFromProps<T>() {
         }
         state.initialValue = np.initialValue
       } else {
-        if (np.rememberStateOnReinitialize) {
+        if (!np.rememberStateOnReinitialize) {
           state.submitCount = 0
         }
         state.initialValue = getFormValue<T>(clearFields(ps.fields))
