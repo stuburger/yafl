@@ -14,7 +14,8 @@ import {
   FormUtils,
   FormMeta,
   ComponentConfig,
-  Provider
+  Provider,
+  ValidationType
 } from './sharedTypes'
 import { isArray } from './utils'
 
@@ -45,6 +46,7 @@ export function wrapConsumer<T, K extends keyof T = keyof T>(
         component,
         validateOn,
         initialValue,
+        defaultValue,
         validators = emptyArray,
         ...props
       } = this.props
@@ -55,6 +57,7 @@ export function wrapConsumer<T, K extends keyof T = keyof T>(
           validateOn={validateOn}
           validators={validators}
           initialValue={initialValue}
+          defaultValue={defaultValue}
           render={render}
           component={component}
           field={fields[name]}
@@ -73,12 +76,20 @@ export function wrapConsumer<T, K extends keyof T = keyof T>(
 export function getTypedField<T, P extends keyof T = keyof T>(
   Consumer: React.Consumer<Provider<T, P>>,
   fieldName: P,
+  defaultValue?: T[P],
   component?: React.ComponentType<FieldProps<T, P>>
 ): React.ComponentClass<BaseFieldConfig<T, P>> {
   const FormField = wrapConsumer<T, P>(Consumer)
   return class TypedField extends React.Component<BaseFieldConfig<T, P>> {
     render() {
-      return <FormField component={component} {...this.props} name={fieldName} />
+      return (
+        <FormField
+          defaultValue={defaultValue}
+          component={component}
+          {...this.props}
+          name={fieldName}
+        />
+      )
     }
   }
 }
@@ -86,6 +97,7 @@ export function getTypedField<T, P extends keyof T = keyof T>(
 function getInnerField<T, P extends keyof T = keyof T>() {
   const noValidation: string[] = []
   const emptyValidators: Validator<T, P>[] = []
+  const default_validate_on: ValidationType = 'submit'
   class InnerField extends React.Component<InnerFieldProps<T, P>> {
     constructor(props: InnerFieldProps<T, P>) {
       super(props)
@@ -99,32 +111,46 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       this.collectUtilProps = this.collectUtilProps.bind(this)
       this.collectProps = this.collectProps.bind(this)
 
-      const { name, validators, initialValue = props.field.value, provider, validateOn } = props
-      provider.registerField(name, initialValue, validators, { validateOn })
+      const {
+        name,
+        provider,
+        validators = emptyValidators,
+        validateOn = default_validate_on,
+        initialValue = props.field.value
+      } = props
+      provider.registerField(name, { initialValue, validators, validateOn })
     }
 
     shouldComponentUpdate(nextProps: InnerFieldProps<T, P>) {
-      const { provider, name } = this.props
+      const { provider, name, field, forwardProps } = this.props
       const validation = provider.validation[name] || noValidation
       return (
-        !isEqual(nextProps.field, this.props.field) ||
+        !isEqual(nextProps.field, field) ||
+        !isEqual(nextProps.forwardProps, forwardProps) ||
         !isEqual(validation, nextProps.provider.validation[name] || noValidation)
       )
     }
 
     componentDidUpdate(pp: InnerFieldProps<T, P>) {
-      const { name, validators = emptyValidators, provider, validateOn } = this.props
+      const {
+        name,
+        provider,
+        validators = emptyValidators,
+        validateOn = default_validate_on
+      } = this.props
+
       if (validators !== pp.validators) {
-        provider.registerValidator(name, validators, validateOn)
+        provider.registerValidators(name, { validators, validateOn })
       }
     }
 
-    onBlur(e: any): void {
-      const { provider, forwardProps, name } = this.props
-      provider.onFieldBlur(name)
+    onBlur(e: React.FocusEvent<T[P]>): void {
+      const { provider, forwardProps, name, field } = this.props
       if (forwardProps.onBlur) {
-        forwardProps.onBlur(e)
+        forwardProps.onBlur(e, field)
       }
+      if (field.didBlur || e.isDefaultPrevented) return
+      provider.onFieldBlur(name)
     }
 
     onChange(e: any): void {

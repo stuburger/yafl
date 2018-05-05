@@ -5,7 +5,6 @@ import {
   Noop,
   Provider,
   FormFieldState,
-  Validator,
   FieldProps,
   ComponentConfig,
   FieldConfig,
@@ -15,7 +14,8 @@ import {
   FieldOptions,
   ValidationType,
   ValidateOnCustom,
-  ValidateOn
+  ValidateOn,
+  ValidatorConfig
 } from './sharedTypes'
 
 export {
@@ -28,6 +28,7 @@ export {
   FieldOptions,
   ValidationType,
   ValidateOnCustom,
+  ValidatorConfig,
   ValidateOn
 }
 
@@ -56,12 +57,10 @@ interface DefaultProviderValue<T, P extends keyof T = keyof T> {
   submitCount: number
   clearForm: (() => void) | Noop
   validation: { [K in keyof T]: string[] }
-  registerValidator:
-    | (<K extends keyof T>(fieldName: K, validators: Validator<T, K>[]) => void)
+  registerValidators:
+    | (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
     | Noop
-  registerField:
-    | (<K extends P>(fieldName: K, initialValue: T[K], validators: Validator<T, K>[]) => void)
-    | Noop
+  registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void) | Noop
   onFieldBlur: (<K extends P>(fieldName: K) => void) | Noop
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void) | Noop
   setFieldValues: ((partialUpdate: Partial<T>) => void) | Noop
@@ -101,7 +100,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     setFieldValue: noop,
     setFieldValues: noop,
     registerField: noop,
-    registerValidator: noop
+    registerValidators: noop
   }
 }
 
@@ -118,9 +117,10 @@ export const createForm = <T>(initialValue: T) => {
     FormComponent: component,
     createField: function<K extends keyof T>(
       fieldName: K,
-      component?: React.ComponentType<FieldProps<T, K>>
+      component?: React.ComponentType<FieldProps<T, K>>,
+      defaultValue?: T[K]
     ) {
-      return getTypedField<T, K>(Consumer, fieldName, component)
+      return getTypedField<T, K>(Consumer, fieldName, defaultValue, component)
     },
     createFormComponent: function<K extends keyof T>(
       component: React.ComponentType<ComponentProps<T, K>>

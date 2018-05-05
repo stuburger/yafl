@@ -24,12 +24,11 @@ import { trueIfAbsent, isEqual } from './utils'
 import {
   FormProviderConfig,
   FormProviderState,
-  Validator,
   Provider,
   FieldState,
   FieldOptions,
   ValidationType,
-  ValidateOn
+  ValidatorConfig
 } from './sharedTypes'
 
 const noop = (...params: any[]) => {
@@ -76,8 +75,7 @@ const defaultMessages: string[] = []
 
 export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultValue?: T) {
   type VR = { [K in keyof T]: string[] }
-  type PVS = { [P in keyof T]: Validator<T, P>[] }
-  type FVO = { [P in keyof T]: FieldOptions<T, P> }
+  type FVC = { [P in keyof T]: ValidatorConfig<T, P> }
   type FPP = FormProviderConfig<T>
   type FPS = FormProviderState<T>
 
@@ -89,8 +87,8 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
   }
 
   return class Form extends React.Component<FPP, FPS> {
-    validators = {} as PVS
-    validationOptions = {} as FVO
+    validators = {} as FVC
+    // validationOptions = {} as FVO
 
     constructor(props: FPP) {
       super(props)
@@ -131,27 +129,16 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
       validateOn: default_validate_on
     }
 
-    registerValidator<K extends keyof T>(
-      fieldName: K,
-      validators: Validator<T, K>[],
-      validateOn: ValidateOn<T, K> = this.props.validateOn || default_validate_on
-    ): void {
-      this.validators[fieldName] = validators
-      this.validationOptions[fieldName] = {
-        validateOn
-      }
+    registerValidator<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>): void {
+      this.validators[fieldName] = opts
     }
 
-    registerField<K extends keyof T>(
-      fieldName: K,
-      value: T[K],
-      validators: Validator<T, K>[],
-      opts: Partial<FieldOptions<T, K>> = {}
-    ) {
-      this.registerValidator(fieldName, validators, opts.validateOn)
+    registerField<K extends keyof T>(fieldName: K, opts: FieldOptions<T, K>): void {
+      const { initialValue, ...validationOptions } = opts
+      this.registerValidator(fieldName, validationOptions)
       if (this.state.fields[fieldName]) return // field is already registered
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, () => getInitialFieldState(value))
+        fields: set(fields, fieldName, () => getInitialFieldState(initialValue))
       }))
     }
 
@@ -207,7 +194,6 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
     }
 
     onFieldBlur<K extends keyof T>(fieldName: K): void {
-      if (this.state.fields[fieldName].didBlur) return
       this.setState(({ fields }) => ({
         fields: set(fields, fieldName, blurField)
       }))
@@ -231,15 +217,15 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
 
     validateForm(): VR {
       const { fields } = this.state
-      const result = transform<PVS, VR>(this.validators, (ret, validators, fieldName) => {
-        ret[fieldName] = validateField<T>(fieldName, fields, validators)
+      const result = transform<FVC, VR>(this.validators, (ret, config, fieldName) => {
+        ret[fieldName] = validateField<T>(fieldName, fields, config.validators)
         return ret
       })
       return result
     }
 
     shouldFieldValidate(fieldName: keyof T): boolean {
-      const o = this.validationOptions[fieldName]
+      const o = this.validators[fieldName]
       // if a field was not registered the below will be
       // have to return false. this is the case when a field is 'registered'
       // via an initial value on the provider but no field consumer was mounted
@@ -250,7 +236,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
       const field = fields[fieldName]
 
       if (typeof validateOn === 'function') {
-        return validateOn(field, fields)
+        return validateOn(field.value, fields, fieldName)
       }
       if (!isArray(validateOn) && !isString(validateOn)) {
         return false
@@ -268,9 +254,10 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
     }
 
     getMessagesFor(fieldName: keyof T): string[] {
-      return this.shouldFieldValidate(fieldName)
-        ? validateField<T>(fieldName, this.state.fields, this.validators[fieldName])
-        : defaultMessages
+      if (this.shouldFieldValidate(fieldName)) {
+        return validateField<T>(fieldName, this.state.fields, this.validators[fieldName].validators)
+      }
+      return defaultMessages
     }
 
     getComputedState(): ComputedFormState {
@@ -314,7 +301,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
         setFieldValue: this.setFieldValue,
         setFieldValues: this.setFieldValues,
         registerField: this.registerField,
-        registerValidator: this.registerValidator
+        registerValidators: this.registerValidator
       }
     }
 

@@ -37,17 +37,8 @@ export interface Provider<T, P extends keyof T = keyof T> {
   submitCount: number
   clearForm: (() => void)
   validation: { [K in keyof T]: string[] }
-  registerValidator: (<K extends keyof T>(
-    fieldName: K,
-    validators: Validator<T, K>[],
-    validateOn?: ValidateOn<T, K>
-  ) => void)
-  registerField: (<K extends P>(
-    fieldName: K,
-    initialValue: T[K],
-    validators: Validator<T, K>[],
-    opts?: Partial<FieldOptions<T, K>>
-  ) => void)
+  registerValidators: (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
+  registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void)
   onFieldBlur: (<K extends P>(fieldName: K) => void)
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
   setFieldValues: (partialUpdate: Partial<T>) => void
@@ -68,7 +59,7 @@ export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
 
 export interface Validator<T, K extends keyof T = keyof T> {
   // FieldState is actually not what should be passed into here. it needs to contain isDirty value
-  (value: FieldState<T[K]>, fields: FormFieldState<T>, fieldName: K): string | undefined
+  (value: T[K], fields: FormFieldState<T>, fieldName: K): string | undefined
 }
 
 export type FormProviderState<T> = {
@@ -80,14 +71,19 @@ export type FormProviderState<T> = {
   submitCount: number
 }
 
-export interface FieldOptions<T, K extends keyof T = keyof T> {
+export interface ValidatorConfig<T, K extends keyof T = keyof T> {
   validateOn: ValidateOn<T, K>
+  validators: Validator<T, K>[]
+}
+
+export interface FieldOptions<T, K extends keyof T = keyof T> extends ValidatorConfig<T, K> {
+  initialValue: T[K]
 }
 
 export type ValidationType = 'change' | 'blur' | 'submit'
 
 export interface ValidateOnCustom<T, K extends keyof T> {
-  (field: FieldState<T[K]>, fields: FormFieldState<T>): boolean
+  (field: T[K], fields: FormFieldState<T>, fieldName: K): boolean
 }
 
 export type ValidateOn<T, K extends keyof T = keyof T> =
@@ -95,7 +91,7 @@ export type ValidateOn<T, K extends keyof T = keyof T> =
   | ValidationType[]
   | ValidateOnCustom<T, K>
 
-export interface FormProviderConfig<T> extends Partial<FieldOptions<T>> {
+export interface FormProviderConfig<T> extends Partial<ValidatorConfig<T>> {
   initialValue?: T
   submit?: (formValue: Nullable<T>) => void
   children: React.ReactNode
@@ -123,6 +119,7 @@ export interface InnerFieldProps<T, K extends keyof T = keyof T>
   extends Partial<FieldOptions<T, K>> {
   name: K
   initialValue?: T[K]
+  defaultValue?: T[K]
   validators: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T, K>>
@@ -158,6 +155,7 @@ export interface FieldProps<T, K extends keyof T> {
 }
 
 export interface BaseFieldConfig<T, K extends keyof T> extends Partial<FieldOptions<T, K>> {
+  defaultValue?: T[K]
   initialValue?: T[K]
   validators?: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode
