@@ -1,9 +1,9 @@
 import { transform, isEqual, clone, getDefaultOfType, shallowCopy } from './utils'
 import { FieldState, FormFieldState, Nullable, Validator, FormProviderState } from './sharedTypes'
 
-export function getStartingState<T>(defaultValue: T = {} as T): FormProviderState<T> {
+export function getDefaultInitialState<T>(defaultValue: T = {} as T): FormProviderState<T> {
   return {
-    fields: initializeState(defaultValue),
+    fields: getDefaultFormState(defaultValue),
     loaded: false,
     isBusy: false,
     submitting: false,
@@ -12,10 +12,26 @@ export function getStartingState<T>(defaultValue: T = {} as T): FormProviderStat
   }
 }
 
-export function createEmptyField(): FieldState<undefined> {
+function getDefaultFieldState<T>(defaultValue?: T): FieldState<T> {
+  const field = createEmptyField<T>()
+  field.value = clone(defaultValue)
+  field.defaultValue = defaultValue
+  field.originalValue = clone(defaultValue)
+  return field as FieldState<T>
+}
+
+export function getDefaultFormState<T>(defaultValue = {} as T): FormFieldState<T> {
+  return transform<T, FormFieldState<T>>(defaultValue, (ret, fieldValue, fieldName: keyof T) => {
+    ret[fieldName] = getDefaultFieldState(fieldValue)
+    return ret
+  })
+}
+
+export function createEmptyField<T>(): FieldState<T | undefined> {
   return {
     value: undefined,
     originalValue: undefined,
+    defaultValue: undefined,
     didBlur: false,
     touched: false
   }
@@ -37,23 +53,36 @@ export function validateField<T>(
   return messages
 }
 
-export function getInitialFieldState<T>(value: T, copyFrom?: FieldState<T>): FieldState<T> {
-  const field = copyFrom ? clone(copyFrom) : createEmptyField()
+export function setInitialFieldValue<T>(
+  initialValue: T,
+  field?: FieldState<T>,
+  keepState = false
+): FieldState<T> {
+  const _field = field ? copy(field) : createEmptyField()
+  _field.value = clone(initialValue)
+  _field.originalValue = clone(initialValue)
+  if (!keepState) {
+    _field.didBlur = false
+    _field.touched = false
+  }
+  return _field as FieldState<T>
+}
+
+export function getFieldFromValue<T>(value: T, defaultValue?: T): FieldState<T> {
+  const field = createEmptyField()
   field.value = clone(value)
   field.originalValue = clone(value)
+  field.defaultValue = defaultValue
   return field as FieldState<T>
 }
 
-export function reinitializeState<T>(val: T, formState: FormFieldState<T>): FormFieldState<T> {
+export function setInitialFieldValues<T>(
+  val: T,
+  fields: Partial<FormFieldState<T>>,
+  keepState = false
+): FormFieldState<T> {
   return transform<T, FormFieldState<T>>(val, (ret, fieldValue, fieldName: keyof T) => {
-    ret[fieldName] = getInitialFieldState<T[keyof T]>(fieldValue, formState[fieldName])
-    return ret
-  })
-}
-
-export function initializeState<T>(val: T): FormFieldState<T> {
-  return transform<T, FormFieldState<T>>(val, (ret, fieldValue, fieldName: keyof T) => {
-    ret[fieldName] = getInitialFieldState(fieldValue)
+    ret[fieldName] = setInitialFieldValue(fieldValue, fields[fieldName], keepState)
     return ret
   })
 }
@@ -63,12 +92,19 @@ function copy<T>(field: FieldState<T>): FieldState<T> {
     value: clone(field.value),
     didBlur: field.didBlur,
     touched: field.touched,
-    originalValue: clone(field.originalValue)
+    originalValue: clone(field.originalValue),
+    defaultValue: field.defaultValue
   }
 }
 
 export function isDirty<T>({ value, originalValue }: FieldState<T>): boolean {
   return !isEqual(originalValue, value)
+}
+
+export function setDefaultFieldValue<T>(field: FieldState<T>, defaultValue: T): FieldState<T> {
+  const res = copy(field)
+  res.defaultValue = defaultValue
+  return res
 }
 
 export function setFieldValue<T>(field: FieldState<T>, value: T): FieldState<T> {
@@ -104,7 +140,7 @@ export function resetField<T>(field: FieldState<T>): FieldState<T> {
 
 export function clearField<T>(field: FieldState<T>): FieldState<T> {
   const result = copy(field)
-  result.originalValue = getDefaultOfType(field.originalValue)
+  result.originalValue = getDefaultOfType(field.originalValue, field.defaultValue)
   result.value = clone(result.originalValue)
   return result
 }
@@ -171,11 +207,16 @@ export function modifyFields<T>(
 export function set<T, K extends keyof T>(
   fields: FormFieldState<T>,
   fieldName: K,
-  updater: (field: FieldState<T[K]>) => FieldState<T[K]>
+  updater: (field: FieldState<T[K]>) => FieldState<T[K]>,
+  createIfAbsent = false
 ): FormFieldState<T> {
-  if (!fields[fieldName]) return fields
+  let field = fields[fieldName]
+  if (!createIfAbsent && !field) return fields
   const result = shallowCopy(fields)
-  result[fieldName] = updater(fields[fieldName])
+  if (!field && createIfAbsent) {
+    field = createEmptyField<T[K]>() as FieldState<T[K]>
+  }
+  result[fieldName] = updater(field)
   return result
 }
 

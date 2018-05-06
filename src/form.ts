@@ -61,6 +61,7 @@ interface DefaultProviderValue<T, P extends keyof T = keyof T> {
     | (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
     | Noop
   registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void) | Noop
+  setDefaultFieldValue: (<K extends P>(fieldName: K, defaultValue: T[K]) => void) | Noop
   onFieldBlur: (<K extends P>(fieldName: K) => void) | Noop
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void) | Noop
   setFieldValues: ((partialUpdate: Partial<T>) => void) | Noop
@@ -100,14 +101,15 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     setFieldValue: noop,
     setFieldValues: noop,
     registerField: noop,
-    registerValidators: noop
+    registerValidators: noop,
+    setDefaultFieldValue: noop
   }
 }
 
-export const createForm = <T>(initialValue: T) => {
+export const createForm = <T>(defaultValue: T) => {
   const { Consumer, Provider } = React.createContext<Provider<T>>(getDefaultProviderValue())
 
-  const form = wrapProvider<T>(Provider, initialValue)
+  const form = wrapProvider<T>(Provider, defaultValue)
   const field = wrapConsumer<T>(Consumer)
   const component = wrapFormConsumer<T>(Consumer)
 

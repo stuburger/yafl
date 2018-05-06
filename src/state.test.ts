@@ -1,26 +1,35 @@
-import { getFormValue, initializeState, getInitialFieldState, getStartingState } from './state'
+import {
+  getFormValue,
+  getFieldFromValue,
+  getDefaultInitialState,
+  getDefaultFormState
+} from './state'
 
 const numberValue = {
   value: 5,
   originalValue: 5,
+  defaultValue: undefined,
   didBlur: false,
   touched: false
 }
 const stringValue = {
   value: 'Bob',
   originalValue: 'Bob',
+  defaultValue: undefined,
   didBlur: false,
   touched: false
 }
 const nullValue = {
   value: null,
   originalValue: null,
+  defaultValue: undefined,
   didBlur: false,
   touched: false
 }
 const undefinedValue = {
   value: undefined,
   originalValue: undefined,
+  defaultValue: undefined,
   didBlur: false,
   touched: false
 }
@@ -46,7 +55,7 @@ const objectValue = {
 
 describe('getting the initial state of a single form field with different value types', () => {
   describe('field state', () => {
-    const initialState = getInitialFieldState(5)
+    const initialState = getFieldFromValue(5)
     test('didBlur, touched should be false', () => {
       expect(initialState.didBlur).toBe(false)
       expect(initialState.touched).toBe(false)
@@ -55,17 +64,17 @@ describe('getting the initial state of a single form field with different value 
 
   describe('primitive values', () => {
     test('number', () => {
-      expect(getInitialFieldState(5)).toEqual(numberValue)
+      expect(getFieldFromValue(5)).toEqual(numberValue)
     })
     test('string', () => {
-      expect(getInitialFieldState('Bob')).toEqual(stringValue)
+      expect(getFieldFromValue('Bob')).toEqual(stringValue)
     })
     test('null values initialized to null', () => {
-      const result = getInitialFieldState(null)
+      const result = getFieldFromValue(null)
       expect(result).toEqual(nullValue)
     })
     test('undefined values initialized to undefined', () => {
-      const result = getInitialFieldState(undefined)
+      const result = getFieldFromValue(undefined)
       expect(result).toEqual(undefinedValue)
     })
   })
@@ -78,7 +87,7 @@ describe('getting the initial state of a single form field with different value 
       },
       favorites: ['books', 'rock n roll']
     }
-    const result = getInitialFieldState(value)
+    const result = getFieldFromValue(value)
     test('values are equal', () => {
       expect(result).toEqual(objectValue)
     })
@@ -93,36 +102,43 @@ describe('getting the initial state of a single form field with different value 
 
 const formResult = {
   name: {
-    value: 'stuart',
-    originalValue: 'stuart',
+    value: '',
+    originalValue: '',
+    defaultValue: '',
     didBlur: false,
     touched: false
   },
   age: {
-    value: 30,
-    originalValue: 30,
+    value: 0,
+    originalValue: 0,
+    defaultValue: 0,
     didBlur: false,
     touched: false
   },
   gender: {
     value: undefined,
     originalValue: undefined,
+    defaultValue: undefined,
     didBlur: false,
     touched: false
   },
   contact: {
     value: {
-      tel: '0786656565'
+      tel: ''
     },
     originalValue: {
-      tel: '0786656565'
+      tel: ''
+    },
+    defaultValue: {
+      tel: ''
     },
     didBlur: false,
     touched: false
   },
   favorites: {
-    value: ['books', 'rock n roll'],
-    originalValue: ['books', 'rock n roll'],
+    value: [],
+    originalValue: [],
+    defaultValue: [],
     didBlur: false,
     touched: false
   }
@@ -130,16 +146,16 @@ const formResult = {
 
 describe('getting the initial form state from the intial value supplied', () => {
   const form = {
-    name: 'stuart',
-    age: 30,
+    name: '',
+    age: 0,
     gender: undefined,
     contact: {
-      tel: '0786656565'
+      tel: ''
     },
-    favorites: ['books', 'rock n roll']
+    favorites: []
   }
 
-  const result = initializeState(form)
+  const result = getDefaultFormState(form)
   test('form state to be initialized correctly', () => {
     expect(result).toEqual(formResult)
   })
@@ -156,25 +172,28 @@ const result = {
 
 describe('getNullState of form component', () => {
   test('should equal', () => {
-    expect(getStartingState<any>()).toEqual(result)
+    expect(getDefaultInitialState<any>()).toEqual(result)
   })
 })
 
 const formState1 = {
   name: {
     value: 'stuart',
+    defaultValue: '',
     originalValue: 'stuart',
     didBlur: false,
     touched: false
   },
   age: {
     value: 30,
+    defaultValue: 0,
     originalValue: 30,
     didBlur: false,
     touched: false
   },
   gender: {
     value: 'male',
+    defaultValue: '',
     originalValue: 'male',
     didBlur: false,
     touched: false
@@ -186,12 +205,16 @@ const formState1 = {
     originalValue: {
       tel: '0786656565'
     },
+    defaultValue: {
+      tel: ''
+    },
     didBlur: false,
     touched: false
   },
   favorites: {
     value: ['books', 'rock n roll'],
     originalValue: ['books', 'rock n roll'],
+    defaultValue: [],
     didBlur: false,
     touched: false
   }

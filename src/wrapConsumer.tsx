@@ -114,17 +114,19 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       const {
         name,
         provider,
+        defaultValue,
         validators = emptyValidators,
         validateOn = default_validate_on,
         initialValue = props.field.value
       } = props
-      provider.registerField(name, { initialValue, validators, validateOn })
+      provider.registerField(name, { initialValue, defaultValue, validators, validateOn })
     }
 
     shouldComponentUpdate(nextProps: InnerFieldProps<T, P>) {
       const { provider, name, field, forwardProps } = this.props
       const validation = provider.validation[name] || noValidation
       return (
+        !isEqual(nextProps.defaultValue, field.defaultValue) ||
         !isEqual(nextProps.field, field) ||
         !isEqual(nextProps.forwardProps, forwardProps) ||
         !isEqual(validation, nextProps.provider.validation[name] || noValidation)
@@ -135,12 +137,17 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       const {
         name,
         provider,
+        defaultValue,
         validators = emptyValidators,
         validateOn = default_validate_on
       } = this.props
 
       if (validators !== pp.validators) {
         provider.registerValidators(name, { validators, validateOn })
+      }
+
+      if (!isEqual(defaultValue, pp.defaultValue)) {
+        provider.setDefaultFieldValue(name, defaultValue as T[P])
       }
     }
 

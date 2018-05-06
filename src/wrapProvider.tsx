@@ -13,22 +13,22 @@ import {
   clearFields,
   getFormValue,
   formIsValid,
-  getInitialFieldState,
-  getStartingState,
-  initializeState,
-  reinitializeState,
+  getFieldFromValue,
+  getDefaultInitialState,
   setAll,
-  modifyFields
+  modifyFields,
+  setInitialFieldValues,
+  setDefaultFieldValue
 } from './state'
 import { trueIfAbsent, isEqual } from './utils'
 import {
   FormProviderConfig,
   FormProviderState,
   Provider,
-  FieldState,
   FieldOptions,
   ValidationType,
-  ValidatorConfig
+  ValidatorConfig,
+  FieldState
 } from './sharedTypes'
 
 const noop = (...params: any[]) => {
@@ -119,7 +119,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
       this.getProviderValue = bind(this, this.getProviderValue)
       this.shouldFieldValidate = loadedAndExists(this.shouldFieldValidate, () => false)
       this.getMessagesFor = loadedAndExists(this.getMessagesFor, () => [])
-      this.state = getStartingState<T>(defaultValue)
+      this.state = getDefaultInitialState<T>(defaultValue)
     }
 
     static getDerivedStateFromProps = getGetDerivedStateFromProps<T>()
@@ -134,11 +134,17 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
     }
 
     registerField<K extends keyof T>(fieldName: K, opts: FieldOptions<T, K>): void {
-      const { initialValue, ...validationOptions } = opts
+      const field = this.state.fields[fieldName] || ({} as FieldState<T[K]>)
+
+      const {
+        initialValue = field.originalValue,
+        defaultValue = field.defaultValue,
+        ...validationOptions
+      } = opts
+
       this.registerValidator(fieldName, validationOptions)
-      if (this.state.fields[fieldName]) return // field is already registered
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, () => getInitialFieldState(initialValue))
+        fields: set(fields, fieldName, () => getFieldFromValue(initialValue, defaultValue), true)
       }))
     }
 
@@ -159,9 +165,15 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
       return getFormValue<T>(this.state.fields)
     }
 
+    setDefaultFieldValue<P extends keyof T>(fieldName: P, defaultValue: T[P]): void {
+      this.setState(({ fields }) => ({
+        fields: set(fields, fieldName, field => setDefaultFieldValue(field, defaultValue))
+      }))
+    }
+
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void {
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, (field: FieldState<T[P]>) => setFieldValue(field, val))
+        fields: set(fields, fieldName, field => setFieldValue(field, val))
       }))
     }
 
@@ -208,7 +220,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
     }
 
     unload(): void {
-      this.setState(getStartingState<T>())
+      this.setState(getDefaultInitialState<T>())
     }
 
     forgetState(): void {
@@ -301,7 +313,8 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
         setFieldValue: this.setFieldValue,
         setFieldValues: this.setFieldValues,
         registerField: this.registerField,
-        registerValidators: this.registerValidator
+        registerValidators: this.registerValidator,
+        setDefaultFieldValue: this.setDefaultFieldValue
       }
     }
 
@@ -311,48 +324,45 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
   }
 }
 
-function getGetDerivedStateFromProps<T>() {
+function getGetDerivedStateFromProps<T>(defaultValue?: T) {
   return (np: FormProviderConfig<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {
-    let state: Partial<FormProviderState<T>> = {}
     const loaded = trueIfAbsent(np.loaded)
 
-    const formWillLoad = !ps.loaded && loaded
-    const formWillUnload = ps.loaded && !loaded
+    // form will unload
+    if (ps.loaded && !loaded) {
+      return getDefaultInitialState<T>(defaultValue)
+    }
 
-    if (formWillLoad) {
-      let initialValue = np.initialValue || ({} as T)
-      state.initialValue = initialValue
-      state.fields = Object.assign({}, ps.fields, initializeState<T>(initialValue))
-    } else if (formWillUnload) {
-      state = getStartingState<T>()
-      state.fields = clearFields(ps.fields)
+    const submitting = !!np.submitting
+
+    let state: Partial<FormProviderState<T>> = {
+      loaded,
+      submitting,
+      isBusy: !loaded || submitting
     }
 
     const initialValueDidChange = !isEqual(ps.initialValue, np.initialValue)
+
+    // form will load
+    if (!ps.loaded && loaded) {
+      let initialValue = np.initialValue || ({} as T)
+      state.initialValue = initialValue
+      state.fields = setInitialFieldValues(initialValue, ps.fields)
+      return state
+    }
+
     if (np.allowReinitialize && initialValueDidChange) {
-      if (np.initialValue) {
-        if (np.rememberStateOnReinitialize) {
-          state.fields = reinitializeState<T>(np.initialValue, ps.fields)
-        } else {
-          state.fields = initializeState<T>(np.initialValue)
-          state.submitCount = 0
-        }
-        state.initialValue = np.initialValue
-      } else {
-        if (!np.rememberStateOnReinitialize) {
-          state.submitCount = 0
-        }
-        state.initialValue = getFormValue<T>(clearFields(ps.fields))
-        state.fields = initializeState<T>(state.initialValue)
+      const keepState = np.rememberStateOnReinitialize
+      state.submitCount = keepState ? ps.submitCount : 0
+
+      if (!np.initialValue) {
+        console.warn('initial value was unexpectidly change to a falsy value')
+        return state
       }
-    }
 
-    if (!ps.loaded) {
-      state.loaded = loaded
+      state.fields = setInitialFieldValues<T>(np.initialValue, ps.fields, keepState)
+      state.initialValue = np.initialValue
     }
-
-    state.submitting = np.submitting
-    state.isBusy = !loaded || np.submitting || false
 
     return state
   }

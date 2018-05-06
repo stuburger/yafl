@@ -40,6 +40,7 @@ export interface Provider<T, P extends keyof T = keyof T> {
   registerValidators: (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
   registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void)
   onFieldBlur: (<K extends P>(fieldName: K) => void)
+  setDefaultFieldValue: (<K extends P>(fieldName: K, defaultValue: T[K]) => void)
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
   setFieldValues: (partialUpdate: Partial<T>) => void
   touchField: (<K extends P>(fieldName: K | keyof T) => void)
@@ -53,6 +54,7 @@ export interface FieldState<T> {
   didBlur: boolean
   touched: boolean
   originalValue: T
+  defaultValue: T
 }
 
 export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
@@ -77,6 +79,7 @@ export interface ValidatorConfig<T, K extends keyof T = keyof T> {
 }
 
 export interface FieldOptions<T, K extends keyof T = keyof T> extends ValidatorConfig<T, K> {
+  defaultValue?: T[K]
   initialValue: T[K]
 }
 
