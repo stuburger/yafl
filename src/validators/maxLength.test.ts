@@ -52,7 +52,7 @@ const formUntouchedInvalid = {
 }
 const formTouchedInvalid = {
   name: {
-    value: 'jackie',
+    value: 'jacasdifasldfjalsdkjf',
     originalValue: 'jackie',
     defaultValue: '',
     didBlur: true,
@@ -112,7 +112,7 @@ const formTouchedValid = {
   age: {
     value: 30,
     originalValue: 30,
-    defaultValue: 30,
+    defaultValue: 0,
     didBlur: true,
     touched: true
   },
@@ -205,49 +205,55 @@ describe('maxLength validator correctly validates field', () => {
 
   describe('valid results return undefinded', () => {
     test('valid because form is untouched', () => {
-      expect(validate1(formUntouchedInvalid.name, formUntouchedInvalid, 'name')).toBe(undefined)
-      expect(validate1(formUntouchedInvalid.surname, formUntouchedInvalid, 'surname')).toBe(
+      expect(validate1(formUntouchedInvalid.name.value, formUntouchedInvalid, 'name')).toBe(
         undefined
       )
-      expect(validate1(formUntouchedInvalid.gender, formUntouchedInvalid, 'gender')).toBe(undefined)
+      expect(validate1(formUntouchedInvalid.surname.value, formUntouchedInvalid, 'surname')).toBe(
+        undefined
+      )
+      expect(validate1(formUntouchedInvalid.gender.value, formUntouchedInvalid, 'gender')).toBe(
+        undefined
+      )
     })
 
     test('valid because form is touched and valid', () => {
-      expect(validate1(formTouchedValid.name, formTouchedValid, 'name')).toBe(undefined)
-      expect(validate1(formTouchedValid.surname, formTouchedValid, 'surname')).toBe(undefined)
-      expect(validate1(formTouchedValid.gender, formTouchedValid, 'gender')).toBe(undefined)
+      expect(validate1(formTouchedValid.name.value, formTouchedValid, 'name')).toBe(undefined)
+      expect(validate1(formTouchedValid.surname.value, formTouchedValid, 'surname')).toBe(undefined)
+      expect(validate1(formTouchedValid.gender.value, formTouchedValid, 'gender')).toBe(undefined)
     })
   })
 
   test('calling maxLength validator on invalid fields returns default message', () => {
-    expect(validate1(formTouchedInvalid.name, formTouchedInvalid, 'name')).toBe(
+    expect(validate1(formTouchedInvalid.name.value, formTouchedInvalid, 'name')).toBe(
       'name should not be longer than 5 characters'
     )
-    expect(validate1(formTouchedInvalid.surname, formTouchedInvalid, 'surname')).toBe(
+    expect(validate1(formTouchedInvalid.surname.value, formTouchedInvalid, 'surname')).toBe(
       'surname should not be longer than 5 characters'
     )
-    expect(validate1(formTouchedInvalid.gender, formTouchedInvalid, 'gender')).toBe(
+    expect(validate1(formTouchedInvalid.gender.value, formTouchedInvalid, 'gender')).toBe(
       'gender should not be longer than 5 characters'
     )
   })
 
   test('calling maxLength validator on invalid fields return custom message', () => {
-    expect(validate2(formTouchedInvalid.name, formTouchedInvalid, 'name')).toBe('abcdefg')
-    expect(validate2(formTouchedInvalid.surname, formTouchedInvalid, 'surname')).toBe('abcdefg')
-    expect(validate2(formTouchedInvalid.gender, formTouchedInvalid, 'gender')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.name.value, formTouchedInvalid, 'name')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.surname.value, formTouchedInvalid, 'surname')).toBe(
+      'abcdefg'
+    )
+    expect(validate2(formTouchedInvalid.gender.value, formTouchedInvalid, 'gender')).toBe('abcdefg')
   })
 
   describe('calling minLength on null or undefined values', () => {
     test('should not throw exceptions', () => {
-      expect(() => validate1(badValuesForm.name, badValuesForm, 'name')).not.toThrow()
-      expect(() => validate1(badValuesForm.surname, badValuesForm, 'surname')).not.toThrow()
-      expect(() => validate1(badValuesForm.gender, badValuesForm, 'gender')).not.toThrow()
+      expect(() => validate1(badValuesForm.name.value, badValuesForm, 'name')).not.toThrow()
+      expect(() => validate1(badValuesForm.surname.value, badValuesForm, 'surname')).not.toThrow()
+      expect(() => validate1(badValuesForm.gender.value, badValuesForm, 'gender')).not.toThrow()
     })
 
     test('should return correct invalid message', () => {
-      expect(validate1(badValuesForm.name, badValuesForm, 'name')).toBe(undefined)
-      expect(validate1(badValuesForm.surname, badValuesForm, 'surname')).toBe(undefined)
-      expect(validate1(badValuesForm.gender, badValuesForm, 'gender')).toBe(undefined)
+      expect(validate1(badValuesForm.name.value, badValuesForm, 'name')).toBe(undefined)
+      expect(validate1(badValuesForm.surname.value, badValuesForm, 'surname')).toBe(undefined)
+      expect(validate1(badValuesForm.gender.value, badValuesForm, 'gender')).toBe(undefined)
     })
   })
 })

@@ -151,6 +151,10 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       }
     }
 
+    // componentWillUnmount() {
+    //   this.props.unregisterField(fieldName)
+    // }
+
     onBlur(e: React.FocusEvent<T[P]>): void {
       const { provider, forwardProps, name, field } = this.props
       if (forwardProps.onBlur) {

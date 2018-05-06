@@ -30,7 +30,7 @@ export interface Provider<T, P extends keyof T = keyof T> {
   formIsValid: boolean
   formIsDirty: boolean
   unload: (() => void)
-  getFormValue: () => T
+  getFormValue: (includeUnregisterdFields?: boolean) => T
   forgetState: (() => void)
   submit: (() => void)
   resetForm: (() => void)
@@ -64,9 +64,12 @@ export interface Validator<T, K extends keyof T = keyof T> {
   (value: T[K], fields: FormFieldState<T>, fieldName: K): string | undefined
 }
 
-export type FormProviderState<T> = {
+export type RegisteredFields<T extends object> = { [K in keyof T]?: true }
+
+export type FormProviderState<T extends object> = {
   fields: FormFieldState<T>
   initialValue: T
+  registeredFields: RegisteredFields<T>
   isBusy: boolean
   loaded: boolean
   submitting: boolean
@@ -106,7 +109,7 @@ export interface FormProviderConfig<T> extends Partial<ValidatorConfig<T>> {
 
 export interface FieldUtils<T, P extends keyof T> {
   resetForm: () => void
-  getFormValue: () => T
+  getFormValue: (includeUnregisterdFields?: boolean) => T
   unload: () => void
   submit: () => void
   setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void

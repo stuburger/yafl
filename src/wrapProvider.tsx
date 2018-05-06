@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { bind, transform, isString, isArray } from './utils'
 import {
-  set,
+  update,
   touchField,
   untouchField,
   isDirty,
@@ -18,7 +18,8 @@ import {
   setAll,
   modifyFields,
   setInitialFieldValues,
-  setDefaultFieldValue
+  setDefaultFieldValue,
+  addFormField
 } from './state'
 import { trueIfAbsent, isEqual } from './utils'
 import {
@@ -73,7 +74,10 @@ const incl = (arrayOrString: ValidationType[] | ValidationType, value: Validatio
 
 const defaultMessages: string[] = []
 
-export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultValue?: T) {
+export function wrapProvider<T extends object>(
+  Provider: React.Provider<Provider<T>>,
+  defaultValue?: T
+) {
   type VR = { [K in keyof T]: string[] }
   type FVC = { [P in keyof T]: ValidatorConfig<T, P> }
   type FPP = FormProviderConfig<T>
@@ -122,7 +126,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
       this.state = getDefaultInitialState<T>(defaultValue)
     }
 
-    static getDerivedStateFromProps = getGetDerivedStateFromProps<T>()
+    static getDerivedStateFromProps = getGetDerivedStateFromProps<T>(defaultValue)
 
     static defaultProps = {
       allowReinitialize: false,
@@ -143,9 +147,13 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
       } = opts
 
       this.registerValidator(fieldName, validationOptions)
-      this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, () => getFieldFromValue(initialValue, defaultValue), true)
-      }))
+      this.setState(({ fields, registeredFields }) => {
+        const field = getFieldFromValue(initialValue, defaultValue)
+        return {
+          fields: addFormField(fields, fieldName, field),
+          registeredFields: Object.assign({}, registeredFields, { [fieldName]: true })
+        }
+      })
     }
 
     submit(): void {
@@ -161,19 +169,20 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
       }
     }
 
-    getFormValue(): T {
-      return getFormValue<T>(this.state.fields)
+    getFormValue(inclueUnregisteredFields = false): T {
+      const { fields, registeredFields } = this.state
+      return getFormValue<T>(fields, registeredFields, inclueUnregisteredFields)
     }
 
     setDefaultFieldValue<P extends keyof T>(fieldName: P, defaultValue: T[P]): void {
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, field => setDefaultFieldValue(field, defaultValue))
+        fields: update(fields, fieldName, field => setDefaultFieldValue(field, defaultValue))
       }))
     }
 
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void {
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, field => setFieldValue(field, val))
+        fields: update(fields, fieldName, field => setFieldValue(field, val))
       }))
     }
 
@@ -185,7 +194,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
 
     touchField<K extends keyof T>(fieldName: K): void {
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, touchField)
+        fields: update(fields, fieldName, touchField)
       }))
     }
 
@@ -196,7 +205,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
 
     untouchField<K extends keyof T>(fieldName: K): void {
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, untouchField)
+        fields: update(fields, fieldName, untouchField)
       }))
     }
 
@@ -207,7 +216,7 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
 
     onFieldBlur<K extends keyof T>(fieldName: K): void {
       this.setState(({ fields }) => ({
-        fields: set(fields, fieldName, blurField)
+        fields: update(fields, fieldName, blurField)
       }))
     }
 
@@ -296,8 +305,9 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
     }
 
     getProviderValue(): Provider<T> {
+      const { registeredFields, ...state } = this.state
       return {
-        ...this.state,
+        ...state,
         ...this.getComputedState(),
         unload: this.unload,
         submit: this.submit,
@@ -324,13 +334,15 @@ export function wrapProvider<T>(Provider: React.Provider<Provider<T>>, defaultVa
   }
 }
 
-function getGetDerivedStateFromProps<T>(defaultValue?: T) {
+function getGetDerivedStateFromProps<T extends object>(defaultValue?: T) {
   return (np: FormProviderConfig<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {
     const loaded = trueIfAbsent(np.loaded)
 
     // form will unload
     if (ps.loaded && !loaded) {
-      return getDefaultInitialState<T>(defaultValue)
+      const state = getDefaultInitialState<T>(defaultValue)
+      state.fields = clearFields(ps.fields)
+      return state
     }
 
     const submitting = !!np.submitting

@@ -1,11 +1,20 @@
 import { transform, isEqual, clone, getDefaultOfType, shallowCopy } from './utils'
-import { FieldState, FormFieldState, Nullable, Validator, FormProviderState } from './sharedTypes'
+import {
+  FieldState,
+  FormFieldState,
+  Validator,
+  FormProviderState,
+  RegisteredFields
+} from './sharedTypes'
 
-export function getDefaultInitialState<T>(defaultValue: T = {} as T): FormProviderState<T> {
+export function getDefaultInitialState<T extends object>(
+  defaultValue: T = {} as T
+): FormProviderState<T> {
   return {
     fields: getDefaultFormState(defaultValue),
     loaded: false,
     isBusy: false,
+    registeredFields: {},
     submitting: false,
     submitCount: 0,
     initialValue: defaultValue
@@ -204,7 +213,17 @@ export function modifyFields<T>(
   return result
 }
 
-export function set<T, K extends keyof T>(
+export function addFormField<T, K extends keyof T>(
+  fields: FormFieldState<T>,
+  fieldName: K,
+  field: FieldState<T[K]>
+): FormFieldState<T> {
+  const result = shallowCopy(fields)
+  result[fieldName] = field
+  return result
+}
+
+export function update<T, K extends keyof T>(
   fields: FormFieldState<T>,
   fieldName: K,
   updater: (field: FieldState<T[K]>) => FieldState<T[K]>,
@@ -234,9 +253,23 @@ export function setAll<T, K extends keyof T>(
   return result
 }
 
-export function getFormValue<T extends Nullable<T>>(fields: FormFieldState<T>): T {
+// export function getFormValue<T>(fields: FormFieldState<T>, collect: (keyof T)[]): T {
+//   const ret = {} as T
+//   for (let fieldName of collect) {
+//     ret[fieldName] = fields[fieldName].value
+//   }
+//   return ret
+// }
+
+export function getFormValue<T extends object>(
+  fields: FormFieldState<T>,
+  registeredFields = {} as RegisteredFields<T>,
+  includeUnregisteredFields = false
+): T {
   return transform<FormFieldState<T>, T>(fields, (ret, field, fieldName) => {
-    ret[fieldName] = field.value
+    if (registeredFields[fieldName] || includeUnregisteredFields) {
+      ret[fieldName] = field.value
+    }
     return ret
   })
 }

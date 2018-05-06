@@ -158,37 +158,41 @@ describe('required validator correctly validates field', () => {
 
   describe('valid results return undefinded', () => {
     test('invalid because form is invalid', () => {
-      expect(validate1(formUntouchedInvalid.name, formUntouchedInvalid, 'name')).toBe(
+      expect(validate1(formUntouchedInvalid.name.value, formUntouchedInvalid, 'name')).toBe(
         'name is required'
       )
-      expect(validate1(formUntouchedInvalid.surname, formUntouchedInvalid, 'surname')).toBe(
+      expect(validate1(formUntouchedInvalid.surname.value, formUntouchedInvalid, 'surname')).toBe(
         'surname is required'
       )
-      expect(validate1(formUntouchedInvalid.gender, formUntouchedInvalid, 'gender')).toBe(
+      expect(validate1(formUntouchedInvalid.gender.value, formUntouchedInvalid, 'gender')).toBe(
         'gender is required'
       )
     })
 
     test('valid because form is touched and valid', () => {
-      expect(validate1(formTouchedValid.name, formTouchedValid, 'name')).toBe(undefined)
-      expect(validate1(formTouchedValid.surname, formTouchedValid, 'surname')).toBe(undefined)
-      expect(validate1(formTouchedValid.gender, formTouchedValid, 'gender')).toBe(undefined)
+      expect(validate1(formTouchedValid.name.value, formTouchedValid, 'name')).toBe(undefined)
+      expect(validate1(formTouchedValid.surname.value, formTouchedValid, 'surname')).toBe(undefined)
+      expect(validate1(formTouchedValid.gender.value, formTouchedValid, 'gender')).toBe(undefined)
     })
   })
 
   test('calling required validator on invalid fields returns default message', () => {
-    expect(validate1(formTouchedInvalid.name, formTouchedInvalid, 'name')).toBe('name is required')
-    expect(validate1(formTouchedInvalid.surname, formTouchedInvalid, 'surname')).toBe(
+    expect(validate1(formTouchedInvalid.name.value, formTouchedInvalid, 'name')).toBe(
+      'name is required'
+    )
+    expect(validate1(formTouchedInvalid.surname.value, formTouchedInvalid, 'surname')).toBe(
       'surname is required'
     )
-    expect(validate1(formTouchedInvalid.gender, formTouchedInvalid, 'gender')).toBe(
+    expect(validate1(formTouchedInvalid.gender.value, formTouchedInvalid, 'gender')).toBe(
       'gender is required'
     )
   })
 
   test('calling required validator on invalid fields return custom message', () => {
-    expect(validate2(formTouchedInvalid.name, formTouchedInvalid, 'name')).toBe('abcdefg')
-    expect(validate2(formTouchedInvalid.surname, formTouchedInvalid, 'surname')).toBe('abcdefg')
-    expect(validate2(formTouchedInvalid.gender, formTouchedInvalid, 'gender')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.name.value, formTouchedInvalid, 'name')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.surname.value, formTouchedInvalid, 'surname')).toBe(
+      'abcdefg'
+    )
+    expect(validate2(formTouchedInvalid.gender.value, formTouchedInvalid, 'gender')).toBe('abcdefg')
   })
 })

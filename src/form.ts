@@ -42,7 +42,7 @@ export type FP<T, K extends keyof T = keyof T> = FieldProps<T, K>
 /* @internal */
 interface DefaultProviderValue<T, P extends keyof T = keyof T> {
   fields: FormFieldState<T>
-  getFormValue: (() => T) | Noop
+  getFormValue: ((includeUnregisterdFields?: boolean) => T) | Noop
   initialValue: T
   unload: (() => void) | Noop
   resetForm: (() => void) | Noop
@@ -106,7 +106,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
   }
 }
 
-export const createForm = <T>(defaultValue: T) => {
+export const createForm = <T extends object>(defaultValue: T) => {
   const { Consumer, Provider } = React.createContext<Provider<T>>(getDefaultProviderValue())
 
   const form = wrapProvider<T>(Provider, defaultValue)

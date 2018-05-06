@@ -1,12 +1,12 @@
-import { FieldState, FormFieldState } from '../sharedTypes'
+import { FormFieldState } from '../sharedTypes'
 
 function required<T>(message?: string) {
   const test = function<P extends keyof T>(
-    value: FieldState<T[P] & (string | any[])>,
+    value: T[P] & (string | any[]),
     formValue: FormFieldState<T>,
     fieldName: P
   ): string | undefined {
-    if (!value.value) {
+    if (!value) {
       return message || `${fieldName} is required`
     }
     return undefined
