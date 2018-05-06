@@ -183,7 +183,7 @@ export interface FormUtils<T, P extends keyof T> {
   touch: (<K extends P>(fieldName: K | (keyof T)[]) => void)
   untouch: (<K extends P>(fieldName: K | (keyof T)[]) => void)
   resetForm: () => void
-  getFormValue: () => T
+  getFormValue: (includeUnregisterdFields?: boolean) => T
   unload: () => void
   submit: () => void
   setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
