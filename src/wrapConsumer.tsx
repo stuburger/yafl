@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { isEqual, isString } from './utils'
-import { isDirty } from './state'
 import {
   Validator,
   FieldConfig,
@@ -15,18 +14,18 @@ import {
   FormMeta,
   ComponentConfig,
   Provider,
-  ValidationType
+  FieldState
 } from './sharedTypes'
 import { isArray } from './utils'
 
-interface InnerGeneralComponentProps<T, K extends keyof T = keyof T> {
+interface InnerGeneralComponentProps<T extends object, K extends keyof T = keyof T> {
   provider: Provider<T, K>
   forwardProps: { [key: string]: any }
   render?: (state: ComponentProps<T, K>) => React.ReactNode
   component?: React.ComponentType<ComponentProps<T, K>>
 }
 
-export function wrapConsumer<T, K extends keyof T = keyof T>(
+export function wrapConsumer<T extends object, K extends keyof T = keyof T>(
   Consumer: React.Consumer<Provider<T, K>>
 ): React.ComponentClass<FieldConfig<T, K>> {
   const InnerField = getInnerField<T, K>()
@@ -39,30 +38,35 @@ export function wrapConsumer<T, K extends keyof T = keyof T>(
     }
 
     _render(provider: Provider<T, K>) {
-      const { fields } = provider
+      const { formValue, touched, blurred, initialFormValue } = provider
       const {
         name,
         render,
         component,
         validateOn,
         initialValue,
-        defaultValue,
         validators = emptyArray,
-        ...props
+        ...forwardProps
       } = this.props
+
+      const field: FieldState<T[K]> = {
+        value: formValue[name],
+        didBlur: !!blurred[name],
+        touched: !!touched[name],
+        originalValue: initialFormValue[name]
+      }
 
       return (
         <InnerField
           name={name}
+          field={field}
+          render={render}
+          provider={provider}
+          component={component}
           validateOn={validateOn}
           validators={validators}
+          forwardProps={forwardProps}
           initialValue={initialValue}
-          defaultValue={defaultValue}
-          render={render}
-          component={component}
-          field={fields[name]}
-          provider={provider}
-          forwardProps={props}
         />
       )
     }
@@ -73,31 +77,22 @@ export function wrapConsumer<T, K extends keyof T = keyof T>(
   }
 }
 
-export function getTypedField<T, P extends keyof T = keyof T>(
+export function getTypedField<T extends object, P extends keyof T = keyof T>(
   Consumer: React.Consumer<Provider<T, P>>,
   fieldName: P,
-  defaultValue?: T[P],
   component?: React.ComponentType<FieldProps<T, P>>
 ): React.ComponentClass<BaseFieldConfig<T, P>> {
   const FormField = wrapConsumer<T, P>(Consumer)
   return class TypedField extends React.Component<BaseFieldConfig<T, P>> {
     render() {
-      return (
-        <FormField
-          defaultValue={defaultValue}
-          component={component}
-          {...this.props}
-          name={fieldName}
-        />
-      )
+      return <FormField component={component} {...this.props} name={fieldName} />
     }
   }
 }
 
-function getInnerField<T, P extends keyof T = keyof T>() {
+function getInnerField<T extends object, P extends keyof T = keyof T>() {
   const noValidation: string[] = []
   const emptyValidators: Validator<T, P>[] = []
-  const default_validate_on: ValidationType = 'submit'
   class InnerField extends React.Component<InnerFieldProps<T, P>> {
     constructor(props: InnerFieldProps<T, P>) {
       super(props)
@@ -111,22 +106,14 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       this.collectUtilProps = this.collectUtilProps.bind(this)
       this.collectProps = this.collectProps.bind(this)
 
-      const {
-        name,
-        provider,
-        defaultValue,
-        validators = emptyValidators,
-        validateOn = default_validate_on,
-        initialValue = props.field.value
-      } = props
-      provider.registerField(name, { initialValue, defaultValue, validators, validateOn })
+      const { name, provider, validators = emptyValidators, validateOn } = props
+      provider.registerField(name, { validators, validateOn })
     }
 
     shouldComponentUpdate(nextProps: InnerFieldProps<T, P>) {
       const { provider, name, field, forwardProps } = this.props
       const validation = provider.validation[name] || noValidation
       return (
-        !isEqual(nextProps.defaultValue, field.defaultValue) ||
         !isEqual(nextProps.field, field) ||
         !isEqual(nextProps.forwardProps, forwardProps) ||
         !isEqual(validation, nextProps.provider.validation[name] || noValidation)
@@ -134,33 +121,24 @@ function getInnerField<T, P extends keyof T = keyof T>() {
     }
 
     componentDidUpdate(pp: InnerFieldProps<T, P>) {
-      const {
-        name,
-        provider,
-        defaultValue,
-        validators = emptyValidators,
-        validateOn = default_validate_on
-      } = this.props
+      const { name, provider, validators = emptyValidators, validateOn } = this.props
 
       if (validators !== pp.validators) {
         provider.registerValidators(name, { validators, validateOn })
       }
-
-      if (!isEqual(defaultValue, pp.defaultValue)) {
-        provider.setDefaultFieldValue(name, defaultValue as T[P])
-      }
     }
 
-    // componentWillUnmount() {
-    //   this.props.unregisterField(fieldName)
-    // }
+    componentWillUnmount() {
+      const { provider, name } = this.props
+      provider.unregisterField(name)
+    }
 
     onBlur(e: React.FocusEvent<T[P]>): void {
       const { provider, forwardProps, name, field } = this.props
       if (forwardProps.onBlur) {
         forwardProps.onBlur(e, field)
       }
-      if (field.didBlur || e.isDefaultPrevented) return
+      if (field.didBlur || e.isDefaultPrevented()) return
       provider.onFieldBlur(name)
     }
 
@@ -196,10 +174,11 @@ function getInnerField<T, P extends keyof T = keyof T>() {
     }
 
     collectInputProps(): InputProps<T, P> {
-      const { field, name, initialValue } = this.props
+      const { field, name } = this.props
+      const { value } = field
       return {
         name,
-        value: field.value || initialValue,
+        value,
         // checked: field.value, todo
         onBlur: this.onBlur,
         onChange: this.onChange
@@ -210,7 +189,7 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       const { provider, name, field } = this.props
       const validation = provider.validation[name] || emptyValidators
       return {
-        isDirty: provider.formIsDirty && isDirty(field),
+        isDirty: provider.formIsDirty && !isEqual(field.originalValue, field.value),
         didBlur: field.didBlur,
         touched: field.touched,
         submitCount: provider.submitCount,
@@ -227,7 +206,6 @@ function getInnerField<T, P extends keyof T = keyof T>() {
       return {
         touch: this.touch,
         untouch: this.untouch,
-        unload: provider.unload,
         submit: provider.submit,
         resetForm: provider.resetForm,
         setFieldValues: provider.setFieldValues,
@@ -268,7 +246,7 @@ function getInnerField<T, P extends keyof T = keyof T>() {
   return InnerField
 }
 
-export function createFormComponent<T>(
+export function createFormComponent<T extends object>(
   Consumer: React.Consumer<Provider<T>>,
   component: React.ComponentType<ComponentProps<T>>
 ): React.ComponentClass<ComponentConfig<T>> {
@@ -280,7 +258,7 @@ export function createFormComponent<T>(
   }
 }
 
-export function wrapFormConsumer<T>(Consumer: React.Consumer<Provider<T>>) {
+export function wrapFormConsumer<T extends object>(Consumer: React.Consumer<Provider<T>>) {
   const Component = getComponent<T>()
 
   return class FormComponent extends React.Component<ComponentConfig<T>> {
@@ -302,7 +280,7 @@ export function wrapFormConsumer<T>(Consumer: React.Consumer<Provider<T>>) {
   }
 }
 
-function getComponent<T>() {
+function getComponent<T extends object>() {
   class FormComponent extends React.Component<InnerGeneralComponentProps<T, keyof T>> {
     constructor(props: InnerGeneralComponentProps<T, keyof T>) {
       super(props)
@@ -341,7 +319,7 @@ function getComponent<T>() {
         submitCount: provider.submitCount,
         isValid: provider.formIsValid,
         validation: provider.validation,
-        initialValue: provider.initialValue
+        initialValue: provider.initialFormValue
       }
     }
 
@@ -350,7 +328,6 @@ function getComponent<T>() {
       return {
         touch: this.touch,
         untouch: this.untouch,
-        unload: provider.unload,
         submit: provider.submit,
         resetForm: provider.resetForm,
         getFormValue: provider.getFormValue,

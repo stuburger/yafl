@@ -1,26 +1,6 @@
 import * as React from 'react'
-import { bind, transform, isString, isArray } from './utils'
-import {
-  update,
-  touchField,
-  untouchField,
-  isDirty,
-  resetFields,
-  setFieldValue,
-  blurField,
-  untouchAllFields,
-  validateField,
-  clearFields,
-  getFormValue,
-  formIsValid,
-  getFieldFromValue,
-  getDefaultInitialState,
-  setAll,
-  modifyFields,
-  setInitialFieldValues,
-  setDefaultFieldValue,
-  addFormField
-} from './state'
+import { bind, transform, isString, isArray, shallowCopy } from './utils'
+import { validateField, formIsValid, getDefaultInitialState, getFormState } from './state'
 import { trueIfAbsent, isEqual } from './utils'
 import {
   FormProviderConfig,
@@ -29,7 +9,8 @@ import {
   FieldOptions,
   ValidationType,
   ValidatorConfig,
-  FieldState
+  Touched,
+  RegisteredFields
 } from './sharedTypes'
 
 const noop = (...params: any[]) => {
@@ -61,7 +42,7 @@ function onlyIfLoaded(func: Function, defaultFunc = noop) {
 function onlyIfFieldExists(func: Function, defaultFunc = noop) {
   func = bind(this, func)
   return bind(this, function(fieldName: string, ...params: any[]) {
-    if (this.state.fields[fieldName]) {
+    if (this.state.registeredFields[fieldName]) {
       return func(fieldName, ...params)
     }
     return defaultFunc(...params)
@@ -92,7 +73,6 @@ export function wrapProvider<T extends object>(
 
   return class Form extends React.Component<FPP, FPS> {
     validators = {} as FVC
-    // validationOptions = {} as FVO
 
     constructor(props: FPP) {
       super(props)
@@ -110,7 +90,6 @@ export function wrapProvider<T extends object>(
       this.setFieldValue = loadedAndExists(this.setFieldValue)
       this.setFieldValues = loadedGuard(this.setFieldValues)
       this.onFieldBlur = loadedAndExists(this.onFieldBlur)
-      this.unload = loadedGuard(this.unload)
       this.forgetState = loadedGuard(this.forgetState)
       this.clearForm = loadedGuard(this.clearForm)
       this.touchField = loadedAndExists(this.touchField)
@@ -118,17 +97,22 @@ export function wrapProvider<T extends object>(
       this.resetForm = loadedGuard(this.resetForm)
       this.validateForm = loadedGuard(this.validateForm, () => ({}))
       this.registerField = bind(this, this.registerField)
+      this.unregisterField = bind(this, this.unregisterField)
       this.registerValidator = bind(this, this.registerValidator)
+      this.unregisterValidator = bind(this, this.unregisterValidator)
       this.getComputedState = bind(this, this.getComputedState)
       this.getProviderValue = bind(this, this.getProviderValue)
       this.shouldFieldValidate = loadedAndExists(this.shouldFieldValidate, () => false)
       this.getMessagesFor = loadedAndExists(this.getMessagesFor, () => [])
-      this.state = getDefaultInitialState<T>(defaultValue)
+      this.state = getDefaultInitialState<T>()
     }
 
-    static getDerivedStateFromProps = getGetDerivedStateFromProps<T>(defaultValue)
+    static getDerivedStateFromProps = getGetDerivedStateFromProps<T>()
 
     static defaultProps = {
+      initialValue: {},
+      defaultValue: defaultValue || {},
+      rememberStateOnReinitialize: false,
       allowReinitialize: false,
       validateOn: default_validate_on
     }
@@ -137,112 +121,129 @@ export function wrapProvider<T extends object>(
       this.validators[fieldName] = opts
     }
 
+    unregisterValidator<K extends keyof T>(fieldName: K): void {
+      delete this.validators[fieldName]
+    }
+
     registerField<K extends keyof T>(fieldName: K, opts: FieldOptions<T, K>): void {
-      const field = this.state.fields[fieldName] || ({} as FieldState<T[K]>)
+      this.registerValidator(fieldName, opts)
+      this.setState(({ registeredFields }) => ({
+        registeredFields: Object.assign({}, registeredFields, { [fieldName]: true })
+      }))
+    }
 
-      const {
-        initialValue = field.originalValue,
-        defaultValue = field.defaultValue,
-        ...validationOptions
-      } = opts
-
-      this.registerValidator(fieldName, validationOptions)
-      this.setState(({ fields, registeredFields }) => {
-        const field = getFieldFromValue(initialValue, defaultValue)
-        return {
-          fields: addFormField(fields, fieldName, field),
-          registeredFields: Object.assign({}, registeredFields, { [fieldName]: true })
-        }
+    unregisterField<K extends keyof T>(fieldName: K): void {
+      this.unregisterValidator(fieldName)
+      this.setState(({ registeredFields: prev }) => {
+        const registeredFields = shallowCopy(prev)
+        delete registeredFields[fieldName]
+        return { registeredFields }
       })
     }
 
     submit(): void {
-      this.setState(({ fields, submitCount }) => ({
+      this.setState(({ submitCount }) => ({
         submitCount: submitCount + 1
       }))
 
       if (formIsValid<T>(this.validateForm())) {
         const { submit = noop } = this.props
-        submit(this.getFormValue())
+        submit(this.state.formValue)
       } else {
         console.warn('cannot submit, form is not valid...')
       }
     }
 
     getFormValue(inclueUnregisteredFields = false): T {
-      const { fields, registeredFields } = this.state
-      return getFormValue<T>(fields, registeredFields, inclueUnregisteredFields)
-    }
-
-    setDefaultFieldValue<P extends keyof T>(fieldName: P, defaultValue: T[P]): void {
-      this.setState(({ fields }) => ({
-        fields: update(fields, fieldName, field => setDefaultFieldValue(field, defaultValue))
-      }))
+      const { formValue, registeredFields } = this.state
+      if (inclueUnregisteredFields) {
+        return formValue
+      }
+      const result = {} as T
+      for (let fieldName in registeredFields) {
+        result[fieldName] = formValue[fieldName]
+      }
+      return result
     }
 
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void {
-      this.setState(({ fields }) => ({
-        fields: update(fields, fieldName, field => setFieldValue(field, val))
+      this.setState(({ formValue, touched }) => ({
+        formValue: Object.assign({}, formValue, { [fieldName]: val }), // todo this isnt strongly typed
+        touched: Object.assign({}, touched, { [fieldName]: true }) // todo this isnt strongly typed
       }))
     }
 
     setFieldValues(partialUpdate: Partial<T>): void {
-      this.setState(({ fields }) => ({
-        fields: modifyFields(fields, partialUpdate, setFieldValue)
-      }))
+      this.setState(({ formValue }) => ({ formValue: Object.assign({}, formValue, partialUpdate) }))
     }
 
     touchField<K extends keyof T>(fieldName: K): void {
-      this.setState(({ fields }) => ({
-        fields: update(fields, fieldName, touchField)
+      this.setState(({ touched }) => ({
+        touched: Object.assign({}, touched, { [fieldName]: true })
       }))
     }
 
     touchFields(fieldNames: (keyof T)[]): void {
-      fieldNames = fieldNames || (Object.keys(this.state.fields) as (keyof T)[])
-      this.setState(({ fields }) => ({ fields: setAll(fields, fieldNames, touchField) }))
-    }
-
-    untouchField<K extends keyof T>(fieldName: K): void {
-      this.setState(({ fields }) => ({
-        fields: update(fields, fieldName, untouchField)
+      fieldNames = fieldNames || (Object.keys(this.state.registeredFields) as (keyof T)[])
+      const updated: Touched<T> = {}
+      fieldNames.forEach(fieldName => (updated[fieldName] = true))
+      this.setState(({ touched }) => ({
+        touched: Object.assign({}, touched, updated)
       }))
     }
 
+    untouchField<K extends keyof T>(fieldName: K): void {
+      this.setState(({ touched: prev }) => {
+        const touched = shallowCopy(prev)
+        delete touched[fieldName]
+        return { touched }
+      })
+    }
+
     untouchFields(fieldNames: (keyof T)[]): void {
-      fieldNames = fieldNames || (Object.keys(this.state.fields) as (keyof T)[])
-      this.setState(({ fields }) => ({ fields: setAll(fields, fieldNames, untouchField) }))
+      fieldNames = fieldNames || (Object.keys(this.state.registeredFields) as (keyof T)[])
+      this.setState(({ touched: prev }) => {
+        const touched = shallowCopy(prev)
+        fieldNames.forEach(fieldName => delete touched[fieldName])
+        return { touched }
+      })
     }
 
     onFieldBlur<K extends keyof T>(fieldName: K): void {
-      this.setState(({ fields }) => ({
-        fields: update(fields, fieldName, blurField)
+      this.setState(({ blurred }) => ({
+        blurred: Object.assign({}, blurred, { [fieldName]: true })
       }))
     }
 
     clearForm(): void {
-      this.setState({ fields: clearFields<T>(this.state.fields) })
+      const { defaultValue = {} as T } = this.props
+      this.setState({
+        formValue: defaultValue,
+        touched: {},
+        blurred: {},
+        submitCount: 0
+      })
     }
 
     resetForm(): void {
-      this.setState({ fields: resetFields<T>(this.state.fields) })
-    }
-
-    unload(): void {
-      this.setState(getDefaultInitialState<T>())
+      this.setState(({ initialFormValue }) => ({ formValue: initialFormValue, submitCount: 0 }))
     }
 
     forgetState(): void {
-      this.setState(({ fields }) => ({ fields: untouchAllFields(fields), submitCount: 0 }))
+      this.setState(({ touched, blurred }) => ({
+        touched: {},
+        blurred: {},
+        submitCount: 0
+      }))
     }
 
     validateForm(): VR {
-      const { fields } = this.state
-      const result = transform<FVC, VR>(this.validators, (ret, config, fieldName) => {
-        ret[fieldName] = validateField<T>(fieldName, fields, config.validators)
+      const { formValue, registeredFields } = this.state
+      return transform<RegisteredFields<T>, VR>(registeredFields, (ret, config, fieldName) => {
+        const { validators } = this.validators[fieldName]
+        ret[fieldName] = validateField(fieldName, formValue, validators)
         return ret
       })
-      return result
     }
 
     shouldFieldValidate(fieldName: keyof T): boolean {
@@ -252,8 +253,10 @@ export function wrapProvider<T extends object>(
       // via an initial value on the provider but no field consumer was mounted
       // todo register fields from initial value on provider props
       if (!o) return false
+      const { defaultValue = {} as T } = this.props
       const validateOn = o.validateOn || this.props.validateOn || default_validate_on
-      const { fields, submitCount } = this.state
+      const { submitCount } = this.state
+      const fields = getFormState(this.state, defaultValue)
       const field = fields[fieldName]
 
       if (typeof validateOn === 'function') {
@@ -276,22 +279,25 @@ export function wrapProvider<T extends object>(
 
     getMessagesFor(fieldName: keyof T): string[] {
       if (this.shouldFieldValidate(fieldName)) {
-        return validateField<T>(fieldName, this.state.fields, this.validators[fieldName].validators)
+        return validateField<T>(
+          fieldName,
+          this.state.formValue,
+          this.validators[fieldName].validators
+        )
       }
       return defaultMessages
     }
 
     getComputedState(): ComputedFormState {
-      const { fields } = this.state
-      const keys = Object.keys(fields) as (keyof T)[]
+      const { formValue, initialFormValue, touched, registeredFields } = this.state
       let formIsDirty = false
       let formIsInvalid = false
       let formIsTouched = false
       let validation = {} as VR
 
-      for (let fieldName of keys) {
-        formIsDirty = formIsDirty || isDirty(fields[fieldName])
-        formIsTouched = formIsTouched || fields[fieldName].touched
+      for (let fieldName in registeredFields) {
+        formIsDirty = formIsDirty || !isEqual(formValue, initialFormValue)
+        formIsTouched = formIsTouched || !!touched[fieldName]
         validation[fieldName] = this.getMessagesFor(fieldName)
         formIsInvalid = formIsInvalid || validation[fieldName].length > 0
       }
@@ -305,11 +311,9 @@ export function wrapProvider<T extends object>(
     }
 
     getProviderValue(): Provider<T> {
-      const { registeredFields, ...state } = this.state
       return {
-        ...state,
+        ...this.state,
         ...this.getComputedState(),
-        unload: this.unload,
         submit: this.submit,
         clearForm: this.clearForm,
         touchFields: this.touchFields,
@@ -323,8 +327,8 @@ export function wrapProvider<T extends object>(
         setFieldValue: this.setFieldValue,
         setFieldValues: this.setFieldValues,
         registerField: this.registerField,
-        registerValidators: this.registerValidator,
-        setDefaultFieldValue: this.setDefaultFieldValue
+        unregisterField: this.unregisterField,
+        registerValidators: this.registerValidator
       }
     }
 
@@ -334,18 +338,16 @@ export function wrapProvider<T extends object>(
   }
 }
 
-function getGetDerivedStateFromProps<T extends object>(defaultValue?: T) {
+function getGetDerivedStateFromProps<T extends object>() {
   return (np: FormProviderConfig<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {
     const loaded = trueIfAbsent(np.loaded)
+    const submitting = !!np.submitting
 
     // form will unload
     if (ps.loaded && !loaded) {
-      const state = getDefaultInitialState<T>(defaultValue)
-      state.fields = clearFields(ps.fields)
-      return state
+      console.log('here')
+      // return getDefaultInitialState<T>(np.defaultValue)
     }
-
-    const submitting = !!np.submitting
 
     let state: Partial<FormProviderState<T>> = {
       loaded,
@@ -353,27 +355,22 @@ function getGetDerivedStateFromProps<T extends object>(defaultValue?: T) {
       isBusy: !loaded || submitting
     }
 
-    const initialValueDidChange = !isEqual(ps.initialValue, np.initialValue)
-
+    const initialValue = Object.assign({}, np.defaultValue, np.initialValue)
     // form will load
     if (!ps.loaded && loaded) {
-      let initialValue = np.initialValue || ({} as T)
-      state.initialValue = initialValue
-      state.fields = setInitialFieldValues(initialValue, ps.fields)
+      state.initialFormValue = initialValue
+      state.formValue = initialValue
       return state
     }
 
-    if (np.allowReinitialize && initialValueDidChange) {
-      const keepState = np.rememberStateOnReinitialize
-      state.submitCount = keepState ? ps.submitCount : 0
-
-      if (!np.initialValue) {
-        console.warn('initial value was unexpectidly change to a falsy value')
-        return state
+    if (np.loaded && np.allowReinitialize && !isEqual(ps.initialFormValue, initialValue)) {
+      state.initialFormValue = initialValue
+      state.formValue = initialValue
+      if (!np.rememberStateOnReinitialize) {
+        state.submitCount = 0
+        state.touched = {}
+        state.blurred = {}
       }
-
-      state.fields = setInitialFieldValues<T>(np.initialValue, ps.fields, keepState)
-      state.initialValue = np.initialValue
     }
 
     return state

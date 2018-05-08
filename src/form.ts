@@ -4,7 +4,6 @@ import { wrapConsumer, wrapFormConsumer, getTypedField, createFormComponent } fr
 import {
   Noop,
   Provider,
-  FormFieldState,
   FieldProps,
   ComponentConfig,
   FieldConfig,
@@ -15,7 +14,8 @@ import {
   ValidationType,
   ValidateOnCustom,
   ValidateOn,
-  ValidatorConfig
+  ValidatorConfig,
+  FormProviderState
 } from './sharedTypes'
 
 export {
@@ -32,23 +32,18 @@ export {
   ValidateOn
 }
 
-export type FPC<T> = FormProviderConfig<T>
+export type FPC<T extends object> = FormProviderConfig<T>
 export type GCC<T, K extends keyof T = keyof T> = ComponentConfig<T, K>
 export type GCP<T, K extends keyof T = keyof T> = ComponentProps<T, K>
-export type FCC<T, K extends keyof T = keyof T> = FieldConfig<T, K>
-export type FC<T, K extends keyof T = keyof T> = BaseFieldConfig<T, K>
+export type FCC<T extends object, K extends keyof T = keyof T> = FieldConfig<T, K>
+export type FC<T extends object, K extends keyof T = keyof T> = BaseFieldConfig<T, K>
 export type FP<T, K extends keyof T = keyof T> = FieldProps<T, K>
 
 /* @internal */
-interface DefaultProviderValue<T, P extends keyof T = keyof T> {
-  fields: FormFieldState<T>
+interface DefaultProviderValue<T extends object, P extends keyof T = keyof T>
+  extends FormProviderState<T> {
   getFormValue: ((includeUnregisterdFields?: boolean) => T) | Noop
-  initialValue: T
-  unload: (() => void) | Noop
   resetForm: (() => void) | Noop
-  loaded: boolean
-  submitting: boolean
-  isBusy: boolean
   formIsTouched: boolean
   formIsValid: boolean
   formIsDirty: boolean
@@ -61,7 +56,7 @@ interface DefaultProviderValue<T, P extends keyof T = keyof T> {
     | (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
     | Noop
   registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void) | Noop
-  setDefaultFieldValue: (<K extends P>(fieldName: K, defaultValue: T[K]) => void) | Noop
+  unregisterField: (<K extends P>(fieldName: K) => void) | Noop
   onFieldBlur: (<K extends P>(fieldName: K) => void) | Noop
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void) | Noop
   setFieldValues: ((partialUpdate: Partial<T>) => void) | Noop
@@ -75,20 +70,23 @@ function noop(): never {
   throw new Error('A <Field /> component can only appear inside a <Form /> component')
 }
 
-function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
+function getDefaultProviderValue<T extends object>(): DefaultProviderValue<T> {
   return {
-    fields: {} as FormFieldState<T>,
+    touched: {},
+    blurred: {},
+    active: null,
+    registeredFields: {},
+    formValue: {} as T,
+    initialFormValue: {} as T,
+    isBusy: false,
     loaded: false,
-    isBusy: true,
     formIsTouched: false,
     formIsValid: true,
     submitCount: 0,
     submitting: false,
     formIsDirty: false,
-    initialValue: {} as T,
     validation: {} as { [K in keyof T]: string[] },
     getFormValue: noop,
-    unload: noop,
     submit: noop,
     resetForm: noop,
     clearForm: noop,
@@ -101,8 +99,8 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     setFieldValue: noop,
     setFieldValues: noop,
     registerField: noop,
-    registerValidators: noop,
-    setDefaultFieldValue: noop
+    unregisterField: noop,
+    registerValidators: noop
   }
 }
 
@@ -119,10 +117,9 @@ export const createForm = <T extends object>(defaultValue: T) => {
     FormComponent: component,
     createField: function<K extends keyof T>(
       fieldName: K,
-      component?: React.ComponentType<FieldProps<T, K>>,
-      defaultValue?: T[K]
+      component?: React.ComponentType<FieldProps<T, K>>
     ) {
-      return getTypedField<T, K>(Consumer, fieldName, defaultValue, component)
+      return getTypedField<T, K>(Consumer, fieldName, component)
     },
     createFormComponent: function<K extends keyof T>(
       component: React.ComponentType<ComponentProps<T, K>>

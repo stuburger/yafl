@@ -20,16 +20,11 @@ export interface Contact {
 
 export type Nullable<T> = { [P in keyof T]: T[P] | null }
 
-export interface Provider<T, P extends keyof T = keyof T> {
-  fields: FormFieldState<T>
-  initialValue: T
-  loaded: boolean
-  submitting: boolean
-  isBusy: boolean
+export interface Provider<T extends object, P extends keyof T = keyof T>
+  extends FormProviderState<T> {
   formIsTouched: boolean
   formIsValid: boolean
   formIsDirty: boolean
-  unload: (() => void)
   getFormValue: (includeUnregisterdFields?: boolean) => T
   forgetState: (() => void)
   submit: (() => void)
@@ -39,8 +34,8 @@ export interface Provider<T, P extends keyof T = keyof T> {
   validation: { [K in keyof T]: string[] }
   registerValidators: (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
   registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void)
+  unregisterField: (<K extends P>(fieldName: K) => void)
   onFieldBlur: (<K extends P>(fieldName: K) => void)
-  setDefaultFieldValue: (<K extends P>(fieldName: K, defaultValue: T[K]) => void)
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
   setFieldValues: (partialUpdate: Partial<T>) => void
   touchField: (<K extends P>(fieldName: K | keyof T) => void)
@@ -54,21 +49,26 @@ export interface FieldState<T> {
   didBlur: boolean
   touched: boolean
   originalValue: T
-  defaultValue: T
 }
 
 export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
 
 export interface Validator<T, K extends keyof T = keyof T> {
   // FieldState is actually not what should be passed into here. it needs to contain isDirty value
-  (value: T[K], fields: FormFieldState<T>, fieldName: K): string | undefined
+  (value: T[K], formValue: T, fieldName: K): string | undefined
 }
 
 export type RegisteredFields<T extends object> = { [K in keyof T]?: true }
+export type Touched<T extends object> = { [K in keyof T]?: true }
+export type Blurred<T extends object> = { [K in keyof T]?: true }
+export type ActiveField<T extends object> = keyof T | null
 
 export type FormProviderState<T extends object> = {
-  fields: FormFieldState<T>
-  initialValue: T
+  touched: Touched<T>
+  blurred: Blurred<T>
+  active: ActiveField<T>
+  initialFormValue: T
+  formValue: T
   registeredFields: RegisteredFields<T>
   isBusy: boolean
   loaded: boolean
@@ -77,14 +77,11 @@ export type FormProviderState<T extends object> = {
 }
 
 export interface ValidatorConfig<T, K extends keyof T = keyof T> {
-  validateOn: ValidateOn<T, K>
+  validateOn?: ValidateOn<T, K>
   validators: Validator<T, K>[]
 }
 
-export interface FieldOptions<T, K extends keyof T = keyof T> extends ValidatorConfig<T, K> {
-  defaultValue?: T[K]
-  initialValue: T[K]
-}
+export interface FieldOptions<T, K extends keyof T = keyof T> extends ValidatorConfig<T, K> {}
 
 export type ValidationType = 'change' | 'blur' | 'submit'
 
@@ -99,6 +96,7 @@ export type ValidateOn<T, K extends keyof T = keyof T> =
 
 export interface FormProviderConfig<T> extends Partial<ValidatorConfig<T>> {
   initialValue?: T
+  defaultValue?: T
   submit?: (formValue: Nullable<T>) => void
   children: React.ReactNode
   loaded?: boolean
@@ -110,7 +108,6 @@ export interface FormProviderConfig<T> extends Partial<ValidatorConfig<T>> {
 export interface FieldUtils<T, P extends keyof T> {
   resetForm: () => void
   getFormValue: (includeUnregisterdFields?: boolean) => T
-  unload: () => void
   submit: () => void
   setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
   setFieldValues: (partialUpdate: Partial<T>) => void
@@ -121,11 +118,10 @@ export interface FieldUtils<T, P extends keyof T> {
   setValue: (value: T[P]) => void
 }
 
-export interface InnerFieldProps<T, K extends keyof T = keyof T>
+export interface InnerFieldProps<T extends object, K extends keyof T = keyof T>
   extends Partial<FieldOptions<T, K>> {
   name: K
   initialValue?: T[K]
-  defaultValue?: T[K]
   validators: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T, K>>
@@ -184,7 +180,6 @@ export interface FormUtils<T, P extends keyof T> {
   untouch: (<K extends P>(fieldName: K | (keyof T)[]) => void)
   resetForm: () => void
   getFormValue: (includeUnregisterdFields?: boolean) => T
-  unload: () => void
   submit: () => void
   setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
   setFieldValues: (partialUpdate: Partial<T>) => void
