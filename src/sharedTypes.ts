@@ -64,6 +64,7 @@ export type Blurred<T extends object> = { [K in keyof T]?: true }
 export type ActiveField<T extends object> = keyof T | null
 
 export type FormProviderState<T extends object> = {
+  initialMount: boolean
   touched: Touched<T>
   blurred: Blurred<T>
   active: ActiveField<T>

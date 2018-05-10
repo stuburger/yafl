@@ -5,6 +5,7 @@ export function getDefaultInitialState<T extends object>(
   defaultValue: T = {} as T
 ): FormProviderState<T> {
   return {
+    initialMount: false,
     formValue: clone(defaultValue),
     active: null,
     touched: {},

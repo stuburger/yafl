@@ -117,6 +117,10 @@ export function wrapProvider<T extends object>(
       validateOn: default_validate_on
     }
 
+    componentDidMount() {
+      this.setState({ initialMount: true })
+    }
+
     registerValidator<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>): void {
       this.validators[fieldName] = opts
     }
@@ -342,12 +346,6 @@ function getGetDerivedStateFromProps<T extends object>() {
   return (np: FormProviderConfig<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {
     const loaded = trueIfAbsent(np.loaded)
     const submitting = !!np.submitting
-
-    // form will unload
-    if (ps.loaded && !loaded) {
-      console.log('here')
-      // return getDefaultInitialState<T>(np.defaultValue)
-    }
 
     let state: Partial<FormProviderState<T>> = {
       loaded,

@@ -114,9 +114,11 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       const { provider, name, field, forwardProps } = this.props
       const validation = provider.validation[name] || noValidation
       return (
-        !isEqual(nextProps.field, field) ||
-        !isEqual(nextProps.forwardProps, forwardProps) ||
-        !isEqual(validation, nextProps.provider.validation[name] || noValidation)
+        nextProps.provider.initialMount &&
+        (!isEqual(nextProps.provider.registeredFields[name], provider.registeredFields[name]) ||
+          !isEqual(nextProps.field, field) ||
+          !isEqual(nextProps.forwardProps, forwardProps) ||
+          !isEqual(validation, nextProps.provider.validation[name] || noValidation))
       )
     }
 
@@ -232,7 +234,10 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
     }
 
     render() {
-      const { render, component: Component } = this.props
+      const { render, component: Component, provider } = this.props
+      // delay initial render until this field is registered
+      // is this right?
+      if (!provider.registeredFields[this.props.name]) return null
 
       const props = this.collectProps()
 
@@ -286,14 +291,18 @@ export function wrapFormConsumer<T extends object>(Consumer: React.Consumer<Prov
 }
 
 function getComponent<T extends object>() {
-  class FormComponent extends React.Component<InnerGeneralComponentProps<T, keyof T>> {
-    constructor(props: InnerGeneralComponentProps<T, keyof T>) {
+  class FormComponent extends React.Component<InnerGeneralComponentProps<T>> {
+    constructor(props: InnerGeneralComponentProps<T>) {
       super(props)
       this.touch = this.touch.bind(this)
       this.untouch = this.untouch.bind(this)
       this.collectMetaProps = this.collectMetaProps.bind(this)
       this.collectUtilProps = this.collectUtilProps.bind(this)
       this.collectProps = this.collectProps.bind(this)
+    }
+
+    shouldComponentUpdate(nextProps: InnerGeneralComponentProps<T>) {
+      return nextProps.provider.initialMount
     }
 
     touch<K extends keyof T>(fieldNames: K | (keyof T)[]) {
@@ -352,7 +361,10 @@ function getComponent<T extends object>() {
     }
 
     render() {
-      const { render, component: Component } = this.props
+      const { render, component: Component, provider } = this.props
+      // delay render until initialMount
+      // is this right? could it might delay rendering for too long?
+      if (!provider.initialMount) return null
 
       const props = this.collectProps()
       if (render) {

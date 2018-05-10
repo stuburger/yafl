@@ -72,6 +72,7 @@ function noop(): never {
 
 function getDefaultProviderValue<T extends object>(): DefaultProviderValue<T> {
   return {
+    initialMount: false,
     touched: {},
     blurred: {},
     active: null,
