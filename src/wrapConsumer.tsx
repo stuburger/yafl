@@ -142,7 +142,12 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       provider.onFieldBlur(name)
     }
 
-    onChange(e: any): void {
+    onChange(e: React.ChangeEvent<T[P]>): void {
+      const { forwardProps, field } = this.props
+      if (forwardProps.onChange) {
+        forwardProps.onChange(e, field)
+      }
+      if (e.isDefaultPrevented()) return
       this.setValue(e.target.value)
     }
 
