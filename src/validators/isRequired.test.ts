@@ -5,28 +5,28 @@ const formUntouchedInvalid = {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: false,
+    visited: false,
     touched: false
   },
   age: {
     value: 0,
     originalValue: 0,
     defaultValue: 0,
-    didBlur: false,
+    visited: false,
     touched: false
   },
   surname: {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: false,
+    visited: false,
     touched: false
   },
   gender: {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: false,
+    visited: false,
     touched: false
   },
   contact: {
@@ -39,14 +39,14 @@ const formUntouchedInvalid = {
     defaultValue: {
       tel: ''
     },
-    didBlur: false,
+    visited: false,
     touched: false
   },
   favorites: {
     value: [],
     originalValue: [],
     defaultValue: [],
-    didBlur: false,
+    visited: false,
     touched: false
   }
 }
@@ -55,28 +55,28 @@ const formTouchedInvalid = {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   age: {
     value: 0,
     originalValue: 0,
     defaultValue: 0,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   surname: {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   gender: {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   contact: {
@@ -89,14 +89,14 @@ const formTouchedInvalid = {
     defaultValue: {
       tel: ''
     },
-    didBlur: true,
+    visited: true,
     touched: true
   },
   favorites: {
     value: [],
     originalValue: [],
     defaultValue: [],
-    didBlur: true,
+    visited: true,
     touched: true
   }
 }
@@ -106,28 +106,28 @@ const formTouchedValid = {
     value: 'stuart',
     originalValue: 'stuart',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   age: {
     value: 30,
     originalValue: 30,
     defaultValue: 0,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   surname: {
     value: 'Bourhill',
     originalValue: 'Bourhill',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   gender: {
     value: 'male',
     originalValue: 'male',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   contact: {
@@ -140,14 +140,14 @@ const formTouchedValid = {
     defaultValue: {
       tel: '0786656565'
     },
-    didBlur: true,
+    visited: true,
     touched: true
   },
   favorites: {
     value: ['books', 'rock n roll'],
     originalValue: ['books', 'rock n roll'],
     defaultValue: [],
-    didBlur: true,
+    visited: true,
     touched: true
   }
 }

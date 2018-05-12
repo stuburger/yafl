@@ -14,19 +14,19 @@ const expectedResult1 = {
   name: {
     value: 'stuart',
     originalValue: 'stuart',
-    didBlur: false,
+    visited: false,
     touched: false
   },
   age: {
     value: 30,
     originalValue: 30,
-    didBlur: false,
+    visited: false,
     touched: false
   },
   gender: {
     value: 'male',
     originalValue: 'male',
-    didBlur: false,
+    visited: false,
     touched: false
   },
   contact: {
@@ -36,13 +36,13 @@ const expectedResult1 = {
     originalValue: {
       tel: '0786656565'
     },
-    didBlur: false,
+    visited: false,
     touched: false
   },
   favorites: {
     value: ['books', 'rock n roll'],
     originalValue: ['books', 'rock n roll'],
-    didBlur: false,
+    visited: false,
     touched: false
   }
 }
@@ -62,7 +62,7 @@ describe('transform objects', () => {
     ret[key] = {
       value: value,
       originalValue: value,
-      didBlur: false,
+      visited: false,
       touched: false
     }
     return ret

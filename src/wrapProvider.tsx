@@ -94,6 +94,7 @@ export function wrapProvider<T extends object>(
       this.clearForm = loadedGuard(this.clearForm)
       this.touchField = loadedAndExists(this.touchField)
       this.untouchField = loadedAndExists(this.untouchField)
+      this.setActiveField = loadedAndExists(this.setActiveField)
       this.resetForm = loadedGuard(this.resetForm)
       this.validateForm = loadedGuard(this.validateForm, () => ({}))
       this.registerField = bind(this, this.registerField)
@@ -187,6 +188,10 @@ export function wrapProvider<T extends object>(
       }))
     }
 
+    setActiveField<K extends keyof T>(fieldName: K): void {
+      this.setState(() => ({ active: fieldName }))
+    }
+
     touchFields(fieldNames: (keyof T)[]): void {
       fieldNames = fieldNames || (Object.keys(this.state.registeredFields) as (keyof T)[])
       const updated: Touched<T> = {}
@@ -259,25 +264,25 @@ export function wrapProvider<T extends object>(
       if (!o) return false
       const { defaultValue = {} as T } = this.props
       const validateOn = o.validateOn || this.props.validateOn || default_validate_on
-      const { submitCount } = this.state
-      const fields = getFormState(this.state, defaultValue)
-      const field = fields[fieldName]
-
+      const { submitCount, touched, blurred } = this.state
       if (typeof validateOn === 'function') {
+        const fields = getFormState(this.state, defaultValue)
+        const field = fields[fieldName]
         return validateOn(field.value, fields, fieldName)
       }
       if (!isArray(validateOn) && !isString(validateOn)) {
         return false
       }
-      if (incl(validateOn, 'change') && field.touched) {
+      if (incl(validateOn, 'change') && touched[fieldName]) {
         return true
       }
-      if (incl(validateOn, 'blur') && field.didBlur) {
+      if (incl(validateOn, 'blur') && blurred[fieldName]) {
         return true
       }
       if (incl(validateOn, 'submit') && submitCount > 0) {
         return true
       }
+
       return false
     }
 
@@ -328,6 +333,7 @@ export function wrapProvider<T extends object>(
         forgetState: this.forgetState,
         getFormValue: this.getFormValue,
         onFieldBlur: this.onFieldBlur,
+        setActiveField: this.setActiveField,
         setFieldValue: this.setFieldValue,
         setFieldValues: this.setFieldValues,
         registerField: this.registerField,

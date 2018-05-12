@@ -6,25 +6,25 @@ const formTouchedInvalid: FormFieldState<Person> = {
   name: {
     value: 'j',
     originalValue: 'j',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   age: {
     value: 0,
     originalValue: 0,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   surname: {
     value: 'b',
     originalValue: 'b',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   gender: {
     value: 'f',
     originalValue: 'f',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   contact: {
@@ -34,13 +34,13 @@ const formTouchedInvalid: FormFieldState<Person> = {
     originalValue: {
       tel: ''
     },
-    didBlur: true,
+    visited: true,
     touched: true
   },
   favorites: {
     value: [],
     originalValue: [],
-    didBlur: true,
+    visited: true,
     touched: true
   }
 }
@@ -49,25 +49,25 @@ const formTouchedValid: FormFieldState<Person> = {
   name: {
     value: 'st',
     originalValue: 'stuart',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   age: {
     value: 30,
     originalValue: 30,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   surname: {
     value: 'Bou',
     originalValue: 'Bourhill',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   gender: {
     value: 'male',
     originalValue: 'male',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   contact: {
@@ -77,13 +77,13 @@ const formTouchedValid: FormFieldState<Person> = {
     originalValue: {
       tel: '0786656565'
     },
-    didBlur: true,
+    visited: true,
     touched: true
   },
   favorites: {
     value: ['books', 'rock n roll'],
     originalValue: ['books', 'rock n roll'],
-    didBlur: true,
+    visited: true,
     touched: true
   }
 }
@@ -92,25 +92,25 @@ const badValuesForm = {
   name: {
     value: '',
     originalValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   age: {
     value: 30,
     originalValue: 30,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   surname: {
     value: null,
     originalValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   gender: {
     value: '',
     originalValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   contact: {
@@ -118,13 +118,13 @@ const badValuesForm = {
       tel: null
     },
     originalValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   favorites: {
     value: null,
     originalValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   }
 }

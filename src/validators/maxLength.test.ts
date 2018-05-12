@@ -5,28 +5,28 @@ const formUntouchedInvalid = {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: false,
+    visited: false,
     touched: false
   },
   age: {
     value: 0,
     originalValue: 0,
     defaultValue: 0,
-    didBlur: false,
+    visited: false,
     touched: false
   },
   surname: {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: false,
+    visited: false,
     touched: false
   },
   gender: {
     value: '',
     originalValue: '',
     defaultValue: '',
-    didBlur: false,
+    visited: false,
     touched: false
   },
   contact: {
@@ -39,14 +39,14 @@ const formUntouchedInvalid = {
     defaultValue: {
       tel: ''
     },
-    didBlur: false,
+    visited: false,
     touched: false
   },
   favorites: {
     value: [],
     originalValue: [],
     defaultValue: [],
-    didBlur: false,
+    visited: false,
     touched: false
   }
 }
@@ -55,28 +55,28 @@ const formTouchedInvalid = {
     value: 'jacasdifasldfjalsdkjf',
     originalValue: 'jackie',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   age: {
     value: 0,
     originalValue: 0,
     defaultValue: 0,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   surname: {
     value: 'bourhill',
     originalValue: 'bourhill',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   gender: {
     value: 'female',
     originalValue: 'female',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   contact: {
@@ -89,14 +89,14 @@ const formTouchedInvalid = {
     defaultValue: {
       tel: ''
     },
-    didBlur: true,
+    visited: true,
     touched: true
   },
   favorites: {
     value: [],
     originalValue: [],
     defaultValue: [],
-    didBlur: true,
+    visited: true,
     touched: true
   }
 }
@@ -106,28 +106,28 @@ const formTouchedValid = {
     value: 'stu',
     originalValue: 'stuart',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   age: {
     value: 30,
     originalValue: 30,
     defaultValue: 0,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   surname: {
     value: 'Burg',
     originalValue: 'Bourhill',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   gender: {
     value: 'male',
     originalValue: 'male',
     defaultValue: '',
-    didBlur: true,
+    visited: true,
     touched: true
   },
   contact: {
@@ -140,14 +140,14 @@ const formTouchedValid = {
     defaultValue: {
       tel: ''
     },
-    didBlur: true,
+    visited: true,
     touched: true
   },
   favorites: {
     value: ['books', 'rock n roll'],
     originalValue: ['books', 'rock n roll'],
     defaultValue: [],
-    didBlur: true,
+    visited: true,
     touched: true
   }
 }
@@ -157,28 +157,28 @@ const badValuesForm = {
     value: null,
     originalValue: null,
     defaultValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   age: {
     value: 30,
     originalValue: 30,
     defaultValue: 0,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   surname: {
     value: null,
     originalValue: null,
     defaultValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   gender: {
     value: null,
     originalValue: null,
     defaultValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   contact: {
@@ -187,14 +187,14 @@ const badValuesForm = {
     },
     originalValue: null,
     defaultValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   },
   favorites: {
     value: null,
     originalValue: null,
     defaultValue: null,
-    didBlur: true,
+    visited: true,
     touched: true
   }
 }

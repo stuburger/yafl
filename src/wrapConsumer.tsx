@@ -51,7 +51,7 @@ export function wrapConsumer<T extends object, K extends keyof T = keyof T>(
 
       const field: FieldState<T[K]> = {
         value: formValue[name],
-        didBlur: !!blurred[name],
+        visited: !!blurred[name],
         touched: !!touched[name],
         originalValue: initialFormValue[name]
       }
@@ -101,6 +101,7 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       this.setValue = this.setValue.bind(this)
       this.touch = this.touch.bind(this)
       this.untouch = this.untouch.bind(this)
+      this.onFocus = this.onFocus.bind(this)
       this.collectInputProps = this.collectInputProps.bind(this)
       this.collectMetaProps = this.collectMetaProps.bind(this)
       this.collectUtilProps = this.collectUtilProps.bind(this)
@@ -135,12 +136,20 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       provider.unregisterField(name)
     }
 
+    onFocus(e: React.FocusEvent<T[P]>): void {
+      const { provider, forwardProps, name, field } = this.props
+      if (forwardProps.onFocus) {
+        forwardProps.onFocus(e, field)
+      }
+      provider.setActiveField(name)
+    }
+
     onBlur(e: React.FocusEvent<T[P]>): void {
       const { provider, forwardProps, name, field } = this.props
       if (forwardProps.onBlur) {
         forwardProps.onBlur(e, field)
       }
-      if (field.didBlur || e.isDefaultPrevented()) return
+      if (field.visited || e.isDefaultPrevented()) return
       provider.onFieldBlur(name)
     }
 
@@ -197,8 +206,10 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       const validation = provider.validation[name] || emptyValidators
       return {
         isDirty: provider.formIsDirty && !isEqual(field.originalValue, field.value),
-        didBlur: field.didBlur,
+        visited: field.visited,
         touched: field.touched,
+        isActive: provider.active === name,
+        activeField: provider.active,
         submitCount: provider.submitCount,
         loaded: provider.loaded,
         submitting: provider.submitting,
@@ -331,6 +342,7 @@ function getComponent<T extends object>() {
         isDirty: provider.formIsDirty,
         touched: provider.formIsTouched,
         submitCount: provider.submitCount,
+        activeField: provider.active,
         isValid: provider.formIsValid,
         validation: provider.validation,
         initialValue: provider.initialFormValue

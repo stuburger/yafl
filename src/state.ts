@@ -29,7 +29,7 @@ export function getFormState<T extends object>(
       formValue[fieldName] === undefined ? defaultFormValue[fieldName] : formValue[fieldName]
     state[fieldName] = {
       value,
-      didBlur: !!blurred[fieldName],
+      visited: !!blurred[fieldName],
       touched: !!touched[fieldName],
       originalValue: initialFormValue[fieldName]
     }
