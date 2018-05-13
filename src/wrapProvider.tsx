@@ -95,6 +95,7 @@ export function wrapProvider<T extends object>(
       this.touchField = loadedAndExists(this.touchField)
       this.untouchField = loadedAndExists(this.untouchField)
       this.setActiveField = loadedAndExists(this.setActiveField)
+      this.renameField = loadedAndExists(this.renameField)
       this.resetForm = loadedGuard(this.resetForm)
       this.validateForm = loadedGuard(this.validateForm, () => ({}))
       this.registerField = bind(this, this.registerField)
@@ -131,6 +132,10 @@ export function wrapProvider<T extends object>(
     }
 
     registerField<K extends keyof T>(fieldName: K, opts: FieldOptions<T, K>): void {
+      if (this.state.registeredFields[fieldName]) {
+        // warn about having multiple fields with same name?
+        return
+      }
       this.registerValidator(fieldName, opts)
       this.setState(({ registeredFields }) => ({
         registeredFields: Object.assign({}, registeredFields, { [fieldName]: true })
@@ -180,6 +185,29 @@ export function wrapProvider<T extends object>(
 
     setFieldValues(partialUpdate: Partial<T>): void {
       this.setState(({ formValue }) => ({ formValue: Object.assign({}, formValue, partialUpdate) }))
+    }
+
+    renameField<K extends keyof T>(prevName: K, nextName: K): void {
+      this.registerValidator(nextName, this.validators[prevName])
+      this.unregisterValidator(prevName)
+      this.setState(({ touched: a1, blurred: a2, formValue: a3, registeredFields: a4 }) => {
+        const touched = shallowCopy(a1)
+        const blurred = shallowCopy(a2)
+        const formValue = shallowCopy(a3)
+        const registeredFields = shallowCopy(a4)
+
+        touched[nextName] = touched[prevName]
+        blurred[nextName] = blurred[prevName]
+        formValue[nextName] = formValue[prevName]
+        registeredFields[nextName] = registeredFields[prevName]
+
+        delete touched[prevName]
+        delete blurred[prevName]
+        delete formValue[prevName]
+        delete registeredFields[prevName]
+
+        return { touched, blurred, formValue, registeredFields }
+      })
     }
 
     touchField<K extends keyof T>(fieldName: K): void {
@@ -329,6 +357,7 @@ export function wrapProvider<T extends object>(
         untouchFields: this.untouchFields,
         touchField: this.touchField,
         untouchField: this.untouchField,
+        renameField: this.renameField,
         resetForm: this.resetForm,
         forgetState: this.forgetState,
         getFormValue: this.getFormValue,

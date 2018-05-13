@@ -62,6 +62,7 @@ interface DefaultProviderValue<T extends object, P extends keyof T = keyof T>
   setFieldValues: ((partialUpdate: Partial<T>) => void) | Noop
   touchField: (<K extends P>(fieldName: K) => void) | Noop
   setActiveField: (<K extends P>(fieldName: K) => void) | Noop
+  renameField: (<K extends P>(prevName: K, nextName: K) => void) | Noop
   untouchField: (<K extends P>(fieldName: K) => void) | Noop
   touchFields: ((fieldNames: (keyof T)[]) => void) | Noop
   untouchFields: ((fieldNames: (keyof T)[]) => void) | Noop
@@ -93,6 +94,7 @@ function getDefaultProviderValue<T extends object>(): DefaultProviderValue<T> {
     resetForm: noop,
     clearForm: noop,
     touchField: noop,
+    renameField: noop,
     untouchField: noop,
     touchFields: noop,
     untouchFields: noop,

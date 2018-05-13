@@ -34,6 +34,7 @@ export interface Provider<T extends object, P extends keyof T = keyof T>
   validation: { [K in keyof T]: string[] }
   registerValidators: (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
   registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void)
+  renameField: (<K extends P>(prevName: K, nextName: K) => void)
   unregisterField: (<K extends P>(fieldName: K) => void)
   onFieldBlur: (<K extends P>(fieldName: K) => void)
   setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
@@ -101,6 +102,7 @@ export interface FormProviderConfig<T extends object> extends Partial<ValidatorC
   initialValue?: T
   defaultValue?: T
   submit?: (formValue: Nullable<T>) => void
+  // validator:
   children: React.ReactNode
   loaded?: boolean
   submitting?: boolean
@@ -119,6 +121,10 @@ export interface FieldUtils<T extends object, P extends keyof T> {
   touch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
   untouch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
   setValue: (value: T[P]) => void
+}
+
+export interface InnerFieldState<T extends object, K extends keyof T = keyof T> {
+  _name: K
 }
 
 export interface InnerFieldProps<T extends object, K extends keyof T = keyof T>
@@ -150,8 +156,9 @@ export interface FieldMeta<T extends object, K extends keyof T = keyof T> {
 export interface InputProps<T extends object, K extends keyof T> {
   name: K
   value: T[K]
-  onBlur: (e: any) => void
-  onChange: (e: any) => void
+  onBlur: (e: React.FocusEvent<any>) => void
+  onFocus: (e: React.FocusEvent<any>) => void
+  onChange: (e: React.ChangeEvent<any>) => void
 }
 
 export interface FieldProps<T extends object, K extends keyof T> {
