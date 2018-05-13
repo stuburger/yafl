@@ -94,7 +94,7 @@ export function wrapProvider<T extends object>(
       this.clearForm = loadedGuard(this.clearForm)
       this.touchField = loadedAndExists(this.touchField)
       this.untouchField = loadedAndExists(this.untouchField)
-      this.setActiveField = loadedAndExists(this.setActiveField)
+      this.setActiveField = loadedGuard(this.setActiveField)
       this.renameField = loadedAndExists(this.renameField)
       this.resetForm = loadedGuard(this.resetForm)
       this.validateForm = loadedGuard(this.validateForm, () => ({}))
@@ -216,7 +216,7 @@ export function wrapProvider<T extends object>(
       }))
     }
 
-    setActiveField<K extends keyof T>(fieldName: K): void {
+    setActiveField<K extends keyof T>(fieldName: K | null): void {
       this.setState(() => ({ active: fieldName }))
     }
 

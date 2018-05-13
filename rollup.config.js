@@ -8,19 +8,17 @@ import uglify from 'rollup-plugin-uglify'
 import pkg from './package.json'
 
 const input = './compiled/index.js'
+const external = ['react', 'react-native']
 
-function getUMDConfig({ env }) {
+function rollupUmd({ env }) {
   return {
     input,
-    external: ['react', 'react-native'],
+    external,
     output: {
       name: 'kwik-form',
       format: 'umd',
       sourcemap: true,
-      file:
-        env === 'production'
-          ? './lib/kwik-form.umd.min.js'
-          : './lib/kwik-form.umd.js',
+      file: env === 'production' ? './lib/kwik-form.umd.min.js' : './lib/kwik-form.umd.js',
       exports: 'named',
       globals: {
         react: 'React',
@@ -66,18 +64,39 @@ function getUMDConfig({ env }) {
   }
 }
 
-export default [
-  getUMDConfig({ env: 'production' }),
+const rollupCjs = ({ env }) => ({
+  input,
+  external: external.concat(Object.keys(pkg.dependencies)),
+  output: [
+    {
+      file: `./lib/${pkg.name}.cjs.${env}.js`,
+      format: 'cjs',
+      sourcemap: true
+    }
+  ],
+  plugins: [
+    resolve(),
+    replace({
+      exclude: 'node_modules/**',
+      'process.env.NODE_ENV': JSON.stringify(env)
+    }),
+    sourceMaps(),
+    filesize()
+  ]
+})
 
-  getUMDConfig({ env: 'development' }),
+export default [
+  rollupUmd({ env: 'production' }),
+
+  rollupUmd({ env: 'development' }),
+
+  rollupCjs({ env: 'development' }),
+
+  rollupCjs({ env: 'production' }),
 
   {
     input,
-    external: id => {
-      console.log('module: ', id)
-      // return id !== 'src/index.ts'
-      return !id.startsWith('.') && !id.startsWith('/')
-    },
+    external: external.concat(Object.keys(pkg.dependencies)),
     output: [
       {
         file: pkg.module,

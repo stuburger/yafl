@@ -175,6 +175,7 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       if (forwardProps.onBlur) {
         forwardProps.onBlur(e, field)
       }
+      provider.setActiveField(null)
       if (field.visited || e.isDefaultPrevented()) return
       provider.onFieldBlur(this.state._name)
     }

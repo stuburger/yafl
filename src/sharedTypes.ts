@@ -41,7 +41,7 @@ export interface Provider<T extends object, P extends keyof T = keyof T>
   setFieldValues: (partialUpdate: Partial<T>) => void
   touchField: (<K extends P>(fieldName: K | keyof T) => void)
   untouchField: (<K extends P>(fieldName: K | keyof T) => void)
-  setActiveField: (<K extends P>(fieldName: K | keyof T) => void)
+  setActiveField: (<K extends P>(fieldName: K | keyof T | null) => void)
   touchFields: (fieldNames: (keyof T)[]) => void
   untouchFields: (fieldNames: (keyof T)[]) => void
 }
