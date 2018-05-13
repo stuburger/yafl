@@ -92,8 +92,7 @@ export function getTypedField<T extends object, P extends keyof T = keyof T>(
 }
 
 function getInnerField<T extends object, P extends keyof T = keyof T>() {
-  const noValidation: string[] = []
-  const emptyValidators: Validator<T, P>[] = []
+  const noValidators: Validator<T, P>[] = []
   class InnerField extends React.Component<InnerFieldProps<T, P>, InnerFieldState<T, P>> {
     constructor(props: InnerFieldProps<T, P>) {
       super(props)
@@ -107,10 +106,8 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       this.collectMetaProps = this.collectMetaProps.bind(this)
       this.collectUtilProps = this.collectUtilProps.bind(this)
       this.collectProps = this.collectProps.bind(this)
-      this.state = {
-        _name: props.name
-      }
-      const { name, provider, validators = emptyValidators, validateOn } = props
+      this.state = { _name: props.name }
+      const { name, provider, validators = noValidators, validateOn } = props
       provider.registerField(name, { validators, validateOn })
     }
 
@@ -133,18 +130,18 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
     shouldComponentUpdate(np: InnerFieldProps<T, P>, ns: InnerFieldState<T, P>) {
       const { provider, field, forwardProps } = this.props
       const { _name } = this.state
-      const validation = provider.errors[_name] || noValidation
+      const errors = provider.errors[_name]
       return (
         np.provider.initialMount &&
         (!isEqual(np.provider.registeredFields[np.name], provider.registeredFields[_name]) ||
           !isEqual(np.field, field) ||
           !isEqual(np.forwardProps, forwardProps) ||
-          !isEqual(validation, np.provider.errors[ns._name] || noValidation))
+          !isEqual(errors, np.provider.errors[ns._name]))
       )
     }
 
     componentDidUpdate(pp: InnerFieldProps<T, P>, ps: InnerFieldState<T, P>) {
-      const { provider, name, validators = emptyValidators, validateOn } = this.props
+      const { provider, name, validators = noValidators, validateOn } = this.props
       const { _name } = this.state
 
       if (validators !== pp.validators) {
@@ -220,9 +217,8 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       const { field } = this.props
       const { value } = field
       return {
-        name: this.state._name,
         value,
-        // checked: field.value, todo
+        name: this.state._name,
         onFocus: this.onFocus,
         onBlur: this.onBlur,
         onChange: this.onChange
@@ -232,7 +228,7 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
     collectMetaProps(): FieldMeta<T, P> {
       const { provider, field } = this.props
       const { _name } = this.state
-      const errors = provider.errors[_name] || emptyValidators
+      const errors = provider.errors[_name]
       return {
         isDirty: provider.formIsDirty && !isEqual(field.originalValue, field.value),
         visited: field.visited,

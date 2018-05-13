@@ -100,7 +100,7 @@ export function wrapProvider<T extends object>(
       this.validateForm = loadedGuard(this.validateForm, () => ({}))
       this.registerField = bind(this, this.registerField)
       this.unregisterField = bind(this, this.unregisterField)
-      this.registerValidator = bind(this, this.registerValidator)
+      this.registerValidators = bind(this, this.registerValidators)
       this.unregisterValidator = bind(this, this.unregisterValidator)
       this.getComputedState = bind(this, this.getComputedState)
       this.getProviderValue = bind(this, this.getProviderValue)
@@ -123,7 +123,7 @@ export function wrapProvider<T extends object>(
       this.setState({ initialMount: true })
     }
 
-    registerValidator<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>): void {
+    registerValidators<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>): void {
       this.validators[fieldName] = opts
     }
 
@@ -136,7 +136,7 @@ export function wrapProvider<T extends object>(
         // warn about having multiple fields with same name?
         return
       }
-      this.registerValidator(fieldName, opts)
+      this.registerValidators(fieldName, opts)
       this.setState(({ registeredFields }) => ({
         registeredFields: Object.assign({}, registeredFields, { [fieldName]: true })
       }))
@@ -188,7 +188,7 @@ export function wrapProvider<T extends object>(
     }
 
     renameField<K extends keyof T>(prevName: K, nextName: K): void {
-      this.registerValidator(nextName, this.validators[prevName])
+      this.registerValidators(nextName, this.validators[prevName])
       this.unregisterValidator(prevName)
       this.setState(({ touched: a1, blurred: a2, formValue: a3, registeredFields: a4 }) => {
         const touched = shallowCopy(a1)
@@ -367,7 +367,7 @@ export function wrapProvider<T extends object>(
         setFieldValues: this.setFieldValues,
         registerField: this.registerField,
         unregisterField: this.unregisterField,
-        registerValidators: this.registerValidator
+        registerValidators: this.registerValidators
       }
     }
 
