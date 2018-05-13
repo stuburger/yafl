@@ -51,7 +51,7 @@ interface DefaultProviderValue<T extends object, P extends keyof T = keyof T>
   submit: (() => void) | Noop
   submitCount: number
   clearForm: (() => void) | Noop
-  validation: { [K in keyof T]: string[] }
+  errors: { [K in keyof T]: string[] }
   registerValidators:
     | (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
     | Noop
@@ -88,7 +88,7 @@ function getDefaultProviderValue<T extends object>(): DefaultProviderValue<T> {
     submitCount: 0,
     submitting: false,
     formIsDirty: false,
-    validation: {} as { [K in keyof T]: string[] },
+    errors: {} as { [K in keyof T]: string[] },
     getFormValue: noop,
     submit: noop,
     resetForm: noop,

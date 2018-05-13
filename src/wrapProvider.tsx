@@ -68,7 +68,7 @@ export function wrapProvider<T extends object>(
     formIsDirty: boolean
     formIsTouched: boolean
     formIsValid: boolean
-    validation: { [K in keyof T]: string[] }
+    errors: { [K in keyof T]: string[] }
   }
 
   return class Form extends React.Component<FPP, FPS> {
@@ -330,19 +330,19 @@ export function wrapProvider<T extends object>(
       let formIsDirty = false
       let formIsInvalid = false
       let formIsTouched = false
-      let validation = {} as VR
+      let errors = {} as VR
 
       for (let fieldName in registeredFields) {
         formIsDirty = formIsDirty || !isEqual(formValue, initialFormValue)
         formIsTouched = formIsTouched || !!touched[fieldName]
-        validation[fieldName] = this.getMessagesFor(fieldName)
-        formIsInvalid = formIsInvalid || validation[fieldName].length > 0
+        errors[fieldName] = this.getMessagesFor(fieldName)
+        formIsInvalid = formIsInvalid || errors[fieldName].length > 0
       }
 
       return {
         formIsDirty,
         formIsTouched,
-        validation,
+        errors,
         formIsValid: !formIsInvalid
       }
     }

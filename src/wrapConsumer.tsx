@@ -133,13 +133,13 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
     shouldComponentUpdate(np: InnerFieldProps<T, P>, ns: InnerFieldState<T, P>) {
       const { provider, field, forwardProps } = this.props
       const { _name } = this.state
-      const validation = provider.validation[_name] || noValidation
+      const validation = provider.errors[_name] || noValidation
       return (
         np.provider.initialMount &&
         (!isEqual(np.provider.registeredFields[np.name], provider.registeredFields[_name]) ||
           !isEqual(np.field, field) ||
           !isEqual(np.forwardProps, forwardProps) ||
-          !isEqual(validation, np.provider.validation[ns._name] || noValidation))
+          !isEqual(validation, np.provider.errors[ns._name] || noValidation))
       )
     }
 
@@ -232,7 +232,7 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
     collectMetaProps(): FieldMeta<T, P> {
       const { provider, field } = this.props
       const { _name } = this.state
-      const validation = provider.validation[_name] || emptyValidators
+      const errors = provider.errors[_name] || emptyValidators
       return {
         isDirty: provider.formIsDirty && !isEqual(field.originalValue, field.value),
         visited: field.visited,
@@ -242,8 +242,8 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
         submitCount: provider.submitCount,
         loaded: provider.loaded,
         submitting: provider.submitting,
-        isValid: validation.length === 0,
-        messages: validation,
+        isValid: errors.length === 0,
+        messages: errors,
         originalValue: field.originalValue
       }
     }
@@ -373,7 +373,7 @@ function getComponent<T extends object>() {
         submitCount: provider.submitCount,
         activeField: provider.active,
         isValid: provider.formIsValid,
-        validation: provider.validation,
+        errors: provider.errors,
         initialValue: provider.initialFormValue
       }
     }

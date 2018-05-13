@@ -31,7 +31,7 @@ export interface Provider<T extends object, P extends keyof T = keyof T>
   resetForm: (() => void)
   submitCount: number
   clearForm: (() => void)
-  validation: { [K in keyof T]: string[] }
+  errors: { [K in keyof T]: string[] }
   registerValidators: (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
   registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void)
   renameField: (<K extends P>(prevName: K, nextName: K) => void)
@@ -210,7 +210,7 @@ export interface FormMeta<T extends object> {
   loaded: boolean
   submitting: boolean
   isValid: boolean
-  validation: { [K in keyof T]: string[] }
+  errors: { [K in keyof T]: string[] }
 }
 
 export interface ComponentProps<T extends object, K extends keyof T = keyof T> {
