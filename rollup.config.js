@@ -15,10 +15,10 @@ function rollupUmd({ env }) {
     input,
     external,
     output: {
-      name: 'kwik-form',
+      name: 'react-yafl',
       format: 'umd',
       sourcemap: true,
-      file: env === 'production' ? './lib/kwik-form.umd.min.js' : './lib/kwik-form.umd.js',
+      file: env === 'production' ? './lib/react-yafl.umd.min.js' : './lib/react-yafl.umd.js',
       exports: 'named',
       globals: {
         react: 'React',

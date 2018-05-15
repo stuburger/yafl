@@ -1,9 +1,9 @@
 {
-  "name": "kwik-form",
+  "name": "react-yafl",
   "version": "1.0.0",
   "description": "A library for creating forms in react using react's new context api",
-  "main": "lib/kwik-form.js",
-  "module": "lib/kwik-form.es6.js",
+  "main": "lib/react-yafl.js",
+  "module": "lib/react-yafl.es6.js",
   "typings": "lib/index.d.ts",
   "files": ["lib"],
   "scripts": {

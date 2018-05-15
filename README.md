@@ -1,6 +1,6 @@
-# kwik-form 
+# react-yafl
 
-[![Build Status](https://travis-ci.org/stuburger/kwik-form.svg?branch=master)](https://travis-ci.org/stuburger/kwik-form)
+[![Build Status](https://travis-ci.org/stuburger/react-yafl.svg?branch=master)](https://travis-ci.org/stuburger/react-yafl)
 
 _Warning: This library is a work in progress - as is this readme_
 
@@ -13,7 +13,7 @@ _Not available on npm yet._
 ```tsx
 // PersonForm.tsx
 ...
-import { createForm } from 'kwik-form'
+import { createForm } from 'react-yafl'
 
 interface Person {
   id?: string
