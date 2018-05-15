@@ -249,7 +249,7 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       return {
         touch: this.touch,
         untouch: this.untouch,
-        submit: provider.submit,
+        submit: provider.onSubmit,
         resetForm: provider.resetForm,
         setFieldValues: provider.setFieldValues,
         setFieldValue: provider.setFieldValue,
@@ -379,7 +379,7 @@ function getComponent<T extends object>() {
       return {
         touch: this.touch,
         untouch: this.untouch,
-        submit: provider.submit,
+        submit: provider.onSubmit,
         resetForm: provider.resetForm,
         getFormValue: provider.getFormValue,
         setFieldValue: provider.setFieldValue,

@@ -157,8 +157,8 @@ export function wrapProvider<T extends object>(
       }))
 
       if (formIsValid<T>(this.validateForm())) {
-        const { submit = noop } = this.props
-        submit(this.state.formValue)
+        const { onSubmit = noop } = this.props
+        onSubmit(this.state.formValue)
       } else {
         console.warn('cannot submit, form is not valid...')
       }
@@ -351,7 +351,7 @@ export function wrapProvider<T extends object>(
       return {
         ...this.state,
         ...this.getComputedState(),
-        submit: this.submit,
+        onSubmit: this.submit,
         clearForm: this.clearForm,
         touchFields: this.touchFields,
         untouchFields: this.untouchFields,

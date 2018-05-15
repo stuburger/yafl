@@ -27,7 +27,7 @@ export interface Provider<T extends object, P extends keyof T = keyof T>
   formIsDirty: boolean
   getFormValue: (includeUnregisterdFields?: boolean) => T
   forgetState: (() => void)
-  submit: (() => void)
+  onSubmit: (() => void)
   resetForm: (() => void)
   submitCount: number
   clearForm: (() => void)
@@ -101,7 +101,7 @@ export type ValidateOn<T extends object, K extends keyof T = keyof T> =
 export interface FormProviderConfig<T extends object> extends Partial<ValidatorConfig<T>> {
   initialValue?: T
   defaultValue?: T
-  submit?: (formValue: Nullable<T>) => void
+  onSubmit?: (formValue: Nullable<T>) => void
   // validator:
   children: React.ReactNode
   loaded?: boolean

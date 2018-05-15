@@ -48,7 +48,7 @@ interface DefaultProviderValue<T extends object, P extends keyof T = keyof T>
   formIsValid: boolean
   formIsDirty: boolean
   forgetState: (() => void) | Noop
-  submit: (() => void) | Noop
+  onSubmit: (() => void) | Noop
   submitCount: number
   clearForm: (() => void) | Noop
   errors: { [K in keyof T]: string[] }
@@ -90,7 +90,7 @@ function getDefaultProviderValue<T extends object>(): DefaultProviderValue<T> {
     formIsDirty: false,
     errors: {} as { [K in keyof T]: string[] },
     getFormValue: noop,
-    submit: noop,
+    onSubmit: noop,
     resetForm: noop,
     clearForm: noop,
     touchField: noop,
