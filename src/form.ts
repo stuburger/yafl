@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { wrapProvider } from './wrapProvider'
-import { wrapConsumer, wrapFormConsumer, getTypedField, createFormComponent } from './wrapConsumer'
+import { wrapProvider } from './provider'
+import { wrapConsumer, wrapFormConsumer, getTypedField, createFormComponent } from './consumers'
 import {
   Noop,
   Provider,

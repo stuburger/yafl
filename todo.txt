@@ -1,6 +1,0 @@
-provide way to pass initial props
-validate field when validators are added
-types for field Values ?
-clear/reset form
-update only single field instead of using cloneDeep(this.state)
-create validators to ship with lib
