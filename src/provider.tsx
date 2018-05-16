@@ -17,7 +17,7 @@ const noop = (...params: any[]) => {
   console.log('not loaded or field non existent')
 }
 
-const default_validate_on: ValidationType = 'submit'
+const default_validate_on: ValidationType = 'blur'
 
 /*
   guard function for functions that rely on the form being loaded - ie. async loading

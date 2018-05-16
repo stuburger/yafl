@@ -109,7 +109,7 @@ function getDefaultProviderValue<T extends object>(): DefaultProviderValue<T> {
   }
 }
 
-export const createForm = <T extends object>(defaultValue: T) => {
+export const createFormContext = <T extends object>(defaultValue: T) => {
   const { Consumer, Provider } = React.createContext<Provider<T>>(getDefaultProviderValue())
 
   const form = wrapProvider<T>(Provider, defaultValue)
@@ -134,5 +134,4 @@ export const createForm = <T extends object>(defaultValue: T) => {
   }
 }
 
-export const { Form, Field, FormComponent } = createForm<any>({})
 export { required, maxLength, minLength } from './validators'
