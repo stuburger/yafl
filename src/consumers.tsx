@@ -45,7 +45,6 @@ export function wrapConsumer<T extends object, K extends keyof T = keyof T>(
         render,
         component,
         validateOn,
-        initialValue,
         validators = emptyArray,
         ...forwardProps
       } = this.props
@@ -67,7 +66,6 @@ export function wrapConsumer<T extends object, K extends keyof T = keyof T>(
           validateOn={validateOn}
           validators={validators}
           forwardProps={forwardProps}
-          initialValue={initialValue}
         />
       )
     }

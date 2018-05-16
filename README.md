@@ -54,11 +54,6 @@ class SimpleForm extends React.Component {
 
 ### createFormContext()
 
-`createFormContext(defaultValue)` has the same signature as React's `createContext(defaultValue)`. However there are some differences to be aware of:
-
-1.  While `React.createContext` only produces 2 components: a Consumer and a Provider, `createFormContext` returns 3 components (1 Provider and 2 Consumers) as well as 2 higher order components which can be used to create specialized Consumers.
-2.  The optional defaultValue argument of `createFormContext` is not quite analogous the defaultValue that can be passed to `React.createContext`. The `defaultValue` passed to `createFormContext` refers to the value that the _form_ will default to if no initialValue is supplied. It is also the value that the form set to when clearing the form. Note that a default value can also be supplied as a prop which adds a bit more flexiblity. If both are supplied then the defaultValue prop takes precedence. _Note_ that react-yafl does not allow Consumers to be rendered outside the Provider; doing so will result in an error being thrown.
-
 ```js
 const {
   Form,
@@ -69,6 +64,7 @@ const {
 } = createFormContext(defaultValue)
 ```
 
+
 | Name                  | Type     | Description                                                                                                                                                                               |
 | --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Form`                | Provider | The `Form` component is used to wrap all Consumer components                                                                                                                              |
@@ -77,20 +73,25 @@ const {
 | `createField`         | function | a function that returns a named `Field` Component                                                                                                                                         |
 | `createFormComponent` | function | a function that returns a `FormComponent`                                                                                                                                                 |
 
-### Components
+*Note* that while `createFormContext(defaultValue)` has the same signature as React's `createContext(defaultValue)` there are some differences to be aware of:
 
-### `<Form>` props
+1.  `createFormContext` returns 3 components (1 Provider and 2 Consumers) as well as 2 higher order components which can be used to create specialized Consumers.
+2.  The optional `defaultValue` argument of `createFormContext` is not analogous the `defaultValue` that can be passed to `React.createContext`. The `defaultValue` passed to `createFormContext` refers to the value that the _form_ will default to if no initialValue is supplied. It is also the value that the form is set to when clearing the form. Also note that a default value can also be supplied as a prop. If both are supplied then the defaultValue prop takes precedence. 
+3. yafl does not allow Consumers to be rendered outside the Provider; doing so will result in an error being thrown.
+
+### `<Form>`
+
 
 | Prop                           | Type                                       | Description                                                                                               | defaultValue |
 | ------------------------------ | ------------------------------------------ | --------------------------------------------------------------------------------------------------------- | ------------ |
-| `initialValue?`                | T extends object                           | The initial value of your form.                                                                           | `{}`         |
-| `defaultValue?`                | T extends object                           | The default value of your form.                                                                           | `{}`         |
-| `onSubmit`                     | function                                   | The function which to be called when submitting your form                                                 | `noop`       |
+| `initialValue?`                | object                           | The initial value of your form.                                                                           | `{}`         |
+| `defaultValue?`                | object                           | The default value of your form.                                                                           | `{}`         |
+| `onSubmit?`                     | function                                   | The function which to be called when submitting your form                                                 | `noop`       |
 | `loaded?`                      | boolean                                    | While this value is `false` all functionality is disabled                                                 | `true`       |
 | `submitting?`                  | boolean                                    | A value indicating when the form is submitting. While this value is `true` all functionality is disabled. | `false`      |
 | `allowReinitialize?`           | boolean                                    | Allow the form to reinitialize if and when 'initialValue' changes after the form has loaded               | `false`      |
 | `rememberStateOnReinitialize?` | boolean                                    |                                                                                                           | `false`      |
-| `validateOn?`                  | `'blur' | 'submit' | 'change'` \| function | Validation timing for your form.                                                                          | `'blur'`     |
+| `validateOn?`                  | `'blur'| 'submit'| 'change' | function` | Validation timing for your form.                                                                          | `'blur'`     |
 | `validate`                     | function                                   | The initial value of your form                                                                            | `noop`       |
 
 ```ts
@@ -112,8 +113,6 @@ interface FormProviderConfig<T extends object> {
 ```ts
 interface FieldConfig<T extends object, K extends keyof T = keyof T> {
   name: K
-  defaultValue?: T[K]
-  initialValue?: T[K]
   validators?: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T, K>>

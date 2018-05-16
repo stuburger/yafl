@@ -170,8 +170,6 @@ export interface FieldProps<T extends object, K extends keyof T> {
 
 export interface BaseFieldConfig<T extends object, K extends keyof T>
   extends Partial<FieldOptions<T, K>> {
-  defaultValue?: T[K]
-  initialValue?: T[K]
   validators?: Validator<T, K>[]
   render?: (state: FieldProps<T, K>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T, K>>
