@@ -2,6 +2,7 @@ import * as React from 'react'
 import { bind, transform, isString, isArray, shallowCopy } from './utils'
 import { validateField, formIsValid, getDefaultInitialState, getFormState } from './state'
 import { trueIfAbsent, isEqual } from './utils'
+const defaultDeep = require('lodash.defaultsdeep')
 import {
   FormProviderConfig,
   FormProviderState,
@@ -86,7 +87,7 @@ export function wrapProvider<T extends object>(
       }
 
       this.submit = loadedGuard(this.submit)
-      this.getFormValue = loadedGuard(this.getFormValue)
+      this.getFormValue = loadedGuard(this.getFormValue, () => props.defaultValue)
       this.setFieldValue = loadedAndExists(this.setFieldValue)
       this.setFieldValues = loadedGuard(this.setFieldValues)
       this.onFieldBlur = loadedAndExists(this.onFieldBlur)
@@ -109,11 +110,11 @@ export function wrapProvider<T extends object>(
       this.state = getDefaultInitialState<T>()
     }
 
-    static getDerivedStateFromProps = getGetDerivedStateFromProps<T>()
+    static getDerivedStateFromProps = getGetDerivedStateFromProps<T>(defaultValue)
 
     static defaultProps = {
       initialValue: {},
-      defaultValue: defaultValue || {},
+      defaultValue: {},
       rememberStateOnReinitialize: false,
       allowReinitialize: false,
       validateOn: default_validate_on
@@ -121,6 +122,14 @@ export function wrapProvider<T extends object>(
 
     componentDidMount() {
       this.setState({ initialMount: true })
+    }
+
+    componentDidUpdate(pp: FPP, ps: FPS) {
+      const { formValue } = this.state
+      if (!isEqual(ps.formValue, formValue)) {
+        const { onChange = () => {} } = this.props
+        onChange(formValue)
+      }
     }
 
     registerValidators<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>): void {
@@ -177,8 +186,8 @@ export function wrapProvider<T extends object>(
     }
 
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void {
-      this.setState(({ formValue, touched }) => ({
-        formValue: Object.assign({}, formValue, { [fieldName]: val }), // todo this isnt strongly typed
+      this.setState(({ formValue: prev, touched }) => ({
+        formValue: Object.assign({}, prev, { [fieldName]: val }),
         touched: Object.assign({}, touched, { [fieldName]: true }) // todo this isnt strongly typed
       }))
     }
@@ -351,6 +360,7 @@ export function wrapProvider<T extends object>(
       return {
         ...this.state,
         ...this.getComputedState(),
+        defaultValue: this.props.defaultValue || (defaultValue as T),
         onSubmit: this.submit,
         clearForm: this.clearForm,
         touchFields: this.touchFields,
@@ -377,7 +387,7 @@ export function wrapProvider<T extends object>(
   }
 }
 
-function getGetDerivedStateFromProps<T extends object>() {
+function getGetDerivedStateFromProps<T extends object>(defaultValue?: T) {
   return (np: FormProviderConfig<T>, ps: FormProviderState<T>): Partial<FormProviderState<T>> => {
     const loaded = trueIfAbsent(np.loaded)
     const submitting = !!np.submitting
@@ -388,8 +398,12 @@ function getGetDerivedStateFromProps<T extends object>() {
       isBusy: !loaded || submitting
     }
 
-    const initialValue = Object.assign({}, np.defaultValue, np.initialValue)
-    // form will load
+    if (!loaded) {
+      state.formValue = np.defaultValue || ({} as T)
+      return state
+    }
+
+    const initialValue = defaultDeep({}, np.initialValue || {}, np.defaultValue || {})
     if (!ps.loaded && loaded) {
       state.initialFormValue = initialValue
       state.formValue = initialValue

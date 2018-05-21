@@ -8,7 +8,7 @@ YAFL - Yet Another Form Library
 
 Development on yafl only started after the release of React 16.3 and uses the React Context API behind the scenes to pass props between components. It has drawn a lot of inspiration from redux-form and formik (both awesome projects!)
 
-yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out the box, it aims to keep it's API surface area relatively small while still remaining flexible and easy to use.
+yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use.
 
 ## Installation
 
@@ -59,7 +59,7 @@ class SimpleForm extends React.Component {
 1.  While `React.createContext` only produces 2 components: a Consumer and a Provider, `createFormContext` returns 3 components (1 Provider and 2 Consumers) as well as 2 higher order components which can be used to create specialized Consumers.
 2.  The optional defaultValue argument of `createFormContext` is not quite analogous the defaultValue that can be passed to `React.createContext`. The `defaultValue` passed to `createFormContext` refers to the value that the _form_ will default to if no initialValue is supplied. It is also the value that the form set to when clearing the form. Note that a default value can also be supplied as a prop which adds a bit more flexiblity. If both are supplied then the defaultValue prop takes precedence. _Note_ that react-yafl does not allow Consumers to be rendered outside the Provider; doing so will result in an error being thrown.
 
-```js
+```javascript
 const {
   Form,
   Field,
@@ -91,21 +91,9 @@ const {
 | `allowReinitialize?`           | boolean                                    | Allow the form to reinitialize if and when 'initialValue' changes after the form has loaded               | `false`      |
 | `rememberStateOnReinitialize?` | boolean                                    |                                                                                                           | `false`      |
 | `validateOn?`                  | `'blur' | 'submit' | 'change'` \| function | Validation timing for your form.                                                                          | `'blur'`     |
-| `validate`                     | function                                   | The initial value of your form                                                                            | `noop`       |
+| `validate?`                     | function                                   | The initial value of your form                                                                            | `noop`       |
 
-```ts
-interface FormProviderConfig<T extends object> {
-  initialValue?: T
-  defaultValue?: T
-  onSubmit?: (formValue: Nullable<T>) => void
-  loaded?: boolean
-  submitting?: boolean
-  allowReinitialize?: boolean
-  rememberStateOnReinitialize?: boolean
-  validateOn?: ValidateOn<T, K>
-  validators: Validator<T, K>[]
-}
-```
+
 
 ### `<Field>` props
 

@@ -1,6 +1,12 @@
 import * as React from 'react'
 import { wrapProvider } from './provider'
-import { wrapConsumer, wrapFormConsumer, getTypedField, createFormComponent } from './consumers'
+import {
+  wrapConsumer,
+  wrapFormConsumer,
+  getTypedField,
+  createFormComponent,
+  wrapFieldMapConsumer
+} from './consumers'
 import {
   Noop,
   Provider,
@@ -17,6 +23,7 @@ import {
   ValidatorConfig,
   FormProviderState
 } from './sharedTypes'
+import { createSection } from './Section'
 
 export {
   FormProviderConfig,
@@ -45,6 +52,7 @@ interface DefaultProviderValue<T extends object, P extends keyof T = keyof T>
   getFormValue: ((includeUnregisterdFields?: boolean) => T) | Noop
   resetForm: (() => void) | Noop
   formIsTouched: boolean
+  defaultValue: T
   formIsValid: boolean
   formIsDirty: boolean
   forgetState: (() => void) | Noop
@@ -79,6 +87,7 @@ function getDefaultProviderValue<T extends object>(): DefaultProviderValue<T> {
     blurred: {},
     active: null,
     registeredFields: {},
+    defaultValue: {} as T,
     formValue: {} as T,
     initialFormValue: {} as T,
     isBusy: false,
@@ -112,14 +121,17 @@ function getDefaultProviderValue<T extends object>(): DefaultProviderValue<T> {
 export const createFormContext = <T extends object>(defaultValue: T) => {
   const { Consumer, Provider } = React.createContext<Provider<T>>(getDefaultProviderValue())
 
-  const form = wrapProvider<T>(Provider, defaultValue)
-  const field = wrapConsumer<T>(Consumer)
-  const component = wrapFormConsumer<T>(Consumer)
+  const Form = wrapProvider<T>(Provider, defaultValue)
+  const Field = wrapConsumer<T>(Consumer)
+  const FormComponent = wrapFormConsumer<T>(Consumer)
+  const fieldMap = wrapFieldMapConsumer(Consumer)
 
   return {
-    Form: form,
-    Field: field,
-    FormComponent: component,
+    Form,
+    Field,
+    FormComponent,
+    FieldMap: fieldMap,
+    Section: createSection(Form as any, Field as any),
     createField: function<K extends keyof T>(
       fieldName: K,
       component?: React.ComponentType<FieldProps<T, K>>
@@ -134,4 +146,5 @@ export const createFormContext = <T extends object>(defaultValue: T) => {
   }
 }
 
+export const { Form, Field, FormComponent, FieldMap, Section } = createFormContext<any>({})
 export { required, maxLength, minLength } from './validators'

@@ -5,7 +5,9 @@
   "main": "lib/react-yafl.js",
   "module": "lib/react-yafl.es6.js",
   "typings": "lib/index.d.ts",
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "prebuild": "rimraf lib",
     "build": "tsc -p tsconfig.base.json && rollup -c && rimraf compiled",
@@ -14,17 +16,27 @@
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.{ts,tsx}": ["prettier --parser typescript --write", "git add"]
+    "*.{ts,tsx}": [
+      "prettier --parser typescript --write",
+      "git add"
+    ]
   },
   "author": "Stuart Bourhill",
   "license": "MIT",
-  "dependencies": {},
-  "keywords": ["react", "form", "context"],
+  "dependencies": {
+    "lodash.defaultsdeep": "^4.6.0"
+  },
+  "keywords": [
+    "react",
+    "form",
+    "context"
+  ],
   "peerDependencies": {
     "react": ">=16.3.2"
   },
   "devDependencies": {
     "@types/jest": "^22.2.3",
+    "@types/lodash.defaultsdeep": "^4.6.3",
     "@types/node": "10.0.9",
     "@types/react": "^16.3.14",
     "@types/react-dom": "^16.0.5",
@@ -53,8 +65,18 @@
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
-    "collectCoverageFrom": ["src/**/*.{ts,tsx}", "!src/**/index.{ts,tsx}"],
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/index.{ts,tsx}"
+    ],
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"]
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   }
 }

@@ -19,9 +19,11 @@ export interface Contact {
 }
 
 export type Nullable<T> = { [P in keyof T]: T[P] | null }
+export type FormErrors<T> = { [P in keyof T]: T[P] extends object ? FormErrors<T[P]> : string[] }
 
 export interface Provider<T extends object, P extends keyof T = keyof T>
   extends FormProviderState<T> {
+  defaultValue: T
   formIsTouched: boolean
   formIsValid: boolean
   formIsDirty: boolean
@@ -102,6 +104,7 @@ export interface FormProviderConfig<T extends object> extends Partial<ValidatorC
   initialValue?: T
   defaultValue?: T
   onSubmit?: (formValue: Nullable<T>) => void
+  onChange?: (formValue: T) => void
   // validator:
   children: React.ReactNode
   loaded?: boolean
@@ -121,6 +124,19 @@ export interface FieldUtils<T extends object, P extends keyof T> {
   touch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
   untouch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
   setValue: (value: T[P]) => void
+}
+
+export interface FieldMapUtils<T extends object, P extends keyof T> {
+  resetForm: () => void
+  getFormValue: (includeUnregisterdFields?: boolean) => T
+  submit: () => void
+  setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
+  setFieldValues: (partialUpdate: Partial<T>) => void
+  forgetState: () => void
+  clearForm: () => void
+  touch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
+  untouch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
+  setValue: (value: T[P], _i: number) => void
 }
 
 export interface InnerFieldState<T extends object, K extends keyof T = keyof T> {
@@ -151,6 +167,7 @@ export interface FieldMeta<T extends object, K extends keyof T = keyof T> {
   isValid: boolean
   messages: string[]
   originalValue: T[K]
+  defaultValue: T[K]
 }
 
 export interface InputProps<T extends object, K extends keyof T> {
@@ -165,6 +182,13 @@ export interface FieldProps<T extends object, K extends keyof T> {
   input: InputProps<T, K>
   meta: FieldMeta<T, K>
   utils: FieldUtils<T, K>
+  [key: string]: any
+}
+
+export interface FieldMapProps<T extends object, K extends keyof T> {
+  input: InputProps<T, K>
+  meta: FieldMeta<T, K>
+  utils: FieldMapUtils<T, K>
   [key: string]: any
 }
 

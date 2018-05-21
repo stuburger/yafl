@@ -15,7 +15,9 @@ import {
   ComponentConfig,
   Provider,
   FieldState,
-  InnerFieldState
+  InnerFieldState,
+  FieldMapUtils,
+  FieldMapProps
 } from './sharedTypes'
 import { isArray } from './utils'
 
@@ -215,6 +217,8 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
 
     collectInputProps(): InputProps<T, P> {
       const { field } = this.props
+      // const { _name } = this.state
+      // const defaultValue = provider.defaultValue[_name]
       const { value } = field
       return {
         value,
@@ -229,6 +233,9 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
       const { provider, field } = this.props
       const { _name } = this.state
       const errors = provider.errors[_name]
+      // not the correct place to assign default value
+      // should be in provider. object.assign also wont work since it performs a shallow merge
+      const defaultValue = provider.defaultValue[_name]
       return {
         isDirty: provider.formIsDirty && !isEqual(field.originalValue, field.value),
         visited: field.visited,
@@ -240,7 +247,8 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
         submitting: provider.submitting,
         isValid: errors.length === 0,
         messages: errors,
-        originalValue: field.originalValue
+        originalValue: field.originalValue,
+        defaultValue
       }
     }
 
@@ -417,4 +425,259 @@ function getComponent<T extends object>() {
   }
 
   return FormComponent
+}
+
+export function wrapFieldMapConsumer<T extends object, K extends keyof T = keyof T>(
+  Consumer: React.Consumer<Provider<T, K>>
+): React.ComponentClass<FieldConfig<T, K>> {
+  const InnerField = getInnerFieldMap<T, K>()
+  const emptyArray: Validator<T, K>[] = []
+
+  return class FieldMap extends React.Component<FieldConfig<T, K>> {
+    constructor(props: FieldConfig<T, K>) {
+      super(props)
+      this._render = this._render.bind(this)
+    }
+
+    _render(provider: Provider<T, K>) {
+      const { formValue, touched, blurred, initialFormValue } = provider
+      const {
+        name,
+        render,
+        component,
+        validateOn,
+        initialValue,
+        validators = emptyArray,
+        ...forwardProps
+      } = this.props
+
+      const field: FieldState<T[K]> = {
+        value: formValue[name],
+        visited: !!blurred[name],
+        touched: !!touched[name],
+        originalValue: initialFormValue[name]
+      }
+
+      return (
+        <InnerField
+          name={name}
+          field={field}
+          render={render}
+          provider={provider}
+          component={component}
+          validateOn={validateOn}
+          validators={validators}
+          forwardProps={forwardProps}
+          initialValue={initialValue}
+        />
+      )
+    }
+
+    render() {
+      return <Consumer>{this._render}</Consumer>
+    }
+  }
+}
+
+function getInnerFieldMap<T extends object, P extends keyof T = keyof T>() {
+  const noValidators: Validator<T, P>[] = []
+  class InnerFieldMap extends React.Component<InnerFieldProps<T, P>, InnerFieldState<T, P>> {
+    constructor(props: InnerFieldProps<T, P>) {
+      super(props)
+      this.onChange = this.onChange.bind(this)
+      this.onBlur = this.onBlur.bind(this)
+      this.setValue = this.setValue.bind(this)
+      this.touch = this.touch.bind(this)
+      this.untouch = this.untouch.bind(this)
+      this.onFocus = this.onFocus.bind(this)
+      this.collectInputProps = this.collectInputProps.bind(this)
+      this.collectMetaProps = this.collectMetaProps.bind(this)
+      this.collectUtilProps = this.collectUtilProps.bind(this)
+      this.collectProps = this.collectProps.bind(this)
+      this.state = { _name: props.name }
+      const { name, provider, validators = noValidators, validateOn } = props
+      provider.registerField(name, { validators, validateOn })
+    }
+
+    static getDerivedStateFromProps(
+      np: InnerFieldProps<T, P>,
+      ps: InnerFieldState<T, P>
+    ): Partial<InnerFieldState<T, P>> | null {
+      const { initialMount, registeredFields: curr } = np.provider
+      // the field was renamed - the reason I duplidate (this.props.name) in state here
+      // is because without it there would be a single render phase when this field would
+      // not yet be registered with its new name. This way the field will continue
+      // to be rendered without every rendering null
+      if (initialMount && curr[np.name] && !curr[ps._name]) {
+        return { _name: np.name }
+      } else {
+        return null
+      }
+    }
+
+    shouldComponentUpdate(np: InnerFieldProps<T, P>, ns: InnerFieldState<T, P>) {
+      const { provider, field, forwardProps } = this.props
+      const { _name } = this.state
+      const errors = provider.errors[_name]
+      return (
+        np.provider.initialMount &&
+        (!isEqual(np.provider.registeredFields[np.name], provider.registeredFields[_name]) ||
+          !isEqual(np.field, field) ||
+          !isEqual(np.forwardProps, forwardProps) ||
+          !isEqual(errors, np.provider.errors[ns._name]))
+      )
+    }
+
+    componentDidUpdate(pp: InnerFieldProps<T, P>, ps: InnerFieldState<T, P>) {
+      const { provider, name, validators = noValidators, validateOn } = this.props
+      const { _name } = this.state
+
+      if (validators !== pp.validators) {
+        provider.registerValidators(_name, { validators, validateOn })
+      }
+      const { registeredFields: curr } = provider
+
+      if (curr[ps._name] && !curr[name]) {
+        provider.renameField(ps._name, name)
+      }
+    }
+
+    componentWillUnmount() {
+      const { provider } = this.props
+      provider.unregisterField(this.state._name)
+    }
+
+    onFocus(e: React.FocusEvent<any>): void {
+      const { provider, forwardProps, field } = this.props
+      if (forwardProps.onFocus) {
+        forwardProps.onFocus(e, field)
+      }
+      provider.setActiveField(this.state._name)
+    }
+
+    onBlur(e: React.FocusEvent<any>): void {
+      const { provider, forwardProps, field } = this.props
+      if (forwardProps.onBlur) {
+        forwardProps.onBlur(e, field)
+      }
+      provider.setActiveField(null)
+      if (field.visited || e.isDefaultPrevented()) return
+      provider.onFieldBlur(this.state._name)
+    }
+
+    onChange(e: React.ChangeEvent<any>, _i: number): void {
+      if (e.isDefaultPrevented()) return
+      this.setValue(e.target.value, _i)
+    }
+
+    setValue(value: T[P], _i: number): void {
+      const { provider, field } = this.props
+      const result: any = [...(field.value as any)]
+      result[_i] = value
+      provider.setFieldValue(this.state._name, result as T[P])
+    }
+
+    touch<K extends keyof T>(fieldNames?: K | (keyof T)[]) {
+      const { provider } = this.props
+      if (fieldNames && isArray(fieldNames)) {
+        provider.touchFields(fieldNames)
+      } else if (isString(fieldNames)) {
+        provider.touchField(fieldNames)
+      } else {
+        provider.touchField(this.state._name)
+      }
+    }
+
+    untouch<K extends keyof T>(fieldNames?: K | (keyof T)[]) {
+      const { provider } = this.props
+      if (fieldNames && isArray(fieldNames)) {
+        provider.untouchFields(fieldNames)
+      } else if (isString(fieldNames)) {
+        provider.untouchField(fieldNames)
+      } else {
+        provider.untouchField(this.state._name)
+      }
+    }
+
+    collectInputProps(value: any, _i: number): InputProps<T, P> {
+      return {
+        value,
+        name: this.state._name,
+        onFocus: this.onFocus,
+        onBlur: this.onBlur,
+        onChange: (e: React.ChangeEvent<any>) => this.onChange(e, _i)
+      }
+    }
+
+    collectMetaProps(value: any, _i: number): FieldMeta<T, P> {
+      const { provider, field } = this.props
+      const { _name } = this.state
+      const errors = provider.errors[_name]
+      const defaultValue = provider.defaultValue[_name]
+      return {
+        isDirty: provider.formIsDirty && !isEqual(field.originalValue, field.value),
+        visited: field.visited,
+        touched: field.touched,
+        isActive: provider.active === _name,
+        activeField: provider.active,
+        submitCount: provider.submitCount,
+        loaded: provider.loaded,
+        submitting: provider.submitting,
+        isValid: errors.length === 0,
+        messages: errors,
+        originalValue: field.originalValue,
+        defaultValue
+      }
+    }
+
+    collectUtilProps(value: any, _i: number): FieldMapUtils<T, P> {
+      const { provider } = this.props
+      return {
+        touch: this.touch,
+        untouch: this.untouch,
+        submit: provider.onSubmit,
+        resetForm: provider.resetForm,
+        setFieldValues: provider.setFieldValues,
+        setFieldValue: provider.setFieldValue,
+        setValue: value => this.setValue(value, _i),
+        forgetState: provider.forgetState,
+        clearForm: provider.clearForm,
+        getFormValue: provider.getFormValue
+      }
+    }
+
+    collectProps(value: any, _i: number): FieldMapProps<T, P> {
+      return {
+        input: this.collectInputProps(value, _i),
+        meta: this.collectMetaProps(value, _i),
+        utils: this.collectUtilProps(value, _i),
+        ...this.props.forwardProps
+      }
+    }
+
+    render() {
+      const { render, provider, field } = this.props
+      // delay initial render until this field is registered
+      // is this right?
+      if (!provider.registeredFields[this.state._name]) return null
+
+      // if (Component) {
+      //   return field.value.map((x: any, _i: number) => {
+      //     const props = this.collectProps(x, _i)
+      //     return <Component {...props} />
+      //   })
+      // }
+
+      if (render && Array.isArray(field.value)) {
+        return field.value.map((x: any, _i: number) => {
+          const props = this.collectProps(x, _i)
+          return (render as any)(props, _i)
+        })
+      }
+
+      return null
+    }
+  }
+
+  return InnerFieldMap
 }
