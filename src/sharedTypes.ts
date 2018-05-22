@@ -113,6 +113,14 @@ export interface FormProviderConfig<T extends object> extends Partial<ValidatorC
   rememberStateOnReinitialize?: boolean
 }
 
+export interface BaseSectionConfig<T extends object, K extends keyof T> {
+  children: React.ReactNode
+}
+export interface SectionConfig<T extends object, K extends keyof T>
+  extends BaseSectionConfig<T, K> {
+  name: K
+}
+
 export interface FieldUtils<T extends object, P extends keyof T> {
   resetForm: () => void
   getFormValue: (includeUnregisterdFields?: boolean) => T

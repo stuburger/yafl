@@ -21,6 +21,7 @@ import {
   ValidateOnCustom,
   ValidateOn,
   ValidatorConfig,
+  SectionConfig,
   FormProviderState
 } from './sharedTypes'
 import { createSection } from './Section'
@@ -36,7 +37,8 @@ export {
   ValidationType,
   ValidateOnCustom,
   ValidatorConfig,
-  ValidateOn
+  ValidateOn,
+  SectionConfig
 }
 
 export type FPC<T extends object> = FormProviderConfig<T>
@@ -124,14 +126,17 @@ export const createFormContext = <T extends object>(defaultValue: T) => {
   const Form = wrapProvider<T>(Provider, defaultValue)
   const Field = wrapConsumer<T>(Consumer)
   const FormComponent = wrapFormConsumer<T>(Consumer)
-  const fieldMap = wrapFieldMapConsumer(Consumer)
+  const FieldMap = wrapFieldMapConsumer(Consumer)
 
   return {
     Form,
     Field,
     FormComponent,
-    FieldMap: fieldMap,
-    Section: createSection(Form as any, Field as any),
+    FieldMap,
+    // createSection: function<K extends keyof T>(fieldName?: K): React.ComponentClass<BaseSectionConfig<T, K>> {
+    //   return createSection<T, K>(Form as any, Field as any, fieldName) as any
+    // },
+    Section: createSection<T, keyof T>(Form as any, Field),
     createField: function<K extends keyof T>(
       fieldName: K,
       component?: React.ComponentType<FieldProps<T, K>>

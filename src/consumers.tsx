@@ -40,6 +40,10 @@ export function wrapConsumer<T extends object, K extends keyof T = keyof T>(
       this._render = this._render.bind(this)
     }
 
+    componentWillUnmount() {
+      console.log('wrapConsumer -> FormField willUnmount')
+    }
+
     _render(provider: Provider<T, K>) {
       const { formValue, touched, blurred, initialFormValue } = provider
       const {
@@ -137,6 +141,7 @@ function getInnerField<T extends object, P extends keyof T = keyof T>() {
         np.provider.initialMount &&
         (!isEqual(np.provider.registeredFields[np.name], provider.registeredFields[_name]) ||
           !isEqual(np.field, field) ||
+          !isEqual(provider.active, np.provider.active) ||
           !isEqual(np.forwardProps, forwardProps) ||
           !isEqual(errors, np.provider.errors[ns._name]))
       )
@@ -306,6 +311,10 @@ export function createFormComponent<T extends object>(
 ): React.ComponentClass<ComponentConfig<T>> {
   const FormComponent = wrapFormConsumer<T>(Consumer)
   return class GeneralFormComponent extends React.Component<ComponentConfig<T>> {
+    componentWillUnmount() {
+      console.log('GeneralFormComponent willUnmount')
+    }
+
     render() {
       return <FormComponent component={component} {...this.props} />
     }
@@ -319,6 +328,10 @@ export function wrapFormConsumer<T extends object>(Consumer: React.Consumer<Prov
     constructor(props: ComponentConfig<T>) {
       super(props)
       this._render = this._render.bind(this)
+    }
+
+    componentWillUnmount() {
+      console.log('FormComponent willUnmount')
     }
 
     _render(provider: Provider<T>) {
@@ -347,6 +360,10 @@ function getComponent<T extends object>() {
 
     shouldComponentUpdate(nextProps: InnerGeneralComponentProps<T>) {
       return nextProps.provider.initialMount
+    }
+
+    componentWillUnmount() {
+      console.log('getFormComponent -> FormComponent willUnmount')
     }
 
     touch<K extends keyof T>(fieldNames: K | (keyof T)[]) {

@@ -59,7 +59,7 @@ const defaultMessages: string[] = []
 export function wrapProvider<T extends object>(
   Provider: React.Provider<Provider<T>>,
   defaultValue?: T
-) {
+): React.ComponentClass<FormProviderConfig<T>> {
   type VR = { [K in keyof T]: string[] }
   type FVC = { [P in keyof T]: ValidatorConfig<T, P> }
   type FPP = FormProviderConfig<T>
@@ -113,8 +113,8 @@ export function wrapProvider<T extends object>(
     static getDerivedStateFromProps = getGetDerivedStateFromProps<T>(defaultValue)
 
     static defaultProps = {
-      initialValue: {},
-      defaultValue: {},
+      initialValue: {} as T,
+      defaultValue: {} as T,
       rememberStateOnReinitialize: false,
       allowReinitialize: false,
       validateOn: default_validate_on
@@ -130,6 +130,10 @@ export function wrapProvider<T extends object>(
         const { onChange = () => {} } = this.props
         onChange(formValue)
       }
+    }
+
+    componentWillUnmount() {
+      console.log('Form willUnmount')
     }
 
     registerValidators<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>): void {
@@ -178,7 +182,7 @@ export function wrapProvider<T extends object>(
       if (inclueUnregisteredFields) {
         return formValue
       }
-      const result = {} as T
+      const result = isArray(formValue) ? ([] as T) : ({} as T)
       for (let fieldName in registeredFields) {
         result[fieldName] = formValue[fieldName]
       }
@@ -186,10 +190,19 @@ export function wrapProvider<T extends object>(
     }
 
     setFieldValue<P extends keyof T>(fieldName: P, val: T[P]): void {
-      this.setState(({ formValue: prev, touched }) => ({
-        formValue: Object.assign({}, prev, { [fieldName]: val }),
-        touched: Object.assign({}, touched, { [fieldName]: true }) // todo this isnt strongly typed
-      }))
+      const { defaultValue = {} as T } = this.props
+      this.setState(({ formValue: prev, touched }) => {
+        let formValue = shallowCopy(prev)
+        if (isArray(defaultValue)) {
+          formValue[fieldName] = val
+        } else {
+          formValue = Object.assign({}, prev, { [fieldName]: val })
+        }
+        return {
+          formValue,
+          touched: Object.assign({}, touched, { [fieldName]: true }) // todo this isnt strongly typed
+        }
+      })
     }
 
     setFieldValues(partialUpdate: Partial<T>): void {
@@ -403,7 +416,13 @@ function getGetDerivedStateFromProps<T extends object>(defaultValue?: T) {
       return state
     }
 
-    const initialValue = defaultDeep({}, np.initialValue || {}, np.defaultValue || {})
+    const base = Array.isArray(np.defaultValue) ? [] : {}
+
+    const initialValue = defaultDeep(
+      base,
+      np.initialValue || shallowCopy(base),
+      np.defaultValue || shallowCopy(base)
+    )
     if (!ps.loaded && loaded) {
       state.initialFormValue = initialValue
       state.formValue = initialValue
@@ -411,9 +430,9 @@ function getGetDerivedStateFromProps<T extends object>(defaultValue?: T) {
     }
 
     if (np.loaded && np.allowReinitialize && !isEqual(ps.initialFormValue, initialValue)) {
-      state.initialFormValue = initialValue
       state.formValue = initialValue
       if (!np.rememberStateOnReinitialize) {
+        // state.initialFormValue = initialValue  TODO
         state.submitCount = 0
         state.touched = {}
         state.blurred = {}
