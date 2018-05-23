@@ -114,7 +114,8 @@ export interface FormProviderConfig<T extends object> extends Partial<ValidatorC
 }
 
 export interface BaseSectionConfig<T extends object, K extends keyof T> {
-  children: React.ReactNode
+  defaultValue?: T[K]
+  children: React.ReactNode | ((value: T[K]) => React.ReactNode)
 }
 export interface SectionConfig<T extends object, K extends keyof T>
   extends BaseSectionConfig<T, K> {

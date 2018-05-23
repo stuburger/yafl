@@ -15,28 +15,43 @@ export const createSection = <T extends object, K extends keyof T = keyof T>(
       return createSection<P, N>(Form, Field, fieldName)
     }
 
+    constructor(props: SectionConfig<T, K>) {
+      super(props)
+      this._renderChildren = this._renderChildren.bind(this)
+    }
+
     componentWillUnmount() {
       console.log('Section willUnmount')
     }
 
+    _renderChildren(value: T[K]) {
+      const { children } = this.props
+      if (typeof children === 'function') {
+        return children(value)
+      } else {
+        return children
+      }
+    }
+
     render() {
-      const { name } = this.props
+      const { name, defaultValue } = this.props
       return (
         <Field
           name={fieldName || name}
           render={props => {
+            const { input, utils, meta } = props
             return (
               <Form
-                onSubmit={props.utils.submit}
+                onSubmit={utils.submit}
                 allowReinitialize
-                loaded={props.meta.loaded}
+                loaded={meta.loaded}
                 rememberStateOnReinitialize
-                onChange={props.utils.setValue}
-                initialValue={props.input.value as any}
-                submitting={props.meta.submitting}
-                defaultValue={props.meta.defaultValue as any}
+                onChange={utils.setValue}
+                initialValue={input.value as any}
+                submitting={meta.submitting}
+                defaultValue={defaultValue || (meta.defaultValue as any)}
               >
-                {this.props.children}
+                {this._renderChildren(input.value)}
               </Form>
             )
           }}
