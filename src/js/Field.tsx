@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { FormContextConsumer } from './Context'
+import { Consumer } from './Context'
 
 class BaseConsumer extends Component {
   constructor(props) {
@@ -14,8 +14,8 @@ class BaseConsumer extends Component {
   }
 
   registerField() {
-    const { registerField, path, validators = [], name } = this.props
-    registerField(path, this.validate)
+    const { registerField, path } = this.props
+    registerField(path)
   }
 
   unregisterField() {
@@ -57,7 +57,7 @@ export default class Field extends Component {
   render() {
     const { name, validators, render } = this.props
     return (
-      <FormContextConsumer>
+      <Consumer>
         {props => (
           <BaseConsumer
             name={name}
@@ -68,7 +68,7 @@ export default class Field extends Component {
             render={render}
           />
         )}
-      </FormContextConsumer>
+      </Consumer>
     )
   }
 }

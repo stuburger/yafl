@@ -1,8 +1,13 @@
 import React, { Component } from 'react'
-import { FormContextConsumer, FormContextProvider } from './Context'
+import { Provider, Consumer } from './Context'
 import { defaultsDeep, merge, cloneDeep } from 'lodash'
 
-class Fork extends Component {
+class ForkProvider extends Component {
+  componentWillUnmount() {
+    const { unregisterField, path } = this.props
+    unregisterField(path)
+  }
+
   render() {
     const {
       name,
@@ -18,7 +23,7 @@ class Fork extends Component {
     } = this.props
 
     return (
-      <FormContextProvider
+      <Provider
         value={{
           ...props,
           value: value[name],
@@ -30,34 +35,23 @@ class Fork extends Component {
           path: path ? path.concat([name]) : []
         }}
       >
-        {children}
-      </FormContextProvider>
-    )
-  }
-}
-
-class Section extends Component {
-  render() {
-    const { children, name, value } = this.props
-    return (
-      <Fork {...this.props}>
         {typeof children === 'function' ? children(value[name]) : children}
-      </Fork>
+      </Provider>
     )
   }
 }
 
-export default class extends Component {
+export default class Section extends Component {
   render() {
     const { children, name } = this.props
     return (
-      <FormContextConsumer>
+      <Consumer>
         {props => (
-          <Section name={name} {...props}>
+          <ForkProvider name={name} {...props}>
             {children}
-          </Section>
+          </ForkProvider>
         )}
-      </FormContextConsumer>
+      </Consumer>
     )
   }
 }
