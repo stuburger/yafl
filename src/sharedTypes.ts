@@ -19,33 +19,29 @@ export interface Contact {
 }
 
 export type Nullable<T> = { [P in keyof T]: T[P] | null }
-export type FormErrors<T> = { [P in keyof T]: T[P] extends object ? FormErrors<T[P]> : string[] }
+export type FormErrors<T = any> = {
+  [P in keyof T]: T[P] extends object ? FormErrors<T[P]> : string[]
+}
 
-export interface Provider<T extends object, P extends keyof T = keyof T>
-  extends FormProviderState<T> {
+export interface Provider<T = any> extends FormProviderState<T> {
+  value: T
+  path: Path
   defaultValue: T
-  formIsTouched: boolean
+  submitCount: number
   formIsValid: boolean
   formIsDirty: boolean
-  getFormValue: (includeUnregisterdFields?: boolean) => T
-  forgetState: (() => void)
+  formIsTouched: boolean
+  errors: FormErrors<T>
   onSubmit: (() => void)
   resetForm: (() => void)
-  submitCount: number
   clearForm: (() => void)
-  errors: { [K in keyof T]: string[] }
-  registerValidators: (<K extends keyof T>(fieldName: K, opts: ValidatorConfig<T, K>) => void)
-  registerField: (<K extends P>(fieldName: K, opts: FieldOptions<T, K>) => void)
-  renameField: (<K extends P>(prevName: K, nextName: K) => void)
-  unregisterField: (<K extends P>(fieldName: K) => void)
-  onFieldBlur: (<K extends P>(fieldName: K) => void)
-  setFieldValue: (<K extends P>(fieldName: K, value: T[K]) => void)
-  setFieldValues: (partialUpdate: Partial<T>) => void
-  touchField: (<K extends P>(fieldName: K | keyof T) => void)
-  untouchField: (<K extends P>(fieldName: K | keyof T) => void)
-  setActiveField: (<K extends P>(fieldName: K | keyof T | null) => void)
-  touchFields: (fieldNames: (keyof T)[]) => void
-  untouchFields: (fieldNames: (keyof T)[]) => void
+  forgetState: (() => void)
+  setValue: ((path: Path, value: boolean) => void)
+  touchField: ((path: Path, touched: boolean) => void)
+  visitField: ((path: Path, visited: boolean) => void)
+  renameField: ((prevName: Path, nextName: Path) => void)
+  registerField: ((path: Path, validator: AggregateValidator) => void)
+  unregisterField: ((path: Path, validator?: AggregateValidator) => void)
 }
 
 export interface FieldState<T> {
@@ -55,23 +51,36 @@ export interface FieldState<T> {
   originalValue: T
 }
 
-export type FormFieldState<T extends object> = { [K in keyof T]: FieldState<T[K]> }
+export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
 
-export interface Validator<T extends object, K extends keyof T = keyof T> {
-  // FieldState is actually not what should be passed into here. it needs to contain isDirty value
-  (value: T[K], formValue: T, fieldName: K): string | undefined
+// n.b. ret is mutated
+export interface AggregateValidator<T = any> {
+  (formValue: T, ret: FormErrors<T>): string[]
 }
 
-export type RegisteredFields<T extends object> = { [K in keyof T]?: true }
-export type Touched<T extends object> = { [K in keyof T]?: true }
-export type Blurred<T extends object> = { [K in keyof T]?: true }
-export type ActiveField<T extends object> = keyof T | null
+export interface Validator<T> {
+  (value: any, formValue: T, fieldName: Name): string | undefined
+}
 
-export type FormProviderState<T extends object> = {
+export interface FieldValidator<T = any> {
+  (value: any, formValue: T, fieldName: Name): string[]
+}
+
+export type FieldValidatorPair<T = any> = { path: Path; test: AggregateValidator<T> }
+export type FieldValidatorList<T = any> = FieldValidatorPair<T>[]
+export type Touched<T = any> = { [K in keyof T]: any extends object ? Touched<T[K]> : boolean }
+export type Blurred<T = any> = { [K in keyof T]: any extends object ? Blurred<T[K]> : boolean }
+export type RegisteredFields<T = any> = {
+  [K in keyof T]: any extends object ? RegisteredFields<T[K]> : true
+}
+
+export type ActiveField = string | null
+
+export type FormProviderState<T> = {
   initialMount: boolean
   touched: Touched<T>
   blurred: Blurred<T>
-  active: ActiveField<T>
+  active: ActiveField
   initialFormValue: T
   formValue: T
   registeredFields: RegisteredFields<T>
@@ -81,26 +90,20 @@ export type FormProviderState<T extends object> = {
   submitCount: number
 }
 
-export interface ValidatorConfig<T extends object, K extends keyof T = keyof T> {
-  validateOn?: ValidateOn<T, K>
-  validators: Validator<T, K>[]
+export interface ValidatorConfig<T> {
+  validateOn?: ValidateOn<T>
+  validators: Validator<T>[]
 }
-
-export interface FieldOptions<T extends object, K extends keyof T = keyof T>
-  extends ValidatorConfig<T, K> {}
 
 export type ValidationType = 'change' | 'blur' | 'submit'
 
-export interface ValidateOnCustom<T extends object, K extends keyof T> {
-  (field: T[K], fields: FormFieldState<T>, fieldName: K): boolean
+export interface ValidateOnCustom<T> {
+  (field: any, fields: FormFieldState<T>, fieldName: Name): boolean
 }
 
-export type ValidateOn<T extends object, K extends keyof T = keyof T> =
-  | ValidationType
-  | ValidationType[]
-  | ValidateOnCustom<T, K>
+export type ValidateOn<T> = ValidationType | ValidationType[] | ValidateOnCustom<T>
 
-export interface FormProviderConfig<T extends object> extends Partial<ValidatorConfig<T>> {
+export interface FormProviderConfig<T> extends Partial<ValidatorConfig<T>> {
   initialValue?: T
   defaultValue?: T
   onSubmit?: (formValue: Nullable<T>) => void
@@ -113,139 +116,150 @@ export interface FormProviderConfig<T extends object> extends Partial<ValidatorC
   rememberStateOnReinitialize?: boolean
 }
 
-export interface BaseSectionConfig<T extends object, K extends keyof T> {
-  defaultValue?: T[K]
-  children: React.ReactNode | ((value: T[K]) => React.ReactNode)
+export interface BaseSectionConfig<T> {
+  defaultValue?: any
+  children: React.ReactNode | ((value: any) => React.ReactNode)
 }
-export interface SectionConfig<T extends object, K extends keyof T>
-  extends BaseSectionConfig<T, K> {
-  name: K
+export interface SectionConfig<T> extends BaseSectionConfig<T> {
+  name: Name
 }
 
-export interface FieldUtils<T extends object, P extends keyof T> {
+export interface FieldUtils<T = any> {
   resetForm: () => void
   getFormValue: (includeUnregisterdFields?: boolean) => T
   submit: () => void
-  setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
+  setFieldValue: (fieldName: Name, value: any) => void
   setFieldValues: (partialUpdate: Partial<T>) => void
   forgetState: () => void
   clearForm: () => void
-  touch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
-  untouch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
-  setValue: (value: T[P]) => void
+  setValue: (value: any) => void
 }
 
-export interface FieldMapUtils<T extends object, P extends keyof T> {
-  resetForm: () => void
-  getFormValue: (includeUnregisterdFields?: boolean) => T
-  submit: () => void
-  setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
-  setFieldValues: (partialUpdate: Partial<T>) => void
-  forgetState: () => void
-  clearForm: () => void
-  touch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
-  untouch: <K extends keyof T>(fieldNames?: K | (keyof T)[]) => void
-  setValue: (value: T[P], _i: number) => void
+export interface InnerFieldState<T> {
+  _name: Name
 }
 
-export interface InnerFieldState<T extends object, K extends keyof T = keyof T> {
-  _name: K
-}
-
-export interface InnerFieldProps<T extends object, K extends keyof T = keyof T>
-  extends Partial<FieldOptions<T, K>> {
-  name: K
-  initialValue?: T[K]
-  validators: Validator<T, K>[]
-  render?: (state: FieldProps<T, K>) => React.ReactNode
-  component?: React.ComponentType<FieldProps<T, K>>
-  provider: Provider<T, K>
+export interface InnerFieldProps<T = any> extends Partial<ValidatorConfig<T>> {
+  name: Name
+  path: Path
+  initialValue?: any
+  setValue: (path: Path, value: any, validate: (value: any, formValue: T) => string[]) => void
+  validators: Validator<T>[]
+  render?: (state: FieldProps<T>) => React.ReactNode
+  component?: React.ComponentType<FieldProps<T>>
+  registerField: (path: Path, validate: (value: any, formValue: T) => string[]) => void
+  touchField: (path: Path, touched: boolean) => void
+  visitField: (path: Path, visited: boolean) => void
+  unregisterField: (path: Path) => void
   forwardProps: { [key: string]: any }
-  field: FieldState<T[K]>
+  field: FieldState<any>
 }
 
-export interface FieldMeta<T extends object, K extends keyof T = keyof T> {
+export interface FieldMeta<T = any> {
   visited: boolean
   isDirty: boolean
   touched: boolean
   isActive: boolean
-  activeField: ActiveField<T>
+  activeField: ActiveField
   submitCount: number
   loaded: boolean
   submitting: boolean
   isValid: boolean
   messages: string[]
-  originalValue: T[K]
-  defaultValue: T[K]
+  originalValue: any
+  defaultValue: any
 }
 
-export interface InputProps<T extends object, K extends keyof T> {
-  name: K
-  value: T[K]
+export interface InputProps<T = any> {
+  name: Name
+  value: any
   onBlur: (e: React.FocusEvent<any>) => void
   onFocus: (e: React.FocusEvent<any>) => void
   onChange: (e: React.ChangeEvent<any>) => void
 }
 
-export interface FieldProps<T extends object, K extends keyof T> {
-  input: InputProps<T, K>
-  meta: FieldMeta<T, K>
-  utils: FieldUtils<T, K>
+export interface FieldProps<T = any> {
+  input: InputProps<T>
+  meta: FieldMeta<T>
+  utils: FieldUtils<T>
   [key: string]: any
 }
 
-export interface FieldMapProps<T extends object, K extends keyof T> {
-  input: InputProps<T, K>
-  meta: FieldMeta<T, K>
-  utils: FieldMapUtils<T, K>
+export interface BaseFieldConfig<T = any> extends Partial<ValidatorConfig<T>> {
+  validators?: Validator<T>[]
+  render?: (state: FieldProps<T>) => React.ReactNode
+  component?: React.ComponentType<FieldProps<T>>
   [key: string]: any
 }
 
-export interface BaseFieldConfig<T extends object, K extends keyof T>
-  extends Partial<FieldOptions<T, K>> {
-  validators?: Validator<T, K>[]
-  render?: (state: FieldProps<T, K>) => React.ReactNode
-  component?: React.ComponentType<FieldProps<T, K>>
+export interface FieldConfig<T = any> extends BaseFieldConfig<T> {
+  name: Name
+}
+
+export interface ComponentConfig<T> {
+  render?: (state: ComponentProps<T>) => React.ReactNode
+  component?: React.ComponentType<ComponentProps<T>>
   [key: string]: any
 }
 
-export interface FieldConfig<T extends object, K extends keyof T = keyof T>
-  extends BaseFieldConfig<T, K> {
-  name: K
-}
-
-export interface ComponentConfig<T extends object, K extends keyof T = keyof T> {
-  render?: (state: ComponentProps<T, K>) => React.ReactNode
-  component?: React.ComponentType<ComponentProps<T, K>>
-  [key: string]: any
-}
-
-export interface FormUtils<T extends object, P extends keyof T> {
-  touch: (<K extends P>(fieldName: K | (keyof T)[]) => void)
-  untouch: (<K extends P>(fieldName: K | (keyof T)[]) => void)
+export interface FormUtils<T> {
   resetForm: () => void
   getFormValue: (includeUnregisterdFields?: boolean) => T
   submit: () => void
-  setFieldValue: <K extends P>(fieldName: K, value: T[K]) => void
+  setFieldValue: (fieldName: Name, value: any) => void
   setFieldValues: (partialUpdate: Partial<T>) => void
   forgetState: () => void
   clearForm: () => void
 }
 
-export interface FormMeta<T extends object> {
+export interface FormMeta<T> {
   initialValue: T
   isDirty: boolean
   touched: boolean
   submitCount: number
-  activeField: ActiveField<T>
+  activeField: ActiveField
   loaded: boolean
   submitting: boolean
   isValid: boolean
   errors: { [K in keyof T]: string[] }
 }
 
-export interface ComponentProps<T extends object, K extends keyof T = keyof T> {
-  utils: FormUtils<T, K>
+export interface ComponentProps<T> {
+  utils: FormUtils<T>
   state: FormMeta<T>
   [key: string]: any
+}
+
+/*******************NEW TYPES **********************************/
+
+export type Name = string | number
+
+export type Path = Name[]
+
+export interface FormProps<T = any> {
+  initialValue?: T
+  defaultValue?: T
+  onSubmit?: (formValue: T) => void
+  children: React.ReactNode
+  loaded?: boolean
+  submitting?: boolean
+  allowReinitialize?: boolean
+  rememberStateOnReinitialize?: boolean
+}
+
+export interface FormState<T = any> {
+  initialMount: boolean
+  touched: Touched<T>
+  blurred: Blurred<T>
+  active: string | null
+  initialFormValue: T
+  value: T
+  registeredFields: RegisteredFields<T>
+  isBusy: boolean
+  loaded: boolean
+  submitting: boolean
+  formIsDirty: boolean
+  formIsValid: boolean
+  formIsTouched: boolean
+  submitCount: number
 }

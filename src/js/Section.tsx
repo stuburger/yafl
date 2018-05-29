@@ -1,8 +1,14 @@
 import React, { Component } from 'react'
 import { Provider, Consumer } from './Context'
-import { defaultsDeep, merge, cloneDeep } from 'lodash'
+import { Name, Provider as P, FormErrors, Blurred, Touched, RegisteredFields } from '../sharedTypes'
 
-class ForkProvider extends Component {
+export interface ForkProviderConfig<T = any> extends P<T> {
+  name: Name
+  errors: FormErrors<T>
+  children: React.ReactNode | ((value: any) => React.ReactNode)
+}
+
+class ForkProvider extends Component<ForkProviderConfig> {
   componentWillUnmount() {
     const { unregisterField, path } = this.props
     unregisterField(path)
@@ -27,11 +33,11 @@ class ForkProvider extends Component {
         value={{
           ...props,
           value: value[name],
-          errors: errors[name],
-          touched: touched[name],
-          blurred: blurred[name],
+          errors: errors[name] as FormErrors,
+          touched: touched[name] as Touched,
+          blurred: blurred[name] as Blurred,
           defaultValue: defaultValue[name],
-          registeredFields: registeredFields[name],
+          registeredFields: registeredFields[name] as RegisteredFields,
           path: path ? path.concat([name]) : []
         }}
       >
@@ -41,12 +47,17 @@ class ForkProvider extends Component {
   }
 }
 
-export default class Section extends Component {
+export interface SectionConfig<T = any> {
+  name: Name
+  children: React.ReactNode | ((value: any) => React.ReactNode)
+}
+
+export default class Section extends Component<SectionConfig> {
   render() {
     const { children, name } = this.props
     return (
       <Consumer>
-        {props => (
+        {(props: P) => (
           <ForkProvider name={name} {...props}>
             {children}
           </ForkProvider>

@@ -1,8 +1,13 @@
 import React, { Component } from 'react'
 import { Consumer } from './Context'
+import { InnerFieldProps, FieldConfig, FormErrors } from '../sharedTypes'
+import { get, set } from 'lodash'
 
-class BaseConsumer extends Component {
-  constructor(props) {
+// formValue here cannot be accessed via this.props.formValue
+// since this function is only called in the parent form to
+// compute form errors (errors are not stored in state)
+class FieldConsumer extends Component<InnerFieldProps> {
+  constructor(props: InnerFieldProps) {
     super(props)
     this.registerField = this.registerField.bind(this)
     this.unregisterField = this.unregisterField.bind(this)
@@ -13,53 +18,70 @@ class BaseConsumer extends Component {
     this.registerField()
   }
 
-  registerField() {
+  registerField(): void {
     const { registerField, path } = this.props
-    registerField(path)
+    registerField(path, this.validate)
   }
 
-  unregisterField() {
+  unregisterField(): void {
     const { path, unregisterField } = this.props
     unregisterField(path)
   }
 
-  validate(value, formValue) {
-    const { name, validators = [] } = this.props
-    return validators.map(test => test(value, formValue, name)).filter(x => x)
+  validate(formValue: any, ret: FormErrors): string[] {
+    const { name, path, validators = [] } = this.props
+    const nextValue = get(formValue, path)
+    const errors = validators
+      .map(test => test(nextValue, formValue, name))
+      .filter(x => x !== undefined)
+
+    if (ret) {
+      set(ret, path, errors)
+    }
+
+    return errors as string[]
   }
 
-  setValue(value) {
+  setValue(value: any): void {
     const { path, setValue } = this.props
     setValue(path, value, this.validate)
   }
 
-  touchField() {
+  touchField(touched: boolean): void {
     const { touchField, path } = this.props
-    touchField(path)
+    touchField(path, touched)
   }
 
-  visitField() {
+  visitField(visited: boolean): void {
     const { visitField, path } = this.props
-    visitField(path)
+    visitField(path, visited)
   }
 
   render() {
-    const { render, ...props } = this.props
-    return render({
-      ...props,
-      setValue: this.setValue,
-      onBlur: this.visitField
-    })
+    const { render, component: Component, ...props } = this.props
+
+    if (Component) {
+      return <Component {...props} />
+    }
+
+    if (render) {
+      return render({
+        ...props,
+        setValue: this.setValue,
+        onBlur: this.visitField
+      })
+    }
+    return null
   }
 }
 
-export default class Field extends Component {
+export default class Field extends Component<FieldConfig> {
   render() {
     const { name, validators, render } = this.props
     return (
       <Consumer>
         {props => (
-          <BaseConsumer
+          <FieldConsumer
             name={name}
             validators={validators}
             {...props}

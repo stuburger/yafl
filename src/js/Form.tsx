@@ -1,8 +1,15 @@
 import React, { Component } from 'react'
-import { isEqual, cloneDeep, defaultsDeep, set, unset } from 'lodash'
+import { isEqual, cloneDeep, defaultsDeep } from 'lodash'
 import { Provider } from './Context'
-import { Touched, Blurred, RegisteredFields, FormErrors } from '../sharedTypes'
-import { bind, trueIfAbsent } from '../utils'
+import {
+  Path,
+  FormProps,
+  FormState,
+  FieldValidatorList,
+  FormErrors,
+  AggregateValidator
+} from '../sharedTypes'
+import { bind, trueIfAbsent, s, us } from '../utils'
 
 const noop = (...params: any[]) => {
   console.log('not loaded or field non existent')
@@ -20,49 +27,8 @@ function onlyIfLoaded(func: any, defaultFunc = noop) {
   })
 }
 
-export type Path = (string | number | (string & number))[]
-
-function s(obj: any, path: Path, val: any) {
-  return set(cloneDeep(obj), path, val)
-}
-
-function us(obj: any, path: Path) {
-  const ret = cloneDeep(obj)
-  unset(ret, path)
-  return ret
-}
-
-export interface FormProps {
-  initialValue?: any
-  defaultValue?: any
-  onSubmit?: (formValue: any) => void
-  onChange?: (formValue: any) => void
-  children: React.ReactNode
-  loaded?: boolean
-  submitting?: boolean
-  allowReinitialize?: boolean
-  rememberStateOnReinitialize?: boolean
-}
-
-export interface FormState {
-  initialMount: boolean
-  touched: Touched<object>
-  blurred: Blurred<object>
-  active: string | null
-  initialFormValue: any
-  value: any
-  registeredFields: RegisteredFields<object>
-  isBusy: boolean
-  loaded: boolean
-  submitting: boolean
-  formIsDirty: boolean
-  formIsValid: boolean
-  formIsTouched: boolean
-  errors: FormErrors<object>
-  submitCount: number
-}
-
 export default class Form extends Component<FormProps, FormState> {
+  validators: FieldValidatorList = []
   constructor(props: FormProps) {
     super(props)
 
@@ -77,6 +43,7 @@ export default class Form extends Component<FormProps, FormState> {
     this.setActiveField = loadedGuard(this.setActiveField)
     this.renameField = loadedGuard(this.renameField)
     this.resetForm = loadedGuard(this.resetForm)
+    this.buildErrors = bind(this, this.buildErrors)
     this.registerField = bind(this, this.registerField)
     this.unregisterField = bind(this, this.unregisterField)
     this.state = {
@@ -91,7 +58,6 @@ export default class Form extends Component<FormProps, FormState> {
       formIsDirty: false,
       formIsValid: true,
       formIsTouched: false,
-      errors: {},
       registeredFields: {},
       initialFormValue: {},
       submitCount: 0
@@ -112,22 +78,24 @@ export default class Form extends Component<FormProps, FormState> {
     this.setState({ initialMount: true })
   }
 
-  registerField(path: Path) {
-    this.setState(({ registeredFields, errors, touched, blurred }) => {
+  registerField(path: Path, test: AggregateValidator) {
+    this.validators.push({ path, test })
+    this.setState(({ registeredFields, touched, blurred }) => {
       return {
         registeredFields: s(registeredFields, path, true),
-        errors: s(errors, path, []),
         touched: s(touched, path, false),
         blurred: s(blurred, path, false)
       }
     })
   }
 
-  unregisterField(path: Path) {
-    this.setState(({ registeredFields, errors, touched, blurred }) => {
+  unregisterField(path: Path, test?: AggregateValidator) {
+    if (test) {
+      this.validators.filter(validator => validator.test !== test)
+    }
+    this.setState(({ registeredFields, touched, blurred }) => {
       return {
         registeredFields: us(registeredFields, path),
-        errors: us(errors, path),
         touched: us(touched, path),
         blurred: us(blurred, path)
       }
@@ -142,34 +110,29 @@ export default class Form extends Component<FormProps, FormState> {
     onSubmit(this.state.value)
   }
 
-  setValue(
-    path: Path,
-    val: any,
-    validateField: (value: any, formValue: any, name: string | number) => string[]
-  ) {
-    this.setState(({ value, touched, errors }) => {
+  setValue(path: Path, val: any) {
+    this.setState(({ value, touched }) => {
       const newValue = s(value, path, val)
       return {
         value: newValue,
-        touched: s(touched, path, true),
-        errors: s(errors, path, validateField(val, newValue, path[path.length - 1]))
+        touched: s(touched, path, true)
       }
     })
   }
 
-  renameField(prevName: string, nextName: string) {
+  renameField(prevName: Path, nextName: Path) {
     // todo
   }
 
-  touchField(path: Path) {
+  touchField(path: Path, touched: boolean) {
     this.setState(({ touched }) => ({
-      touched: s(touched, path, true)
+      touched: s(touched, path, touched)
     }))
   }
 
-  visitField(path: Path) {
+  visitField(path: Path, visited: boolean) {
     this.setState(({ blurred }) => ({
-      blurred: s(blurred, path, true)
+      blurred: s(blurred, path, visited)
     }))
   }
 
@@ -196,17 +159,26 @@ export default class Form extends Component<FormProps, FormState> {
 
   forgetState() {
     this.setState(({ touched, blurred }) => ({
-      touched: {},
-      blurred: {},
+      touched: {}, // todo
+      blurred: {}, // todo
       submitCount: 0
     }))
+  }
+
+  buildErrors(): FormErrors {
+    const { value } = this.state
+    const ret: FormErrors = {}
+    this.validators.forEach(({ test }) => test(value, ret))
+    return ret
   }
 
   render() {
     return (
       <Provider
         value={{
+          path: [],
           ...this.state,
+          errors: this.buildErrors(),
           onSubmit: this.submit,
           setValue: this.setValue,
           clearForm: this.clearForm,
@@ -216,11 +188,9 @@ export default class Form extends Component<FormProps, FormState> {
           touchField: this.touchField,
           renameField: this.renameField,
           forgetState: this.forgetState,
-          setActiveField: this.setActiveField,
           registerField: this.registerField,
           unregisterField: this.unregisterField,
-          defaultValue: this.props.defaultValue,
-          path: []
+          defaultValue: this.props.defaultValue
         }}
       >
         {this.props.children}
