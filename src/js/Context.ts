@@ -1,25 +1,25 @@
 import React from 'react'
 import {
   Provider as P,
-  FormProviderState,
   Noop,
   FormErrors,
   Path,
   AggregateValidator,
   Blurred,
   Touched,
-  RegisteredFields
+  RegisteredFields,
+  FormState
 } from '../sharedTypes'
 
 /* @internal */
-interface DefaultProviderValue<T> extends FormProviderState<T> {
-  value: T
+interface DefaultProviderValue<T> extends FormState<T> {
+  value: any
   path: Path
-  defaultValue: T
-  submitCount: number
+  defaultValue: any
+  initialValue: T
+  defaultFormValue: T
   formIsValid: boolean
   formIsDirty: boolean
-  formIsTouched: boolean
   errors: FormErrors<T>
   onSubmit: (() => void) | Noop
   resetForm: (() => void) | Noop
@@ -29,6 +29,7 @@ interface DefaultProviderValue<T> extends FormProviderState<T> {
   touchField: ((path: Path, touched: boolean) => void) | Noop
   visitField: ((path: Path, visited: boolean) => void) | Noop
   renameField: ((prevName: Path, nextName: Path) => void) | Noop
+  setFormValue: ((value: Partial<T>, overwrite: boolean) => void) | Noop
   registerField: ((path: Path, validator: AggregateValidator) => void) | Noop
   unregisterField: ((path: Path, validator?: AggregateValidator) => void) | Noop
 }
@@ -40,15 +41,17 @@ function noop(): never {
 function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
   return {
     path: [],
+    value: {},
     touched: {} as Touched<T>,
     blurred: {} as Blurred<T>,
-    active: null,
+    active: [] as Path,
     initialMount: false,
     registeredFields: {} as RegisteredFields<T>,
-    defaultValue: {} as T,
     formValue: {} as T,
-    value: {} as T,
+    initialValue: {} as T,
+    defaultValue: {} as T,
     initialFormValue: {} as T,
+    defaultFormValue: {} as T,
     isBusy: false,
     loaded: false,
     formIsTouched: false,
@@ -65,6 +68,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     renameField: noop,
     forgetState: noop,
     visitField: noop,
+    setFormValue: noop,
     registerField: noop,
     unregisterField: noop
   }

@@ -1,11 +1,77 @@
 import React, { Component } from 'react'
 import { Consumer } from './Context'
-import { InnerFieldProps, FieldConfig, FormErrors } from '../sharedTypes'
+import {
+  FormErrors,
+  Name,
+  Validator,
+  ValidatorConfig,
+  Provider as P,
+  Blurred,
+  Touched,
+  Path
+} from '../sharedTypes'
 import { get, set } from 'lodash'
+import { isEqual } from '../utils'
 
-// formValue here cannot be accessed via this.props.formValue
-// since this function is only called in the parent form to
-// compute form errors (errors are not stored in state)
+export interface InputProps<T = any> {
+  name: Name
+  value: any
+  onBlur: (e: React.FocusEvent<any>) => void
+  onFocus: (e: React.FocusEvent<any>) => void
+  onChange: (e: React.ChangeEvent<any>) => void
+}
+
+export interface FieldProps<T = any> {
+  input: InputProps<T>
+  meta: FieldMeta<T>
+  utils: FieldUtils<T>
+  [key: string]: any
+}
+
+export interface FieldConfig<T = any> {
+  name: Name
+  validators?: Validator<T>[]
+  render?: (state: FieldProps<T>) => React.ReactNode
+  component?: React.ComponentType<FieldProps<T>>
+  [key: string]: any
+}
+
+export interface FieldUtils<T = any> {
+  resetForm: () => void
+  submit: () => void
+  setFormValue: ((value: Partial<T>, overwrite: boolean) => void)
+  forgetState: () => void
+  clearForm: () => void
+  setValue: (value: any) => void
+}
+
+export interface FieldMeta<T = any> {
+  visited: Blurred<T>
+  isDirty: boolean
+  touched: Touched<T>
+  isActive: boolean
+  activeField: Path
+  submitCount: number
+  loaded: boolean
+  submitting: boolean
+  isValid: boolean
+  errors: string[]
+  initialValue: any
+  defaultValue: any
+}
+
+export interface InnerFieldProps<T = any> extends P<T>, Partial<ValidatorConfig<T>> {
+  name: Name
+  formValue: T
+  value: any
+  errors: any // string[]
+  initialValue: any
+  validators: Validator<T>[]
+  forwardProps: { [key: string]: any }
+  render?: (state: FieldProps<T>) => React.ReactNode
+  component?: React.ComponentType<FieldProps<T>>
+}
+
 class FieldConsumer extends Component<InnerFieldProps> {
   constructor(props: InnerFieldProps) {
     super(props)
@@ -15,6 +81,10 @@ class FieldConsumer extends Component<InnerFieldProps> {
     this.touchField = this.touchField.bind(this)
     this.visitField = this.visitField.bind(this)
     this.validate = this.validate.bind(this)
+    this.onBlur = this.onBlur.bind(this)
+    this.onChange = this.onChange.bind(this)
+    this.onFocus = this.onFocus.bind(this)
+    this.collectProps = this.collectProps.bind(this)
     this.registerField()
   }
 
@@ -44,7 +114,7 @@ class FieldConsumer extends Component<InnerFieldProps> {
 
   setValue(value: any): void {
     const { path, setValue } = this.props
-    setValue(path, value, this.validate)
+    setValue(path, value)
   }
 
   touchField(touched: boolean): void {
@@ -57,37 +127,126 @@ class FieldConsumer extends Component<InnerFieldProps> {
     visitField(path, visited)
   }
 
-  render() {
-    const { render, component: Component, ...props } = this.props
+  onChange(e: React.ChangeEvent<any>) {
+    const { forwardProps } = this.props
+    if (forwardProps.onChange) {
+      forwardProps.onChange(e)
+    }
+    if (e.isDefaultPrevented()) return
+    this.setValue(e.target.value)
+  }
 
+  onFocus(e: React.FocusEvent<any>): void {
+    const { forwardProps } = this.props
+    if (forwardProps.onFocus) {
+      forwardProps.onFocus(e)
+    }
+    // this.setActiveField() todo
+  }
+
+  onBlur(e: React.FocusEvent<any>) {
+    const { blurred, forwardProps } = this.props
+    if (forwardProps.onBlur) {
+      forwardProps.onBlur(e)
+    }
+    // this.setActiveField(null) todo
+    if (blurred || e.isDefaultPrevented()) return
+    this.visitField(true)
+  }
+
+  collectProps(): FieldProps {
+    const {
+      name,
+      formValue,
+      value,
+      resetForm,
+      onSubmit,
+      setFormValue,
+      forgetState,
+      clearForm,
+      blurred,
+      formIsDirty,
+      active,
+      touched,
+      submitCount,
+      submitting,
+      errors,
+      initialFormValue,
+      initialValue,
+      defaultValue,
+      path,
+      render,
+      loaded,
+      component,
+      ...props
+    } = this.props
+
+    const input: InputProps = {
+      name,
+      value,
+      onFocus: this.onFocus,
+      onBlur: this.onBlur,
+      onChange: this.onChange
+    }
+
+    const meta: FieldMeta = {
+      visited: blurred,
+      touched,
+      activeField: active,
+      isActive: isEqual(active, path),
+      submitCount,
+      isDirty: formIsDirty || isEqual(initialValue, formValue),
+      errors,
+      isValid: errors.length === 0,
+      loaded,
+      submitting,
+      initialValue,
+      defaultValue
+    }
+
+    const utils: FieldUtils = {
+      resetForm,
+      submit: onSubmit,
+      setFormValue,
+      forgetState,
+      clearForm,
+      setValue: this.setValue
+    }
+
+    return { input, meta, utils, ...props }
+  }
+
+  render() {
+    const { render, component: Component } = this.props
+
+    const props = this.collectProps()
     if (Component) {
       return <Component {...props} />
     }
 
     if (render) {
-      return render({
-        ...props,
-        setValue: this.setValue,
-        onBlur: this.visitField
-      })
+      return render(props)
     }
     return null
   }
 }
 
-export default class Field extends Component<FieldConfig> {
+export default class Field extends Component<FieldConfig<any>> {
   render() {
-    const { name, validators, render } = this.props
+    const { name, validators = [], render, component, children, ...forwardProps } = this.props
     return (
       <Consumer>
         {props => (
           <FieldConsumer
             name={name}
             validators={validators}
-            {...props}
             path={props.path.concat([name])}
             value={props.value[name]}
             render={render}
+            component={component}
+            children={children}
+            forwardProps={forwardProps}
+            {...props}
           />
         )}
       </Consumer>

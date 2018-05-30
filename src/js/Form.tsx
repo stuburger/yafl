@@ -1,13 +1,13 @@
 import React, { Component } from 'react'
-import { isEqual, cloneDeep, defaultsDeep } from 'lodash'
+import { isEqual, cloneDeep, defaultsDeep, merge } from 'lodash'
 import { Provider } from './Context'
 import {
   Path,
-  FormProps,
-  FormState,
   FieldValidatorList,
   FormErrors,
-  AggregateValidator
+  AggregateValidator,
+  ValidatorConfig,
+  FormState
 } from '../sharedTypes'
 import { bind, trueIfAbsent, s, us } from '../utils'
 
@@ -27,9 +27,20 @@ function onlyIfLoaded(func: any, defaultFunc = noop) {
   })
 }
 
-export default class Form extends Component<FormProps, FormState> {
+export interface FormConfig<T = any> extends ValidatorConfig<T> {
+  initialValue?: T
+  defaultValue?: T
+  onSubmit?: (formValue: T) => void
+  children: React.ReactNode
+  loaded?: boolean
+  submitting?: boolean
+  allowReinitialize?: boolean
+  rememberStateOnReinitialize?: boolean
+}
+
+export default class Form extends Component<FormConfig, FormState> {
   validators: FieldValidatorList = []
-  constructor(props: FormProps) {
+  constructor(props: FormConfig) {
     super(props)
 
     const loadedGuard = bind(this, onlyIfLoaded)
@@ -43,20 +54,19 @@ export default class Form extends Component<FormProps, FormState> {
     this.setActiveField = loadedGuard(this.setActiveField)
     this.renameField = loadedGuard(this.renameField)
     this.resetForm = loadedGuard(this.resetForm)
+    this.setFormValue = loadedGuard(this.setFormValue)
     this.buildErrors = bind(this, this.buildErrors)
     this.registerField = bind(this, this.registerField)
     this.unregisterField = bind(this, this.unregisterField)
     this.state = {
       initialMount: false,
-      value: {},
-      active: null,
+      formValue: {},
+      active: [],
       touched: {},
       blurred: {},
       loaded: false,
       isBusy: false,
       submitting: false,
-      formIsDirty: false,
-      formIsValid: true,
       formIsTouched: false,
       registeredFields: {},
       initialFormValue: {},
@@ -107,15 +117,24 @@ export default class Form extends Component<FormProps, FormState> {
     this.setState(({ submitCount }) => ({
       submitCount: submitCount + 1
     }))
-    onSubmit(this.state.value)
+    onSubmit(this.state.formValue)
   }
 
   setValue(path: Path, val: any) {
-    this.setState(({ value, touched }) => {
-      const newValue = s(value, path, val)
+    this.setState(({ formValue, touched }) => {
+      const newValue = s(formValue, path, val)
       return {
-        value: newValue,
+        formValue: newValue,
         touched: s(touched, path, true)
+      }
+    })
+  }
+
+  // val is of type T
+  setFormValue(val: any, overwrite = false) {
+    this.setState(({ formValue }) => {
+      return {
+        formValue: overwrite ? val : merge({}, formValue, val)
       }
     })
   }
@@ -137,13 +156,13 @@ export default class Form extends Component<FormProps, FormState> {
   }
 
   setActiveField(path: Path) {
-    this.setState(() => ({ active: path.join('.') }))
+    // this.setState(() => ({ active: path.join('.') }))
   }
 
   clearForm() {
     const { defaultValue = {} as any } = this.props
     this.setState({
-      value: defaultValue,
+      formValue: defaultValue,
       touched: {},
       blurred: {},
       submitCount: 0
@@ -152,7 +171,7 @@ export default class Form extends Component<FormProps, FormState> {
 
   resetForm() {
     this.setState(({ initialFormValue }) => ({
-      value: initialFormValue,
+      formValue: initialFormValue,
       submitCount: 0
     }))
   }
@@ -166,31 +185,37 @@ export default class Form extends Component<FormProps, FormState> {
   }
 
   buildErrors(): FormErrors {
-    const { value } = this.state
+    const { formValue } = this.state
     const ret: FormErrors = {}
-    this.validators.forEach(({ test }) => test(value, ret))
+    this.validators.forEach(({ test }) => test(formValue, ret))
     return ret
   }
 
   render() {
+    const { defaultValue } = this.props
     return (
       <Provider
         value={{
           path: [],
           ...this.state,
+          defaultValue,
+          formIsValid: true,
+          formIsDirty: false,
           errors: this.buildErrors(),
           onSubmit: this.submit,
           setValue: this.setValue,
           clearForm: this.clearForm,
           resetForm: this.resetForm,
-          formValue: this.state.value,
+          value: this.state.formValue,
           visitField: this.visitField,
           touchField: this.touchField,
+          defaultFormValue: defaultValue,
           renameField: this.renameField,
           forgetState: this.forgetState,
+          setFormValue: this.setFormValue,
           registerField: this.registerField,
           unregisterField: this.unregisterField,
-          defaultValue: this.props.defaultValue
+          initialValue: this.state.initialFormValue
         }}
       >
         {this.props.children}
@@ -199,7 +224,7 @@ export default class Form extends Component<FormProps, FormState> {
   }
 }
 
-function getDerivedStateFromProps(np: FormProps, ps: FormState): Partial<FormState> {
+function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormState> {
   const loaded = trueIfAbsent(np.loaded)
   const submitting = !!np.submitting
 
@@ -210,7 +235,7 @@ function getDerivedStateFromProps(np: FormProps, ps: FormState): Partial<FormSta
   }
 
   if (!loaded) {
-    state.value = np.defaultValue || {}
+    state.formValue = np.defaultValue || {}
     return state
   }
 
@@ -223,12 +248,12 @@ function getDerivedStateFromProps(np: FormProps, ps: FormState): Partial<FormSta
   )
   if (!ps.loaded && loaded) {
     state.initialFormValue = initialValue
-    state.value = initialValue
+    state.formValue = initialValue
     return state
   }
 
   if (np.loaded && np.allowReinitialize && !isEqual(ps.initialFormValue, initialValue)) {
-    state.value = initialValue
+    state.formValue = initialValue
     if (!np.rememberStateOnReinitialize) {
       // state.initialFormValue = initialValue  TODO
       state.submitCount = 0

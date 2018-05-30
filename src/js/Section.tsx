@@ -4,7 +4,6 @@ import { Name, Provider as P, FormErrors, Blurred, Touched, RegisteredFields } f
 
 export interface ForkProviderConfig<T = any> extends P<T> {
   name: Name
-  errors: FormErrors<T>
   children: React.ReactNode | ((value: any) => React.ReactNode)
 }
 
@@ -22,7 +21,6 @@ class ForkProvider extends Component<ForkProviderConfig> {
       touched = {},
       blurred = {},
       errors = {},
-      defaultValue = {},
       registeredFields = {},
       path,
       ...props
@@ -36,7 +34,6 @@ class ForkProvider extends Component<ForkProviderConfig> {
           errors: errors[name] as FormErrors,
           touched: touched[name] as Touched,
           blurred: blurred[name] as Blurred,
-          defaultValue: defaultValue[name],
           registeredFields: registeredFields[name] as RegisteredFields,
           path: path ? path.concat([name]) : []
         }}
