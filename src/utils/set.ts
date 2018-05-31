@@ -1,12 +1,12 @@
-import { cloneDeep, set, unset } from 'lodash'
+import * as _ from 'lodash'
 import { Path } from '../sharedTypes'
 
 export function s<T extends object>(obj: T, path: Path, val: any): T {
-  return set(cloneDeep(obj), path, val)
+  return _.set(_.cloneDeep(obj), path, val)
 }
 
 export function us<T extends object>(obj: T, path: Path): T {
-  const ret = cloneDeep(obj)
-  unset(ret, path)
+  const ret = _.cloneDeep(obj)
+  _.unset(ret, path)
   return ret
 }

@@ -10,7 +10,7 @@ import {
   Touched,
   Path
 } from '../sharedTypes'
-import { get, set } from 'lodash'
+import * as _ from 'lodash'
 import { isEqual } from '../utils'
 
 export interface InputProps<T = any> {
@@ -100,13 +100,13 @@ class FieldConsumer extends Component<InnerFieldProps> {
 
   validate(formValue: any, ret: FormErrors): string[] {
     const { name, path, validators = [] } = this.props
-    const nextValue = get(formValue, path)
+    const nextValue = _.get(formValue, path)
     const errors = validators
       .map(test => test(nextValue, formValue, name))
       .filter(x => x !== undefined)
 
     if (ret) {
-      set(ret, path, errors)
+      _.set(ret, path, errors)
     }
 
     return errors as string[]
@@ -159,18 +159,21 @@ class FieldConsumer extends Component<InnerFieldProps> {
       name,
       formValue,
       value,
+      visitField,
+      touchField,
       resetForm,
       onSubmit,
       setFormValue,
       forgetState,
       clearForm,
       blurred,
+      setValue,
       formIsDirty,
       active,
       touched,
       submitCount,
       submitting,
-      errors,
+      errors = [],
       initialFormValue,
       initialValue,
       defaultValue,
@@ -238,6 +241,7 @@ export default class Field extends Component<FieldConfig<any>> {
       <Consumer>
         {props => (
           <FieldConsumer
+            {...props}
             name={name}
             validators={validators}
             path={props.path.concat([name])}
@@ -246,7 +250,6 @@ export default class Field extends Component<FieldConfig<any>> {
             component={component}
             children={children}
             forwardProps={forwardProps}
-            {...props}
           />
         )}
       </Consumer>

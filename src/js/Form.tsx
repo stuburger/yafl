@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { isEqual, cloneDeep, defaultsDeep, merge } from 'lodash'
+import * as _ from 'lodash'
 import { Provider } from './Context'
 import {
   Path,
@@ -134,7 +134,7 @@ export default class Form extends Component<FormConfig, FormState> {
   setFormValue(val: any, overwrite = false) {
     this.setState(({ formValue }) => {
       return {
-        formValue: overwrite ? val : merge({}, formValue, val)
+        formValue: overwrite ? val : _.merge({}, formValue, val)
       }
     })
   }
@@ -241,10 +241,10 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
 
   const base = Array.isArray(np.defaultValue) ? [] : {}
 
-  const initialValue = defaultsDeep(
+  const initialValue = _.defaultsDeep(
     base,
-    np.initialValue || cloneDeep(base),
-    np.defaultValue || cloneDeep(base)
+    np.initialValue || _.cloneDeep(base),
+    np.defaultValue || _.cloneDeep(base)
   )
   if (!ps.loaded && loaded) {
     state.initialFormValue = initialValue
@@ -252,7 +252,7 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
     return state
   }
 
-  if (np.loaded && np.allowReinitialize && !isEqual(ps.initialFormValue, initialValue)) {
+  if (np.loaded && np.allowReinitialize && !_.isEqual(ps.initialFormValue, initialValue)) {
     state.formValue = initialValue
     if (!np.rememberStateOnReinitialize) {
       // state.initialFormValue = initialValue  TODO

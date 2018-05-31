@@ -22,7 +22,7 @@ class ForkProvider extends Component<ForkProviderConfig> {
       blurred = {},
       errors = {},
       registeredFields = {},
-      path,
+      path = [],
       ...props
     } = this.props
 
@@ -35,7 +35,7 @@ class ForkProvider extends Component<ForkProviderConfig> {
           touched: touched[name] as Touched,
           blurred: blurred[name] as Blurred,
           registeredFields: registeredFields[name] as RegisteredFields,
-          path: path ? path.concat([name]) : []
+          path: path.concat([name])
         }}
       >
         {typeof children === 'function' ? children(value[name]) : children}
@@ -54,7 +54,7 @@ export default class Section extends Component<SectionConfig> {
     const { children, name } = this.props
     return (
       <Consumer>
-        {(props: P) => (
+        {props => (
           <ForkProvider name={name} {...props}>
             {children}
           </ForkProvider>
