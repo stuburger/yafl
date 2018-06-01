@@ -38,6 +38,7 @@ export interface Provider<T = any> extends FormState<T> {
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
+  setActiveField: ((path: Path) => void)
   setValue: ((path: Path, value: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)

@@ -137,19 +137,19 @@ class FieldConsumer extends Component<InnerFieldProps> {
   }
 
   onFocus(e: React.FocusEvent<any>): void {
-    const { forwardProps } = this.props
+    const { forwardProps, setActiveField, path } = this.props
     if (forwardProps.onFocus) {
       forwardProps.onFocus(e)
     }
-    // this.setActiveField() todo
+    setActiveField(path)
   }
 
   onBlur(e: React.FocusEvent<any>) {
-    const { blurred, forwardProps } = this.props
+    const { blurred, setActiveField, forwardProps } = this.props
     if (forwardProps.onBlur) {
       forwardProps.onBlur(e)
     }
-    // this.setActiveField(null) todo
+    setActiveField([])
     if (blurred || e.isDefaultPrevented()) return
     this.visitField(true)
   }
@@ -159,29 +159,23 @@ class FieldConsumer extends Component<InnerFieldProps> {
       name,
       formValue,
       value,
-      visitField,
-      touchField,
       resetForm,
       onSubmit,
       setFormValue,
       forgetState,
       clearForm,
       blurred,
-      setValue,
       formIsDirty,
       active,
       touched,
       submitCount,
       submitting,
       errors = [],
-      initialFormValue,
       initialValue,
       defaultValue,
       path,
-      render,
       loaded,
-      component,
-      ...props
+      forwardProps
     } = this.props
 
     const input: InputProps = {
@@ -203,8 +197,8 @@ class FieldConsumer extends Component<InnerFieldProps> {
       isValid: errors.length === 0,
       loaded,
       submitting,
-      initialValue,
-      defaultValue
+      initialValue, //: _.get(initialValue, path),
+      defaultValue //: _.get(defaultValue, path)
     }
 
     const utils: FieldUtils = {
@@ -216,7 +210,7 @@ class FieldConsumer extends Component<InnerFieldProps> {
       setValue: this.setValue
     }
 
-    return { input, meta, utils, ...props }
+    return { input, meta, utils, ...forwardProps }
   }
 
   render() {
@@ -239,19 +233,24 @@ export default class Field extends Component<FieldConfig<any>> {
     const { name, validators = [], render, component, children, ...forwardProps } = this.props
     return (
       <Consumer>
-        {props => (
-          <FieldConsumer
-            {...props}
-            name={name}
-            validators={validators}
-            path={props.path.concat([name])}
-            value={props.value[name]}
-            render={render}
-            component={component}
-            children={children}
-            forwardProps={forwardProps}
-          />
-        )}
+        {({ path, value, errors, initialValue, defaultValue, ...props }) => {
+          return (
+            <FieldConsumer
+              {...props}
+              name={name}
+              validators={validators}
+              path={path.concat([name])}
+              value={value && value[name]}
+              initialValue={initialValue && initialValue[name]}
+              defaultValue={defaultValue && defaultValue[name]}
+              errors={errors && errors[name]}
+              render={render}
+              component={component}
+              children={children}
+              forwardProps={forwardProps}
+            />
+          )
+        }}
       </Consumer>
     )
   }

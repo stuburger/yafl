@@ -155,8 +155,8 @@ export default class Form extends Component<FormConfig, FormState> {
     }))
   }
 
-  setActiveField(path: Path) {
-    // this.setState(() => ({ active: path.join('.') }))
+  setActiveField(active: Path) {
+    this.setState({ active })
   }
 
   clearForm() {
@@ -214,6 +214,7 @@ export default class Form extends Component<FormConfig, FormState> {
           forgetState: this.forgetState,
           setFormValue: this.setFormValue,
           registerField: this.registerField,
+          setActiveField: this.setActiveField,
           unregisterField: this.unregisterField,
           initialValue: this.state.initialFormValue
         }}

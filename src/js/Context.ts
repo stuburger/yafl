@@ -25,6 +25,7 @@ interface DefaultProviderValue<T> extends FormState<T> {
   resetForm: (() => void) | Noop
   clearForm: (() => void) | Noop
   forgetState: (() => void) | Noop
+  setActiveField: ((path: Path) => void) | Noop
   setValue: ((path: Path, value: boolean) => void) | Noop
   touchField: ((path: Path, touched: boolean) => void) | Noop
   visitField: ((path: Path, visited: boolean) => void) | Noop
@@ -70,6 +71,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     visitField: noop,
     setFormValue: noop,
     registerField: noop,
+    setActiveField: noop,
     unregisterField: noop
   }
 }

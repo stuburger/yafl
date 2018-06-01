@@ -22,6 +22,8 @@ class ForkProvider extends Component<ForkProviderConfig> {
       blurred = {},
       errors = {},
       registeredFields = {},
+      defaultValue = {},
+      initialValue = {},
       path = [],
       ...props
     } = this.props
@@ -31,6 +33,8 @@ class ForkProvider extends Component<ForkProviderConfig> {
         value={{
           ...props,
           value: value[name],
+          initialValue: initialValue[name],
+          defaultValue: defaultValue[name],
           errors: errors[name] as FormErrors,
           touched: touched[name] as Touched,
           blurred: blurred[name] as Blurred,
