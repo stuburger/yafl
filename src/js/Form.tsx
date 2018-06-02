@@ -57,11 +57,11 @@ export default class Form extends Component<FormConfig, FormState> {
     this.renameField = loadedGuard(this.renameField)
     this.resetForm = loadedGuard(this.resetForm)
     this.setFormValue = loadedGuard(this.setFormValue)
+    this.setTouched = loadedGuard(this.setTouched)
+    this.setVisited = loadedGuard(this.setVisited)
     this.buildErrors = bind(this, this.buildErrors)
     this.registerField = bind(this, this.registerField)
     this.unregisterField = bind(this, this.unregisterField)
-    this.setTouched = loadedGuard(this, this.setTouched)
-    this.setVisited = loadedGuard(this, this.setVisited)
     this.state = {
       initialMount: false,
       formValue: {},

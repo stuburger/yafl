@@ -2,24 +2,40 @@ import React, { Component } from 'react'
 import { Provider, Consumer } from './Context'
 import { Name, Provider as P, FormErrors, Visited, Touched } from '../sharedTypes'
 
+export interface ArrayHelpers<T = any> {
+  push: (value: any) => void
+}
+
 export interface ForkProviderConfig<T = any> extends P<T> {
   name: Name
-  children: React.ReactNode | ((value: any) => React.ReactNode)
+  children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
 export interface SectionConfig<T = any> {
   name: Name
   defaultValue?: any
-  children: React.ReactNode | ((value: any) => React.ReactNode)
+  children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
 class ForkProvider extends Component<ForkProviderConfig> {
+  constructor(props: ForkProviderConfig) {
+    super(props)
+    this.push = this.push.bind(this)
+  }
+
   componentWillUnmount() {
     const { unregisterField, path } = this.props
     unregisterField(path)
   }
 
+  push(valueToPush: any) {
+    // See below comment
+    const { setValue, value = {}, path, name } = this.props
+    setValue([...path, name], [...value[name], valueToPush])
+  }
+
   render() {
+    // the assigning of default values might be better suited for the Section Component below
     const {
       name,
       children,
@@ -46,15 +62,10 @@ class ForkProvider extends Component<ForkProviderConfig> {
           path: path.concat([name])
         }}
       >
-        {typeof children === 'function' ? children(value[name]) : children}
+        {typeof children === 'function' ? children(value[name], { push: this.push }) : children}
       </Provider>
     )
   }
-}
-
-export interface SectionConfig<T = any> {
-  name: Name
-  children: React.ReactNode | ((value: any) => React.ReactNode)
 }
 
 export default class Section extends Component<SectionConfig> {
