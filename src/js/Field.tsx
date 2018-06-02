@@ -8,7 +8,7 @@ import {
   Provider as P,
   Visited,
   Touched,
-  Path
+  FormMeta
 } from '../sharedTypes'
 import * as _ from 'lodash'
 import { isEqual } from '../utils'
@@ -23,8 +23,8 @@ export interface InputProps<T = any> {
 
 export interface FieldProps<T = any> {
   input: InputProps<T>
-  meta: FieldMeta<T>
-  utils: FieldUtils<T>
+  field: FieldMeta<T>
+  form: FormMeta<T>
   [key: string]: any
 }
 
@@ -36,28 +36,18 @@ export interface FieldConfig<T = any> {
   [key: string]: any
 }
 
-export interface FieldUtils<T = any> {
-  resetForm: () => void
-  submit: () => void
-  setFormValue: ((value: Partial<T>, overwrite: boolean) => void)
-  forgetState: () => void
-  clearForm: () => void
-  setValue: (value: any) => void
-}
-
 export interface FieldMeta<T = any> {
   visited: Visited<T>
   isDirty: boolean
   touched: Touched<T>
   isActive: boolean
-  activeField: Path
-  submitCount: number
-  loaded: boolean
-  submitting: boolean
   isValid: boolean
   errors: string[]
   initialValue: any
   defaultValue: any
+  setValue: (value: any) => void
+  setVisited: (value: boolean) => void
+  setTouched: (value: boolean) => void
 }
 
 export interface InnerFieldProps<T = any> extends P<T>, Partial<ValidatorConfig<T>> {
@@ -161,23 +151,31 @@ class FieldConsumer extends Component<InnerFieldProps> {
   collectProps(): FieldProps {
     const {
       name,
+      path,
       value,
-      resetForm,
+      loaded,
       onSubmit,
-      setFormValue,
-      forgetState,
+      resetForm,
       clearForm,
+      activeField,
       visited,
-      formIsDirty,
-      active,
       touched,
       submitCount,
-      submitting,
+      forgetState,
+      formIsDirty,
       errors = [],
+      submitting,
+      formValue,
+      setVisited,
+      setTouched,
+      visitField,
+      touchField,
+      formIsValid,
+      setFormValue,
       initialValue,
       defaultValue,
-      path,
-      loaded,
+      defaultFormValue,
+      initialFormValue,
       forwardProps
     } = this.props
 
@@ -189,31 +187,47 @@ class FieldConsumer extends Component<InnerFieldProps> {
       onChange: this.onChange
     }
 
-    const meta: FieldMeta = {
+    const field: FieldMeta = {
+      errors,
       visited,
       touched,
-      activeField: active,
-      isActive: isEqual(active, path),
-      submitCount,
-      isDirty: formIsDirty || isEqual(initialValue, value),
-      errors,
-      isValid: errors.length === 0,
-      loaded,
-      submitting,
       initialValue,
-      defaultValue
+      defaultValue,
+      setValue: this.setValue,
+      setTouched: this.touchField,
+      setVisited: this.visitField,
+      isValid: errors.length === 0,
+      isActive: isEqual(activeField, path),
+      isDirty: formIsDirty && isEqual(initialValue, value)
     }
 
-    const utils: FieldUtils = {
+    const form: FormMeta = {
+      formValue,
+      activeField,
+      defaultValue: defaultFormValue,
+      initialValue: initialFormValue,
+      submitting,
+      submitCount,
+      loaded,
       resetForm,
       submit: onSubmit,
       setFormValue,
       forgetState,
+      setVisited,
+      setTouched,
       clearForm,
-      setValue: this.setValue
+      visitField,
+      touchField,
+      isValid: formIsValid,
+      isDirty: formIsDirty,
+      // todo these values contain field specific values.
+      // need to pass down all errors, touched, visited, etc
+      touched,
+      visited,
+      errors
     }
 
-    return { input, meta, utils, ...forwardProps }
+    return { input, field, form, ...forwardProps }
   }
 
   render() {
@@ -241,18 +255,18 @@ export default class Field extends Component<FieldConfig<any>> {
             <FieldConsumer
               {...props}
               name={name}
+              render={render}
+              children={children}
+              component={component}
               validators={validators}
               path={path.concat([name])}
+              forwardProps={forwardProps}
               value={value && value[name]}
+              errors={errors && errors[name]}
               touched={touched && (!!touched[name] as any)}
               visited={visited && (!!visited[name] as any)}
               initialValue={initialValue && initialValue[name]}
               defaultValue={defaultValue && defaultValue[name]}
-              errors={errors && errors[name]}
-              render={render}
-              component={component}
-              children={children}
-              forwardProps={forwardProps}
             />
           )
         }}

@@ -7,6 +7,12 @@ export interface ForkProviderConfig<T = any> extends P<T> {
   children: React.ReactNode | ((value: any) => React.ReactNode)
 }
 
+export interface SectionConfig<T = any> {
+  name: Name
+  defaultValue?: any
+  children: React.ReactNode | ((value: any) => React.ReactNode)
+}
+
 class ForkProvider extends Component<ForkProviderConfig> {
   componentWillUnmount() {
     const { unregisterField, path } = this.props

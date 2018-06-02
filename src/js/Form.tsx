@@ -8,7 +8,8 @@ import {
   AggregateValidator,
   ValidatorConfig,
   FormState,
-  Touched
+  Touched,
+  Visited
 } from '../sharedTypes'
 import { bind, trueIfAbsent, s, us, build } from '../utils'
 
@@ -59,10 +60,12 @@ export default class Form extends Component<FormConfig, FormState> {
     this.buildErrors = bind(this, this.buildErrors)
     this.registerField = bind(this, this.registerField)
     this.unregisterField = bind(this, this.unregisterField)
+    this.setTouched = loadedGuard(this, this.setTouched)
+    this.setVisited = loadedGuard(this, this.setVisited)
     this.state = {
       initialMount: false,
       formValue: {},
-      active: [],
+      activeField: [],
       touched: {},
       visited: {},
       loaded: false,
@@ -150,14 +153,30 @@ export default class Form extends Component<FormConfig, FormState> {
     }))
   }
 
+  setTouched(touched: Touched, overwrite = false) {
+    this.setState(({ touched: prev }) => {
+      return {
+        touched: overwrite ? touched : _.merge({}, prev, touched)
+      }
+    })
+  }
+
   visitField(path: Path, visited: boolean) {
     this.setState(({ visited: prev }) => ({
       visited: s(prev, path, visited)
     }))
   }
 
-  setActiveField(active: Path) {
-    this.setState({ active })
+  setVisited(visited: Visited, overwrite = false) {
+    this.setState(({ visited: prev }) => {
+      return {
+        visited: overwrite ? visited : _.merge({}, prev, visited)
+      }
+    })
+  }
+
+  setActiveField(activeField: Path) {
+    this.setState({ activeField })
   }
 
   clearForm() {
@@ -220,6 +239,8 @@ export default class Form extends Component<FormConfig, FormState> {
           touchField: this.touchField,
           defaultFormValue: defaultValue,
           renameField: this.renameField,
+          setTouched: this.setTouched,
+          setVisited: this.setVisited,
           forgetState: this.forgetState,
           setFormValue: this.setFormValue,
           registerField: this.registerField,
@@ -264,8 +285,8 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
 
   if (np.loaded && np.allowReinitialize && !_.isEqual(ps.initialFormValue, initialValue)) {
     state.formValue = initialValue
+    state.initialFormValue = initialValue
     if (!np.rememberStateOnReinitialize) {
-      // state.initialFormValue = initialValue  TODO
       state.submitCount = 0
       state.touched = {}
       state.visited = {}

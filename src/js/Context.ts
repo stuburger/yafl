@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Provider as P,
-  Noop,
   FormErrors,
   Path,
   AggregateValidator,
@@ -9,6 +8,11 @@ import {
   Touched,
   FormState
 } from '../sharedTypes'
+
+/* @internal */
+export interface Noop {
+  (): never
+}
 
 /* @internal */
 interface DefaultProviderValue<T> extends FormState<T> {
@@ -29,6 +33,8 @@ interface DefaultProviderValue<T> extends FormState<T> {
   touchField: ((path: Path, touched: boolean) => void) | Noop
   visitField: ((path: Path, visited: boolean) => void) | Noop
   renameField: ((prevName: Path, nextName: Path) => void) | Noop
+  setTouched: ((value: Touched<T>, overwrite: boolean) => void) | Noop
+  setVisited: ((value: Visited<T>, overwrite: boolean) => void) | Noop
   setFormValue: ((value: Partial<T>, overwrite: boolean) => void) | Noop
   registerField: ((path: Path, validator: AggregateValidator) => void) | Noop
   unregisterField: ((path: Path, validator?: AggregateValidator) => void) | Noop
@@ -44,7 +50,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     value: {},
     touched: {} as Touched<T>,
     visited: {} as Visited<T>,
-    active: [] as Path,
+    activeField: [] as Path,
     initialMount: false,
     registeredFields: [] as Path[],
     formValue: {} as T,
@@ -64,6 +70,8 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     resetForm: noop,
     setValue: noop,
     clearForm: noop,
+    setTouched: noop,
+    setVisited: noop,
     touchField: noop,
     renameField: noop,
     forgetState: noop,

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Provider as P, Visited, Touched, Path, FormErrors } from '../sharedTypes'
+import { Provider as P, FormMeta } from '../sharedTypes'
 import { Consumer } from './Context'
 
 type GeneralComponentConfig<T = any> = P<T> &
@@ -12,12 +12,22 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
   }
 
   collectProps(): GizmoProps {
-    const { render, component: Component, forwardProps, active, onSubmit, ...props } = this.props
+    const {
+      render,
+      onSubmit,
+      children,
+      formIsValid,
+      formIsDirty,
+      forwardProps,
+      component: Component,
+      ...props
+    } = this.props
 
     return {
       ...props,
       submit: onSubmit,
-      activeField: active,
+      isValid: formIsValid,
+      isDirty: formIsDirty,
       ...forwardProps
     }
   }
@@ -40,23 +50,7 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
   }
 }
 
-export interface GizmoProps<T = any> {
-  visited: Visited<T>
-  formIsDirty: boolean
-  touched: Touched<T>
-  activeField: Path
-  submitCount: number
-  loaded: boolean
-  submitting: boolean
-  formIsValid: boolean
-  errors: FormErrors<T>
-  initialValue: any
-  defaultValue: any
-  resetForm: () => void
-  submit: () => void
-  forgetState: () => void
-  clearForm: () => void
-  setFormValue: ((value: Partial<T>, overwrite: boolean) => void)
+export interface GizmoProps<T = any> extends FormMeta<T> {
   [key: string]: any
 }
 

@@ -1,4 +1,4 @@
-import { isArray, isObject } from '.'
+import { isArray, isObject } from './checkType'
 
 export default function shallowCopy<T>(obj: T): T {
   if (isArray(obj)) {
