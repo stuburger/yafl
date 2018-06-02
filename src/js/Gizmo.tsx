@@ -18,6 +18,7 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
       children,
       formIsValid,
       formIsDirty,
+      formIsTouched,
       forwardProps,
       component: Component,
       ...props
@@ -28,6 +29,7 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
       submit: onSubmit,
       isValid: formIsValid,
       isDirty: formIsDirty,
+      isTouched: formIsTouched,
       ...forwardProps
     }
   }

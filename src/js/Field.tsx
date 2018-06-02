@@ -174,6 +174,7 @@ class FieldConsumer extends Component<InnerFieldProps> {
       setFormValue,
       initialValue,
       defaultValue,
+      formIsTouched,
       defaultFormValue,
       initialFormValue,
       forwardProps
@@ -220,6 +221,7 @@ class FieldConsumer extends Component<InnerFieldProps> {
       touchField,
       isValid: formIsValid,
       isDirty: formIsDirty,
+      isTouched: formIsTouched,
       // todo these values contain field specific values.
       // need to pass down all errors, touched, visited, etc
       touched,

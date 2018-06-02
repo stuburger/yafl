@@ -34,6 +34,7 @@ export interface FormMeta<T = any> {
   loaded: boolean
   submitting: boolean
   activeField: Path
+  isTouched: boolean
   isDirty: boolean
   isValid: boolean
   visited: Visited<T>
