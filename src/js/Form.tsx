@@ -182,17 +182,15 @@ export default class Form extends Component<FormConfig, FormState> {
   }
 
   forgetState() {
-    this.setState(({ registeredFields }) => ({
-      touched: registeredFields.reduce((ret, path) => {
-        _.set(ret, path, false)
-        return ret
-      }, {}),
-      visited: registeredFields.reduce((ret, path) => {
-        _.set(ret, path, false)
-        return ret
-      }, {}),
-      submitCount: 0
-    }))
+    this.setState(({ registeredFields }) => {
+      const touched = build<Touched>(registeredFields, false)
+      const visited = touched
+      return {
+        touched,
+        visited,
+        submitCount: 0
+      }
+    })
   }
 
   buildErrors(): FormErrors {
