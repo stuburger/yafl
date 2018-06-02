@@ -6,7 +6,7 @@ import {
   Validator,
   ValidatorConfig,
   Provider as P,
-  Blurred,
+  Visited,
   Touched,
   Path
 } from '../sharedTypes'
@@ -46,7 +46,7 @@ export interface FieldUtils<T = any> {
 }
 
 export interface FieldMeta<T = any> {
-  visited: Blurred<T>
+  visited: Visited<T>
   isDirty: boolean
   touched: Touched<T>
   isActive: boolean
@@ -88,6 +88,10 @@ class FieldConsumer extends Component<InnerFieldProps> {
     this.registerField()
   }
 
+  componentWillUnmount() {
+    this.unregisterField()
+  }
+
   registerField(): void {
     const { registerField, path } = this.props
     registerField(path, this.validate)
@@ -95,7 +99,7 @@ class FieldConsumer extends Component<InnerFieldProps> {
 
   unregisterField(): void {
     const { path, unregisterField } = this.props
-    unregisterField(path)
+    unregisterField(path, this.validate)
   }
 
   validate(formValue: any, ret: FormErrors): string[] {
@@ -145,26 +149,25 @@ class FieldConsumer extends Component<InnerFieldProps> {
   }
 
   onBlur(e: React.FocusEvent<any>) {
-    const { blurred, setActiveField, forwardProps } = this.props
+    const { visited, setActiveField, forwardProps } = this.props
     if (forwardProps.onBlur) {
       forwardProps.onBlur(e)
     }
     setActiveField([])
-    if (blurred || e.isDefaultPrevented()) return
+    if (visited || e.isDefaultPrevented()) return
     this.visitField(true)
   }
 
   collectProps(): FieldProps {
     const {
       name,
-      formValue,
       value,
       resetForm,
       onSubmit,
       setFormValue,
       forgetState,
       clearForm,
-      blurred,
+      visited,
       formIsDirty,
       active,
       touched,
@@ -187,18 +190,18 @@ class FieldConsumer extends Component<InnerFieldProps> {
     }
 
     const meta: FieldMeta = {
-      visited: blurred,
+      visited,
       touched,
       activeField: active,
       isActive: isEqual(active, path),
       submitCount,
-      isDirty: formIsDirty || isEqual(initialValue, formValue),
+      isDirty: formIsDirty || isEqual(initialValue, value),
       errors,
       isValid: errors.length === 0,
       loaded,
       submitting,
-      initialValue, //: _.get(initialValue, path),
-      defaultValue //: _.get(defaultValue, path)
+      initialValue,
+      defaultValue
     }
 
     const utils: FieldUtils = {
@@ -233,7 +236,7 @@ export default class Field extends Component<FieldConfig<any>> {
     const { name, validators = [], render, component, children, ...forwardProps } = this.props
     return (
       <Consumer>
-        {({ path, value, errors, initialValue, defaultValue, ...props }) => {
+        {({ path, value, errors, touched, visited, initialValue, defaultValue, ...props }) => {
           return (
             <FieldConsumer
               {...props}
@@ -241,6 +244,8 @@ export default class Field extends Component<FieldConfig<any>> {
               validators={validators}
               path={path.concat([name])}
               value={value && value[name]}
+              touched={touched && (!!touched[name] as any)}
+              visited={visited && (!!visited[name] as any)}
               initialValue={initialValue && initialValue[name]}
               defaultValue={defaultValue && defaultValue[name]}
               errors={errors && errors[name]}

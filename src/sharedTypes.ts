@@ -73,7 +73,7 @@ export interface FieldValidator<T = any> {
 export type FieldValidatorPair<T = any> = { path: Path; test: AggregateValidator<T> }
 export type FieldValidatorList<T = any> = FieldValidatorPair<T>[]
 export type Touched<T = any> = { [K in keyof T]: any extends object ? Touched<T[K]> : boolean }
-export type Blurred<T = any> = { [K in keyof T]: any extends object ? Blurred<T[K]> : boolean }
+export type Visited<T = any> = { [K in keyof T]: any extends object ? Visited<T[K]> : boolean }
 export type RegisteredFields<T = any> = {
   [K in keyof T]: any extends object ? RegisteredFields<T[K]> : true
 }
@@ -140,7 +140,7 @@ export type Path = Name[]
 export interface FormState<T = any> {
   initialMount: boolean
   touched: Touched<T>
-  blurred: Blurred<T>
+  visited: Visited<T>
   active: Path
   initialFormValue: T
   formValue: T

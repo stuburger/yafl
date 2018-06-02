@@ -63,7 +63,7 @@ export default class Form extends Component<FormConfig, FormState> {
       formValue: {},
       active: [],
       touched: {},
-      blurred: {},
+      visited: {},
       loaded: false,
       isBusy: false,
       submitting: false,
@@ -90,24 +90,24 @@ export default class Form extends Component<FormConfig, FormState> {
 
   registerField(path: Path, test: AggregateValidator) {
     this.validators.push({ path, test })
-    this.setState(({ registeredFields, touched, blurred }) => {
+    this.setState(({ registeredFields, touched, visited }) => {
       return {
         registeredFields: s(registeredFields, path, true),
         touched: s(touched, path, false),
-        blurred: s(blurred, path, false)
+        visited: s(visited, path, false)
       }
     })
   }
 
   unregisterField(path: Path, test?: AggregateValidator) {
     if (test) {
-      this.validators.filter(validator => validator.test !== test)
+      this.validators = this.validators.filter(validator => validator.test !== test)
     }
-    this.setState(({ registeredFields, touched, blurred }) => {
+    this.setState(({ registeredFields, touched, visited }) => {
       return {
         registeredFields: us(registeredFields, path),
         touched: us(touched, path),
-        blurred: us(blurred, path)
+        visited: us(visited, path)
       }
     })
   }
@@ -144,14 +144,14 @@ export default class Form extends Component<FormConfig, FormState> {
   }
 
   touchField(path: Path, touched: boolean) {
-    this.setState(({ touched }) => ({
-      touched: s(touched, path, touched)
+    this.setState(({ touched: prev }) => ({
+      touched: s(prev, path, touched)
     }))
   }
 
   visitField(path: Path, visited: boolean) {
-    this.setState(({ blurred }) => ({
-      blurred: s(blurred, path, visited)
+    this.setState(({ visited: prev }) => ({
+      visited: s(prev, path, visited)
     }))
   }
 
@@ -164,7 +164,7 @@ export default class Form extends Component<FormConfig, FormState> {
     this.setState({
       formValue: defaultValue,
       touched: {},
-      blurred: {},
+      visited: {},
       submitCount: 0
     })
   }
@@ -177,9 +177,9 @@ export default class Form extends Component<FormConfig, FormState> {
   }
 
   forgetState() {
-    this.setState(({ touched, blurred }) => ({
+    this.setState(({ touched, visited }) => ({
       touched: {}, // todo
-      blurred: {}, // todo
+      visited: {}, // todo
       submitCount: 0
     }))
   }
@@ -259,7 +259,7 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
       // state.initialFormValue = initialValue  TODO
       state.submitCount = 0
       state.touched = {}
-      state.blurred = {}
+      state.visited = {}
     }
   }
 

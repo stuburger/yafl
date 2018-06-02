@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Provider, Consumer } from './Context'
-import { Name, Provider as P, FormErrors, Blurred, Touched, RegisteredFields } from '../sharedTypes'
+import { Name, Provider as P, FormErrors, Visited, Touched, RegisteredFields } from '../sharedTypes'
 
 export interface ForkProviderConfig<T = any> extends P<T> {
   name: Name
@@ -19,7 +19,7 @@ class ForkProvider extends Component<ForkProviderConfig> {
       children,
       value = {},
       touched = {},
-      blurred = {},
+      visited = {},
       errors = {},
       registeredFields = {},
       defaultValue = {},
@@ -37,7 +37,7 @@ class ForkProvider extends Component<ForkProviderConfig> {
           defaultValue: defaultValue[name],
           errors: errors[name] as FormErrors,
           touched: touched[name] as Touched,
-          blurred: blurred[name] as Blurred,
+          visited: visited[name] as Visited,
           registeredFields: registeredFields[name] as RegisteredFields,
           path: path.concat([name])
         }}

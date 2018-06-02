@@ -5,7 +5,7 @@ import {
   FormErrors,
   Path,
   AggregateValidator,
-  Blurred,
+  Visited,
   Touched,
   RegisteredFields,
   FormState
@@ -44,7 +44,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     path: [],
     value: {},
     touched: {} as Touched<T>,
-    blurred: {} as Blurred<T>,
+    visited: {} as Visited<T>,
     active: [] as Path,
     initialMount: false,
     registeredFields: {} as RegisteredFields<T>,
