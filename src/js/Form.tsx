@@ -7,9 +7,10 @@ import {
   FormErrors,
   AggregateValidator,
   ValidatorConfig,
-  FormState
+  FormState,
+  Touched
 } from '../sharedTypes'
-import { bind, trueIfAbsent, s, us } from '../utils'
+import { bind, trueIfAbsent, s, us, build } from '../utils'
 
 const noop = (...params: any[]) => {
   console.log('not loaded or field non existent')
@@ -68,7 +69,7 @@ export default class Form extends Component<FormConfig, FormState> {
       isBusy: false,
       submitting: false,
       formIsTouched: false,
-      registeredFields: {},
+      registeredFields: [],
       initialFormValue: {},
       submitCount: 0
     }
@@ -92,7 +93,7 @@ export default class Form extends Component<FormConfig, FormState> {
     this.validators.push({ path, test })
     this.setState(({ registeredFields, touched, visited }) => {
       return {
-        registeredFields: s(registeredFields, path, true),
+        registeredFields: registeredFields.concat([path]),
         touched: s(touched, path, false),
         visited: s(visited, path, false)
       }
@@ -105,7 +106,7 @@ export default class Form extends Component<FormConfig, FormState> {
     }
     this.setState(({ registeredFields, touched, visited }) => {
       return {
-        registeredFields: us(registeredFields, path),
+        registeredFields: registeredFields.filter(x => !_.isEqual(x, path)),
         touched: us(touched, path),
         visited: us(visited, path)
       }
@@ -161,11 +162,15 @@ export default class Form extends Component<FormConfig, FormState> {
 
   clearForm() {
     const { defaultValue = {} as any } = this.props
-    this.setState({
-      formValue: defaultValue,
-      touched: {},
-      visited: {},
-      submitCount: 0
+    this.setState(({ registeredFields }) => {
+      const touched = build<Touched>(registeredFields, false)
+      const visited = touched
+      return {
+        touched,
+        visited,
+        formValue: defaultValue,
+        submitCount: 0
+      }
     })
   }
 
@@ -177,9 +182,15 @@ export default class Form extends Component<FormConfig, FormState> {
   }
 
   forgetState() {
-    this.setState(({ touched, visited }) => ({
-      touched: {}, // todo
-      visited: {}, // todo
+    this.setState(({ registeredFields }) => ({
+      touched: registeredFields.reduce((ret, path) => {
+        _.set(ret, path, false)
+        return ret
+      }, {}),
+      visited: registeredFields.reduce((ret, path) => {
+        _.set(ret, path, false)
+        return ret
+      }, {}),
       submitCount: 0
     }))
   }

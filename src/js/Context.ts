@@ -7,7 +7,6 @@ import {
   AggregateValidator,
   Visited,
   Touched,
-  RegisteredFields,
   FormState
 } from '../sharedTypes'
 
@@ -47,7 +46,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     visited: {} as Visited<T>,
     active: [] as Path,
     initialMount: false,
-    registeredFields: {} as RegisteredFields<T>,
+    registeredFields: [] as Path[],
     formValue: {} as T,
     initialValue: {} as T,
     defaultValue: {} as T,
