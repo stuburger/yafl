@@ -105,6 +105,9 @@ export interface Provider<T = any> extends FormState<T> {
   formIsDirty: boolean
   formIsTouched: boolean
   errors: FormErrors<T>
+  errorState: FormErrors<T>
+  touchedState: Touched<T>
+  visitedState: Visited<T>
   onSubmit: (() => void)
   resetForm: (() => void)
   clearForm: (() => void)

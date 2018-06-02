@@ -221,15 +221,17 @@ export default class Form extends Component<FormConfig, FormState> {
 
   render() {
     const { defaultValue } = this.props
+    const errors = this.buildErrors()
     return (
       <Provider
         value={{
           path: [],
-          ...this.state,
+          errors,
           defaultValue,
+          ...this.state,
+          errorState: errors,
           formIsValid: true,
           formIsDirty: false,
-          errors: this.buildErrors(),
           onSubmit: this.submit,
           setValue: this.setValue,
           clearForm: this.clearForm,
@@ -246,6 +248,8 @@ export default class Form extends Component<FormConfig, FormState> {
           registerField: this.registerField,
           setActiveField: this.setActiveField,
           unregisterField: this.unregisterField,
+          touchedState: this.state.touched,
+          visitedState: this.state.visited,
           initialValue: this.state.initialFormValue
         }}
       >

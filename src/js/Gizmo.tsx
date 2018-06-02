@@ -14,12 +14,17 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
   collectProps(): GizmoProps {
     const {
       render,
+      visited,
+      touched,
       onSubmit,
       children,
+      errorState,
       formIsValid,
       formIsDirty,
-      formIsTouched,
       forwardProps,
+      touchedState,
+      visitedState,
+      formIsTouched,
       component: Component,
       ...props
     } = this.props
@@ -30,6 +35,8 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
       isValid: formIsValid,
       isDirty: formIsDirty,
       isTouched: formIsTouched,
+      touched: touchedState,
+      visited: visitedState,
       ...forwardProps
     }
   }

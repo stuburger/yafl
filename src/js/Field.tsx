@@ -177,6 +177,9 @@ class FieldConsumer extends Component<InnerFieldProps> {
       formIsTouched,
       defaultFormValue,
       initialFormValue,
+      errorState,
+      touchedState,
+      visitedState,
       forwardProps
     } = this.props
 
@@ -224,9 +227,9 @@ class FieldConsumer extends Component<InnerFieldProps> {
       isTouched: formIsTouched,
       // todo these values contain field specific values.
       // need to pass down all errors, touched, visited, etc
-      touched,
-      visited,
-      errors
+      touched: touchedState,
+      visited: visitedState,
+      errors: errorState
     }
 
     return { input, field, form, ...forwardProps }

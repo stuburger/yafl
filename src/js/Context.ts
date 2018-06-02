@@ -24,6 +24,9 @@ interface DefaultProviderValue<T> extends FormState<T> {
   formIsValid: boolean
   formIsDirty: boolean
   errors: FormErrors<T>
+  errorState: FormErrors<T>
+  touchedState: Touched<T>
+  visitedState: Visited<T>
   onSubmit: (() => void) | Noop
   resetForm: (() => void) | Noop
   clearForm: (() => void) | Noop
@@ -48,24 +51,27 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
   return {
     path: [],
     value: {},
-    touched: {} as Touched<T>,
-    visited: {} as Visited<T>,
-    activeField: [] as Path,
+    isBusy: false,
+    loaded: false,
+    submitCount: 0,
+    formIsValid: true,
+    submitting: false,
+    formIsDirty: false,
     initialMount: false,
-    registeredFields: [] as Path[],
+    formIsTouched: false,
     formValue: {} as T,
     initialValue: {} as T,
     defaultValue: {} as T,
     initialFormValue: {} as T,
     defaultFormValue: {} as T,
-    isBusy: false,
-    loaded: false,
-    formIsTouched: false,
-    formIsValid: true,
-    submitCount: 0,
-    submitting: false,
-    formIsDirty: false,
+    activeField: [] as Path,
+    touched: {} as Touched<T>,
+    visited: {} as Visited<T>,
+    registeredFields: [] as Path[],
+    touchedState: {} as Touched<T>,
+    visitedState: {} as Visited<T>,
     errors: {} as FormErrors<T>,
+    errorState: {} as FormErrors<T>,
     onSubmit: noop,
     resetForm: noop,
     setValue: noop,
