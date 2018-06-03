@@ -19,6 +19,8 @@ const noop = (...params: any[]) => {
 
 const default_validate_on = 'blur'
 
+const startingPath: Path = []
+
 function onlyIfLoaded(func: any, defaultFunc = noop) {
   func = bind(this, func)
   return bind(this, function(...params: any[]) {
@@ -228,7 +230,7 @@ export default class Form extends React.Component<FormConfig, FormState> {
     return (
       <Provider
         value={{
-          path: [],
+          path: startingPath,
           errors,
           defaultValue,
           ...this.state,

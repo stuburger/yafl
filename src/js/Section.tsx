@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Provider, Consumer } from './Context'
-// import * as _ from 'lodash'
+import * as _ from 'lodash'
 import { Name, Provider as P, FormErrors, Visited, Touched } from '../sharedTypes'
 
 export interface ArrayHelpers<T = any> {
@@ -18,7 +18,12 @@ export interface SectionConfig<T = any> {
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
-// const updateFor: (keyof ForkProviderConfig)[] = ['errors', 'activeField', 'value']
+const ignoreProps: (keyof ForkProviderConfig)[] = [
+  'formValue',
+  'touchedState',
+  'visitedState',
+  'errorState'
+]
 
 class ForkProvider extends React.Component<ForkProviderConfig> {
   constructor(props: ForkProviderConfig) {
@@ -26,9 +31,17 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
     this.push = this.push.bind(this)
   }
 
-  // shouldComponentUpdate(np: ForkProviderConfig) {
-  //   return updateFor.some(key => !_.isEqual(np[key], this.props[key]))
-  // }
+  shouldComponentUpdate(np: ForkProviderConfig) {
+    let k: keyof ForkProviderConfig
+    let shouldUpdate = false
+    for (k in np) {
+      if (ignoreProps.includes(k)) continue
+      shouldUpdate = !_.isEqual(np[k], this.props[k])
+      if (shouldUpdate) break
+    }
+    return shouldUpdate
+    // return updateFor.some(key => !_.isEqual(np[key], this.props[key]))
+  }
 
   componentWillUnmount() {
     const { unregisterField, path } = this.props
@@ -67,20 +80,24 @@ export default class Section extends React.PureComponent<SectionConfig> {
       defaultValue = {},
       initialValue = {},
       path = [],
+      activeField,
       ...props
     } = incomingProps
+
+    const nextPath = [...path, name]
 
     return (
       <ForkProvider
         {...props}
         name={name}
+        activeField={activeField}
         value={value[name]}
         initialValue={initialValue[name]}
         defaultValue={defaultValue[name]}
         errors={errors[name] as FormErrors}
         touched={touched[name] as Touched}
         visited={visited[name] as Visited}
-        path={path.concat([name])}
+        path={nextPath}
       >
         {children}
       </ForkProvider>

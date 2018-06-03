@@ -73,6 +73,9 @@ const listenForProps: (keyof InnerFieldProps)[] = [
 ]
 
 class FieldConsumer extends React.Component<InnerFieldProps> {
+  errors: string[] = []
+  shouldUpdate = true
+
   constructor(props: InnerFieldProps) {
     super(props)
     this.registerField = this.registerField.bind(this)
@@ -89,7 +92,14 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   shouldComponentUpdate(nextProps: InnerFieldProps) {
-    return listenForProps.some(key => !_.isEqual(nextProps[key], this.props[key]))
+    return listenForProps.some(key => {
+      console.log('****** ' + key + ' ********')
+      console.log('current: ', this.props[key])
+      console.log('next: ', nextProps[key])
+      console.log('isEqual?: ')
+      const ret = _.isEqual(nextProps[key], this.props[key])
+      return !ret
+    })
   }
 
   componentWillUnmount() {
@@ -109,15 +119,23 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   validate(formValue: any, ret: FormErrors): string[] {
     const { name, path, validators = [] } = this.props
     const nextValue = _.get(formValue, path)
-    const errors = validators
-      .map(test => test(nextValue, formValue, name))
-      .filter(x => x !== undefined)
-
-    if (ret) {
-      _.set(ret, path, errors)
+    let errors: string[] = []
+    for (let k in validators) {
+      const err = validators[k](nextValue, formValue, name)
+      if (typeof err === 'string') {
+        errors.push(err)
+      }
     }
 
-    return errors as string[]
+    if (!_.isEqual(this.errors, errors)) {
+      this.errors = errors
+    }
+
+    if (ret) {
+      _.set(ret, path, this.errors)
+    }
+
+    return errors
   }
 
   setValue(value: any): void {
