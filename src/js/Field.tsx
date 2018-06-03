@@ -1,17 +1,17 @@
-import React, { Component } from 'react'
-import { Consumer } from './Context'
+import * as _ from 'lodash'
+import * as React from 'react'
 import {
   FormErrors,
+  FormMeta,
   Name,
+  Provider as P,
+  Touched,
   Validator,
   ValidatorConfig,
-  Provider as P,
-  Visited,
-  Touched,
-  FormMeta
+  Visited
 } from '../sharedTypes'
-import * as _ from 'lodash'
-import { isEqual } from '../utils'
+import { Consumer } from './Context'
+// import { isEqual } from '../utils'
 
 export interface InputProps<T = any> {
   name: Name
@@ -62,7 +62,17 @@ export interface InnerFieldProps<T = any> extends P<T>, Partial<ValidatorConfig<
   component?: React.ComponentType<FieldProps<T>>
 }
 
-class FieldConsumer extends Component<InnerFieldProps> {
+// const ignoreProps = ['registeredFields', 'path']
+const listenForProps: (keyof InnerFieldProps)[] = [
+  'errors',
+  'name',
+  'value',
+  'touched',
+  'visited',
+  'forwardProps'
+]
+
+class FieldConsumer extends React.Component<InnerFieldProps> {
   constructor(props: InnerFieldProps) {
     super(props)
     this.registerField = this.registerField.bind(this)
@@ -76,6 +86,10 @@ class FieldConsumer extends Component<InnerFieldProps> {
     this.onFocus = this.onFocus.bind(this)
     this.collectProps = this.collectProps.bind(this)
     this.registerField()
+  }
+
+  shouldComponentUpdate(nextProps: InnerFieldProps) {
+    return listenForProps.some(key => !_.isEqual(nextProps[key], this.props[key]))
   }
 
   componentWillUnmount() {
@@ -201,8 +215,8 @@ class FieldConsumer extends Component<InnerFieldProps> {
       setTouched: this.touchField,
       setVisited: this.visitField,
       isValid: errors.length === 0,
-      isActive: isEqual(activeField, path),
-      isDirty: formIsDirty && isEqual(initialValue, value)
+      isActive: activeField.every((x, _i) => x === path[_i]),
+      isDirty: formIsDirty && initialValue === value
     }
 
     const form: FormMeta = {
@@ -225,8 +239,6 @@ class FieldConsumer extends Component<InnerFieldProps> {
       isValid: formIsValid,
       isDirty: formIsDirty,
       isTouched: formIsTouched,
-      // todo these values contain field specific values.
-      // need to pass down all errors, touched, visited, etc
       touched: touchedState,
       visited: visitedState,
       errors: errorState
@@ -250,32 +262,93 @@ class FieldConsumer extends Component<InnerFieldProps> {
   }
 }
 
-export default class Field extends Component<FieldConfig<any>> {
-  render() {
-    const { name, validators = [], render, component, children, ...forwardProps } = this.props
+const emptyValidators: Validator<any>[] = []
+
+export default class Field extends React.PureComponent<FieldConfig> {
+  constructor(props: FieldConfig) {
+    super(props)
+    this._render = this._render.bind(this)
+  }
+
+  _render(ip: P) {
+    const {
+      name,
+      render,
+      children,
+      component,
+      validators = emptyValidators,
+      ...forwardProps
+    } = this.props
+
     return (
-      <Consumer>
-        {({ path, value, errors, touched, visited, initialValue, defaultValue, ...props }) => {
-          return (
-            <FieldConsumer
-              {...props}
-              name={name}
-              render={render}
-              children={children}
-              component={component}
-              validators={validators}
-              path={path.concat([name])}
-              forwardProps={forwardProps}
-              value={value && value[name]}
-              errors={errors && errors[name]}
-              touched={touched && (!!touched[name] as any)}
-              visited={visited && (!!visited[name] as any)}
-              initialValue={initialValue && initialValue[name]}
-              defaultValue={defaultValue && defaultValue[name]}
-            />
-          )
-        }}
-      </Consumer>
+      <FieldConsumer
+        name={name}
+        render={render}
+        loaded={ip.loaded}
+        isBusy={ip.isBusy}
+        children={children}
+        component={component}
+        validators={validators}
+        path={ip.path.concat([name])}
+        forwardProps={forwardProps}
+        value={ip.value && ip.value[name]}
+        errors={ip.errors && ip.errors[name]}
+        touched={ip.touched && (!!ip.touched[name] as any)}
+        visited={ip.visited && (!!ip.visited[name] as any)}
+        initialValue={ip.initialValue && ip.initialValue[name]}
+        defaultValue={ip.defaultValue && ip.defaultValue[name]}
+        submitting={ip.submitting}
+        registeredFields={ip.registeredFields}
+        initialFormValue={ip.initialFormValue}
+        activeField={ip.activeField}
+        initialMount={ip.initialValue}
+        formValue={ip.formValue}
+        defaultFormValue={ip.defaultFormValue}
+        submitCount={ip.submitCount}
+        formIsValid={ip.formIsValid}
+        formIsDirty={ip.formIsDirty}
+        formIsTouched={ip.formIsTouched}
+        errorState={ip.errorState}
+        touchedState={ip.touchedState}
+        visitedState={ip.visitedState}
+        onSubmit={ip.onSubmit}
+        resetForm={ip.resetForm}
+        clearForm={ip.clearForm}
+        forgetState={ip.forgetState}
+        setActiveField={ip.setActiveField}
+        setValue={ip.setValue}
+        touchField={ip.touchField}
+        visitField={ip.visitField}
+        renameField={ip.renameField}
+        setFormValue={ip.setFormValue}
+        setTouched={ip.setTouched}
+        setVisited={ip.setVisited}
+        registerField={ip.registerField}
+        unregisterField={ip.unregisterField}
+      />
     )
   }
+
+  render() {
+    return <Consumer>{this._render}</Consumer>
+  }
 }
+
+// shouldComponentUpdate(nextProps: InnerFieldProps) {
+//   const npk = Object.keys(nextProps) as (keyof InnerFieldProps)[]
+//   const tpk = Object.keys(this.props) as (keyof InnerFieldProps)[]
+
+//   if (npk.length !== tpk.length) {
+//     return true
+//   }
+
+//   let shouldUpdate = false
+
+//   for (let key of npk) {
+//     if (shouldUpdate) break
+//     if (ignoreProps.includes(key)) continue
+//     shouldUpdate = !_.isEqual(this.props[key], nextProps[key])
+//   }
+
+//   return shouldUpdate
+// }

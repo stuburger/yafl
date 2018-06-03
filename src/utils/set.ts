@@ -1,6 +1,7 @@
 import * as _ from 'lodash'
 import { Path } from '../sharedTypes'
 import { isArray } from './checkType'
+// import shallowCopy from './shallowCopy'
 
 export function s<T extends object>(obj: T, path: Path, val: any): T {
   return _.set(_.cloneDeep(obj), path, val)

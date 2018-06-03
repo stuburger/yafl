@@ -1,15 +1,29 @@
 import * as React from 'react'
 import { Provider as P, FormMeta } from '../sharedTypes'
+// import * as _ from 'lodash'
 import { Consumer } from './Context'
 
 type GeneralComponentConfig<T = any> = P<T> &
   GizmoConfig<T> & { forwardProps: { [key: string]: any } }
+
+// const listenForProps: (keyof GeneralComponentConfig)[] = [
+//   'value',
+//   'activeField',
+//   'errorState',
+//   'visited',
+//   'touched',
+//   'forwardProps'
+// ]
 
 class GeneralComponent extends React.Component<GeneralComponentConfig> {
   constructor(props: GeneralComponentConfig) {
     super(props)
     this.collectProps = this.collectProps.bind(this)
   }
+
+  // shouldComponentUpdate(np: GeneralComponentConfig) {
+  //   return listenForProps.some(key => !_.isEqual(this.props[key], np[key]))
+  // }
 
   collectProps(): GizmoProps {
     const {
@@ -70,23 +84,26 @@ export interface GizmoConfig<T = any> {
 }
 
 class Gizmo extends React.Component<GizmoConfig> {
-  render() {
+  constructor(props: GizmoConfig) {
+    super(props)
+    this._render = this._render.bind(this)
+  }
+
+  _render(incomingProps: P) {
     const { render, component, children, ...forwardProps } = this.props
 
     return (
-      <Consumer>
-        {props => {
-          return (
-            <GeneralComponent
-              {...props}
-              render={render}
-              component={component}
-              forwardProps={forwardProps}
-            />
-          )
-        }}
-      </Consumer>
+      <GeneralComponent
+        {...incomingProps}
+        render={render}
+        component={component}
+        forwardProps={forwardProps}
+      />
     )
+  }
+
+  render() {
+    return <Consumer>{this._render}</Consumer>
   }
 }
 

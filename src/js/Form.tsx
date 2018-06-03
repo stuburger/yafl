@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import * as React from 'react'
 import * as _ from 'lodash'
 import { Provider } from './Context'
 import {
@@ -11,7 +11,7 @@ import {
   Touched,
   Visited
 } from '../sharedTypes'
-import { bind, trueIfAbsent, s, us, build } from '../utils'
+import { bind, trueIfAbsent, s, us, build, shallowCopy } from '../utils'
 
 const noop = (...params: any[]) => {
   console.log('not loaded or field non existent')
@@ -40,7 +40,7 @@ export interface FormConfig<T = any> extends ValidatorConfig<T> {
   rememberStateOnReinitialize?: boolean
 }
 
-export default class Form extends Component<FormConfig, FormState> {
+export default class Form extends React.Component<FormConfig, FormState> {
   validators: FieldValidatorList = []
   constructor(props: FormConfig) {
     super(props)
@@ -124,13 +124,16 @@ export default class Form extends Component<FormConfig, FormState> {
     onSubmit(this.state.formValue)
   }
 
-  setValue(path: Path, val: any) {
+  setValue(path: Path, val: any, setTouched = true) {
     this.setState(({ formValue, touched }) => {
       const newValue = s(formValue, path, val)
-      return {
-        formValue: newValue,
-        touched: s(touched, path, true)
+      const ret = {
+        formValue: newValue
+      } as FormState
+      if (setTouched) {
+        ret.touched = s(touched, path, true)
       }
+      return ret
     })
   }
 
@@ -278,8 +281,8 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
 
   const initialValue = _.defaultsDeep(
     base,
-    np.initialValue || _.cloneDeep(base),
-    np.defaultValue || _.cloneDeep(base)
+    np.initialValue || shallowCopy(base),
+    np.defaultValue || shallowCopy(base)
   )
   if (!ps.loaded && loaded) {
     state.initialFormValue = initialValue

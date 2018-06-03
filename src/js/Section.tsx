@@ -1,5 +1,6 @@
-import React, { Component } from 'react'
+import * as React from 'react'
 import { Provider, Consumer } from './Context'
+// import * as _ from 'lodash'
 import { Name, Provider as P, FormErrors, Visited, Touched } from '../sharedTypes'
 
 export interface ArrayHelpers<T = any> {
@@ -17,11 +18,17 @@ export interface SectionConfig<T = any> {
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
-class ForkProvider extends Component<ForkProviderConfig> {
+// const updateFor: (keyof ForkProviderConfig)[] = ['errors', 'activeField', 'value']
+
+class ForkProvider extends React.Component<ForkProviderConfig> {
   constructor(props: ForkProviderConfig) {
     super(props)
     this.push = this.push.bind(this)
   }
+
+  // shouldComponentUpdate(np: ForkProviderConfig) {
+  //   return updateFor.some(key => !_.isEqual(np[key], this.props[key]))
+  // }
 
   componentWillUnmount() {
     const { unregisterField, path } = this.props
@@ -29,16 +36,30 @@ class ForkProvider extends Component<ForkProviderConfig> {
   }
 
   push(valueToPush: any) {
-    // See below comment
-    const { setValue, value = {}, path, name } = this.props
-    setValue([...path, name], [...value[name], valueToPush])
+    const { setValue, value, path } = this.props
+    setValue(path, [...value, valueToPush], false)
   }
 
   render() {
-    // the assigning of default values might be better suited for the Section Component below
+    const { name, children, ...props } = this.props
+
+    return (
+      <Provider value={props}>
+        {typeof children === 'function' ? children(props.value, { push: this.push }) : children}
+      </Provider>
+    )
+  }
+}
+
+export default class Section extends React.PureComponent<SectionConfig> {
+  constructor(props: SectionConfig) {
+    super(props)
+    this._render = this._render.bind(this)
+  }
+
+  _render(incomingProps: P<any>) {
+    const { children, name } = this.props
     const {
-      name,
-      children,
       value = {},
       touched = {},
       visited = {},
@@ -47,38 +68,26 @@ class ForkProvider extends Component<ForkProviderConfig> {
       initialValue = {},
       path = [],
       ...props
-    } = this.props
+    } = incomingProps
 
     return (
-      <Provider
-        value={{
-          ...props,
-          value: value[name],
-          initialValue: initialValue[name],
-          defaultValue: defaultValue[name],
-          errors: errors[name] as FormErrors,
-          touched: touched[name] as Touched,
-          visited: visited[name] as Visited,
-          path: path.concat([name])
-        }}
+      <ForkProvider
+        {...props}
+        name={name}
+        value={value[name]}
+        initialValue={initialValue[name]}
+        defaultValue={defaultValue[name]}
+        errors={errors[name] as FormErrors}
+        touched={touched[name] as Touched}
+        visited={visited[name] as Visited}
+        path={path.concat([name])}
       >
-        {typeof children === 'function' ? children(value[name], { push: this.push }) : children}
-      </Provider>
+        {children}
+      </ForkProvider>
     )
   }
-}
 
-export default class Section extends Component<SectionConfig> {
   render() {
-    const { children, name } = this.props
-    return (
-      <Consumer>
-        {props => (
-          <ForkProvider name={name} {...props}>
-            {children}
-          </ForkProvider>
-        )}
-      </Consumer>
-    )
+    return <Consumer>{this._render}</Consumer>
   }
 }
