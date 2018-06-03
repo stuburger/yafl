@@ -11,7 +11,7 @@ import {
   Visited
 } from '../sharedTypes'
 import { Consumer } from './Context'
-// import { isEqual } from '../utils'
+import { isEqual } from '../utils'
 
 export interface InputProps<T = any> {
   name: Name
@@ -74,7 +74,10 @@ const listenForProps: (keyof InnerFieldProps)[] = [
 
 class FieldConsumer extends React.Component<InnerFieldProps> {
   errors: string[] = []
-  shouldUpdate = true
+
+  static defaultProps = {
+    validators: []
+  }
 
   constructor(props: InnerFieldProps) {
     super(props)
@@ -92,14 +95,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   shouldComponentUpdate(nextProps: InnerFieldProps) {
-    return listenForProps.some(key => {
-      console.log('****** ' + key + ' ********')
-      console.log('current: ', this.props[key])
-      console.log('next: ', nextProps[key])
-      console.log('isEqual?: ')
-      const ret = _.isEqual(nextProps[key], this.props[key])
-      return !ret
-    })
+    return listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
   }
 
   componentWillUnmount() {
@@ -127,7 +123,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       }
     }
 
-    if (!_.isEqual(this.errors, errors)) {
+    if (!isEqual(this.errors, errors)) {
       this.errors = errors
     }
 

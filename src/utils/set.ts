@@ -1,10 +1,11 @@
 import * as _ from 'lodash'
 import { Path } from '../sharedTypes'
 import { isArray } from './checkType'
+import * as immutable from 'object-path-immutable'
 // import shallowCopy from './shallowCopy'
 
 export function s<T extends object>(obj: T, path: Path, val: any): T {
-  return _.set(_.cloneDeep(obj), path, val)
+  return immutable.default.set(obj, path as string[], val)
 }
 
 export function us<T extends object>(obj: T, path: Path): T {

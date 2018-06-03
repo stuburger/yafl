@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Provider, Consumer } from './Context'
-import * as _ from 'lodash'
+import { isEqual } from '../utils'
 import { Name, Provider as P, FormErrors, Visited, Touched } from '../sharedTypes'
 
 export interface ArrayHelpers<T = any> {
@@ -19,10 +19,14 @@ export interface SectionConfig<T = any> {
 }
 
 const ignoreProps: (keyof ForkProviderConfig)[] = [
+  'path',
+  'errors',
   'formValue',
+  'registeredFields',
   'touchedState',
   'visitedState',
-  'errorState'
+  'errorState',
+  'children'
 ]
 
 class ForkProvider extends React.Component<ForkProviderConfig> {
@@ -35,12 +39,11 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
     let k: keyof ForkProviderConfig
     let shouldUpdate = false
     for (k in np) {
-      if (ignoreProps.includes(k)) continue
-      shouldUpdate = !_.isEqual(np[k], this.props[k])
       if (shouldUpdate) break
+      if (ignoreProps.includes(k)) continue
+      shouldUpdate = isEqual(np[k], this.props[k])
     }
     return shouldUpdate
-    // return updateFor.some(key => !_.isEqual(np[key], this.props[key]))
   }
 
   componentWillUnmount() {

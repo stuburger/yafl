@@ -1,19 +1,18 @@
 import * as React from 'react'
 import { Provider as P, FormMeta } from '../sharedTypes'
-// import * as _ from 'lodash'
+import * as _ from 'lodash'
 import { Consumer } from './Context'
 
 type GeneralComponentConfig<T = any> = P<T> &
   GizmoConfig<T> & { forwardProps: { [key: string]: any } }
 
-// const listenForProps: (keyof GeneralComponentConfig)[] = [
-//   'value',
-//   'activeField',
-//   'errorState',
-//   'visited',
-//   'touched',
-//   'forwardProps'
-// ]
+const listenForProps: (keyof GeneralComponentConfig)[] = [
+  'isDirty',
+  'visitedState',
+  'touchedState',
+  'formValue',
+  'forwardProps'
+]
 
 class GeneralComponent extends React.Component<GeneralComponentConfig> {
   constructor(props: GeneralComponentConfig) {
@@ -21,9 +20,9 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
     this.collectProps = this.collectProps.bind(this)
   }
 
-  // shouldComponentUpdate(np: GeneralComponentConfig) {
-  //   return listenForProps.some(key => !_.isEqual(this.props[key], np[key]))
-  // }
+  shouldComponentUpdate(np: GeneralComponentConfig) {
+    return listenForProps.some(key => !_.isEqual(this.props[key], np[key]))
+  }
 
   collectProps(): GizmoProps {
     const {
