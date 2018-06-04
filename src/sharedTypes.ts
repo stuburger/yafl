@@ -2,7 +2,11 @@ export type Name = string | number
 export type Path = Name[]
 export type ValidationType = 'change' | 'blur' | 'submit'
 export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
-export type FieldValidatorPair<T = any> = { path: Path; test: AggregateValidator<T> }
+export type FieldValidatorPair<T = any> = {
+  path: Path
+  test: AggregateValidator<T>
+  type: 'section' | 'field'
+}
 export type FieldValidatorList<T = any> = FieldValidatorPair<T>[]
 export type Touched<T = any> = { [K in keyof T]: any extends object ? Touched<T[K]> : boolean }
 export type Visited<T = any> = { [K in keyof T]: any extends object ? Visited<T[K]> : boolean }
@@ -93,6 +97,7 @@ export interface FormState<T = any> {
   submitting: boolean
   formIsTouched: boolean
   submitCount: number
+  errors: FormErrors<T>
 }
 
 export interface FormProvider<T = any> extends FormState<T> {
@@ -107,6 +112,7 @@ export interface FormProvider<T = any> extends FormState<T> {
   formIsTouched: boolean
   errors: FormErrors<T>
   errorState: FormErrors<T>
+  sectionErrors: FormErrors<T>
   touchedState: Touched<T>
   visitedState: Visited<T>
   onSubmit: (() => void)
@@ -121,8 +127,6 @@ export interface FormProvider<T = any> extends FormState<T> {
   setFormValue: ((value: Partial<T>, overwrite: boolean) => void)
   setTouched: ((value: Touched<T>, overwrite: boolean) => void)
   setVisited: ((value: Visited<T>, overwrite: boolean) => void)
-  registerField: ((path: Path, validator: AggregateValidator) => void)
-  registerSection: ((path: Path, validator: AggregateValidator) => void)
-  unregisterField: ((path: Path, validator?: AggregateValidator) => void)
-  unregisterSection: ((path: Path, validator?: AggregateValidator) => void)
+  registerField: ((path: Path, type: 'section' | 'field') => void)
+  unregisterField: ((path: Path) => void)
 }

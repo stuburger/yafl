@@ -1,8 +1,17 @@
 import * as React from 'react'
-import { Provider, Consumer } from './Context'
+import { Provider, Consumer, ValidatorConsumer } from './Context'
 import * as _ from 'lodash'
 import { isEqual } from '../utils'
-import { Name, FormProvider, FormErrors, Visited, Touched, Validator } from '../sharedTypes'
+import {
+  Name,
+  Path,
+  FormProvider,
+  FormErrors,
+  Visited,
+  Touched,
+  Validator,
+  AggregateValidator
+} from '../sharedTypes'
 
 export interface ArrayHelpers<T = any> {
   push: (value: any) => void
@@ -11,6 +20,12 @@ export interface ArrayHelpers<T = any> {
 export interface ForkProviderConfig<T = any> extends FormProvider<T> {
   name: Name
   validators: Validator<T>[]
+  registerValidator: ((
+    path: Path,
+    validator: AggregateValidator<T>,
+    type: 'section' | 'field'
+  ) => void)
+  unregisterValidator: ((path: Path) => void)
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
@@ -18,6 +33,12 @@ export interface SectionConfig<T = any> {
   name: Name
   defaultValue?: any
   validators?: Validator<T>[]
+  registerValidator: ((
+    path: Path,
+    validator: AggregateValidator<T>,
+    type: 'section' | 'field'
+  ) => void)
+  unregisterValidator: ((path: Path) => void)
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
@@ -37,7 +58,8 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
     super(props)
     this.push = this.push.bind(this)
     this.validate = this.validate.bind(this)
-    this.registerSection = this.registerSection.bind(this)
+    this.registerField = this.registerField.bind(this)
+    this.registerField()
   }
 
   shouldComponentUpdate(np: ForkProviderConfig) {
@@ -52,16 +74,18 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
   }
 
   componentWillUnmount() {
-    const { unregisterSection, path } = this.props
-    unregisterSection(path, this.validate)
+    const { unregisterField, unregisterValidator, path } = this.props
+    unregisterValidator(path)
+    unregisterField(path)
   }
 
-  registerSection() {
-    const { path, registerSection } = this.props
-    registerSection(path, this.validate)
+  registerField() {
+    const { path, registerField, registerValidator } = this.props
+    registerValidator(path, this.validate, 'section')
+    registerField(path, 'section')
   }
 
-  validate(formValue: any, ret: FormErrors) {
+  validate(formValue: any) {
     const { path, validators, name } = this.props
     const errors: string[] = []
 
@@ -96,14 +120,14 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
   }
 }
 
-export default class Section extends React.PureComponent<SectionConfig> {
+class Section extends React.PureComponent<SectionConfig> {
   constructor(props: SectionConfig) {
     super(props)
     this._render = this._render.bind(this)
   }
 
   _render(incomingProps: FormProvider<any>) {
-    const { children, name, validators = [] } = this.props
+    const { children, name, validators = [], registerValidator, unregisterValidator } = this.props
     const {
       value = {},
       touched = {},
@@ -122,6 +146,8 @@ export default class Section extends React.PureComponent<SectionConfig> {
       <ForkProvider
         {...props}
         name={name}
+        registerValidator={registerValidator}
+        unregisterValidator={unregisterValidator}
         validators={validators}
         activeField={activeField}
         value={value[name]}
@@ -139,5 +165,25 @@ export default class Section extends React.PureComponent<SectionConfig> {
 
   render() {
     return <Consumer>{this._render}</Consumer>
+  }
+}
+
+export default class SectionWrapper extends React.Component<any> {
+  render() {
+    return (
+      <ValidatorConsumer>
+        {props => {
+          return (
+            <Section
+              {...this.props as any}
+              registerValidator={props.registerValidator}
+              unregisterValidator={props.unregisterValidator}
+            >
+              {this.props.children}
+            </Section>
+          )
+        }}
+      </ValidatorConsumer>
+    )
   }
 }

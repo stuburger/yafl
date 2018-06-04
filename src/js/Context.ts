@@ -1,13 +1,8 @@
 import React from 'react'
-import {
-  FormProvider,
-  FormErrors,
-  Path,
-  AggregateValidator,
-  Visited,
-  Touched,
-  FormState
-} from '../sharedTypes'
+import { FormProvider, FormErrors, Path, Visited, Touched, FormState } from '../sharedTypes'
+
+const { whyDidYouUpdate } = require('why-did-you-update')
+whyDidYouUpdate(React)
 
 /* @internal */
 export interface Noop {
@@ -25,6 +20,7 @@ interface DefaultProviderValue<T> extends FormState<T> {
   formIsDirty: boolean
   errors: FormErrors<T>
   errorState: FormErrors<T>
+  sectionErrors: FormErrors<T>
   touchedState: Touched<T>
   visitedState: Visited<T>
   onSubmit: (() => void) | Noop
@@ -39,10 +35,8 @@ interface DefaultProviderValue<T> extends FormState<T> {
   setTouched: ((value: Touched<T>, overwrite: boolean) => void) | Noop
   setVisited: ((value: Visited<T>, overwrite: boolean) => void) | Noop
   setFormValue: ((value: Partial<T>, overwrite: boolean) => void) | Noop
-  registerField: ((path: Path, validator: AggregateValidator) => void) | Noop
-  registerSection: ((path: Path, validator: AggregateValidator) => void) | Noop
-  unregisterField: ((path: Path, validator?: AggregateValidator) => void) | Noop
-  unregisterSection: ((path: Path, validator?: AggregateValidator) => void) | Noop
+  registerField: ((path: Path) => void) | Noop
+  unregisterField: ((path: Path) => void) | Noop
 }
 
 function noop(): never {
@@ -75,6 +69,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     visitedState: {} as Visited<T>,
     errors: {} as FormErrors<T>,
     errorState: {} as FormErrors<T>,
+    sectionErrors: {} as FormErrors<T>,
     onSubmit: noop,
     resetForm: noop,
     setValue: noop,
@@ -88,12 +83,14 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     setFormValue: noop,
     registerField: noop,
     setActiveField: noop,
-    registerSection: noop,
-    unregisterField: noop,
-    unregisterSection: noop
+    unregisterField: noop
   }
 }
 
 export const { Provider, Consumer } = React.createContext<FormProvider<any>>(
   getDefaultProviderValue()
 )
+
+const context = React.createContext<any>({})
+export const ValidatorProvider = context.Provider
+export const ValidatorConsumer = context.Consumer

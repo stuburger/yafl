@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as _ from 'lodash'
-import { Provider } from './Context'
+import { Provider, ValidatorProvider } from './Context'
 import {
   Path,
-  FieldValidatorList,
   FormErrors,
   AggregateValidator,
   ValidatorConfig,
@@ -40,11 +39,11 @@ export interface FormConfig<T = any> extends ValidatorConfig<T> {
   submitting?: boolean
   allowReinitialize?: boolean
   rememberStateOnReinitialize?: boolean
+  validate: any
+  // registerValidator: ((path: Path, validator: AggregateValidator) => void)
 }
 
-export default class Form extends React.Component<FormConfig, FormState> {
-  validators: FieldValidatorList = []
-  sectionValidators: FieldValidatorList = []
+class Form extends React.Component<FormConfig, FormState> {
   constructor(props: FormConfig) {
     super(props)
 
@@ -62,11 +61,8 @@ export default class Form extends React.Component<FormConfig, FormState> {
     this.setFormValue = loadedGuard(this.setFormValue)
     this.setTouched = loadedGuard(this.setTouched)
     this.setVisited = loadedGuard(this.setVisited)
-    this.buildErrors = bind(this, this.buildErrors)
     this.registerField = bind(this, this.registerField)
-    this.registerSection = bind(this, this.registerSection)
     this.unregisterField = bind(this, this.unregisterField)
-    this.unregisterSection = bind(this, this.unregisterSection)
     this.state = {
       initialMount: false,
       formValue: {},
@@ -80,7 +76,8 @@ export default class Form extends React.Component<FormConfig, FormState> {
       registeredFields: [],
       registeredSections: [],
       initialFormValue: {},
-      submitCount: 0
+      submitCount: 0,
+      errors: {}
     }
   }
 
@@ -98,8 +95,7 @@ export default class Form extends React.Component<FormConfig, FormState> {
     this.setState({ initialMount: true })
   }
 
-  registerField(path: Path, test: AggregateValidator) {
-    this.validators.push({ path, test })
+  registerField(path: Path, type: 'section' | 'field') {
     this.setState(({ registeredFields }) => {
       return {
         registeredFields: [...registeredFields, path]
@@ -109,35 +105,12 @@ export default class Form extends React.Component<FormConfig, FormState> {
     })
   }
 
-  registerSection(path: Path, test: AggregateValidator) {
-    this.sectionValidators.push({ path, test })
-    this.setState(({ registeredSections }) => {
-      return {
-        registeredSections: [...registeredSections, path]
-      }
-    })
-  }
-
-  unregisterField(path: Path, test?: AggregateValidator) {
-    if (test) {
-      this.validators = this.validators.filter(validator => validator.test !== test)
-    }
+  unregisterField(path: Path) {
     this.setState(({ registeredFields, touched, visited }) => {
       return {
         registeredFields: registeredFields.filter(x => !_.isEqual(x, path)),
         touched: us(touched, path),
         visited: us(visited, path)
-      }
-    })
-  }
-
-  unregisterSection(path: Path, test?: AggregateValidator) {
-    if (test) {
-      this.sectionValidators = this.sectionValidators.filter(validator => validator.test !== test)
-    }
-    this.setState(({ registeredSections }) => {
-      return {
-        registeredSections: registeredSections.filter(x => !_.isEqual(x, path))
       }
     })
   }
@@ -241,24 +214,16 @@ export default class Form extends React.Component<FormConfig, FormState> {
     })
   }
 
-  buildErrors(): FormErrors {
-    const { formValue } = this.state
-    const ret: FormErrors = {}
-    this.validators.forEach(({ test }) => test(formValue, ret))
-    return ret
-  }
-
   render() {
     const { defaultValue } = this.props
-    const errors = this.buildErrors()
     return (
       <Provider
         value={{
           path: startingPath,
-          errors,
           defaultValue,
           ...this.state,
-          errorState: errors,
+          sectionErrors: {},
+          errorState: this.state.errors,
           formIsValid: true,
           formIsDirty: false,
           onSubmit: this.submit,
@@ -277,8 +242,6 @@ export default class Form extends React.Component<FormConfig, FormState> {
           registerField: this.registerField,
           setActiveField: this.setActiveField,
           unregisterField: this.unregisterField,
-          registerSection: this.registerSection,
-          unregisterSection: this.unregisterSection,
           touchedState: this.state.touched,
           visitedState: this.state.visited,
           initialValue: this.state.initialFormValue
@@ -315,6 +278,7 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
   if (!ps.loaded && loaded) {
     state.initialFormValue = initialValue
     state.formValue = initialValue
+    state.errors = np.validate(ps.formValue)
     return state
   }
 
@@ -327,6 +291,61 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
       state.visited = {}
     }
   }
-
+  state.errors = np.validate(ps.formValue)
   return state
 }
+
+class ValidatorContainer extends React.Component<any, { validators: any[] }> {
+  state = { validators: [] }
+
+  constructor(props: any) {
+    super(props)
+    this.registerValidator = this.registerValidator.bind(this)
+    this.unregisterValidator = this.unregisterValidator.bind(this)
+    this.validate = this.validate.bind(this)
+  }
+
+  registerValidator(path: Path, test: AggregateValidator<any>, type: 'section' | 'field') {
+    this.setState(({ validators }) => ({ validators: [...validators, { path, test, type }] }))
+  }
+
+  unregisterValidator(path: Path) {
+    this.setState(({ validators }) => ({
+      validators: [...validators.filter(x => !_.isEqual(x.path, path))]
+    }))
+  }
+
+  validate(formValue: any): FormErrors {
+    const ret: FormErrors = {}
+    const { validators } = this.state
+    validators.forEach(({ test, path, type }: any) => {
+      const errors = test(formValue)
+      if (type === 'field') {
+        _.set(ret, path, errors)
+      } else {
+        _.set(ret, path, []) // why do I have to do this?
+        _.set(ret, [...path, '_errors'], errors)
+      }
+    })
+    return ret
+  }
+
+  render() {
+    const { children, ...incoming } = this.props
+    return (
+      <ValidatorProvider
+        value={{
+          validate: this.validate,
+          registerValidator: this.registerValidator,
+          unregisterValidator: this.unregisterValidator
+        }}
+      >
+        <Form {...incoming as any} validate={this.validate}>
+          {children}
+        </Form>
+      </ValidatorProvider>
+    )
+  }
+}
+
+export default ValidatorContainer
