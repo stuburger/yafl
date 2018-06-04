@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { Provider as P, FormMeta } from '../sharedTypes'
+import { FormProvider, FormMeta } from '../sharedTypes'
 import * as _ from 'lodash'
 import { Consumer } from './Context'
 
-type GeneralComponentConfig<T = any> = P<T> &
+type GeneralComponentConfig<T = any> = FormProvider<T> &
   GizmoConfig<T> & { forwardProps: { [key: string]: any } }
 
 const listenForProps: (keyof GeneralComponentConfig)[] = [
@@ -88,7 +88,7 @@ class Gizmo extends React.Component<GizmoConfig> {
     this._render = this._render.bind(this)
   }
 
-  _render(incomingProps: P) {
+  _render(incomingProps: FormProvider) {
     const { render, component, children, ...forwardProps } = this.props
 
     return (

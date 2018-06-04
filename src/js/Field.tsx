@@ -4,11 +4,9 @@ import {
   FormErrors,
   FormMeta,
   Name,
-  Provider as P,
-  Touched,
+  FormProvider,
   Validator,
-  ValidatorConfig,
-  Visited
+  ValidatorConfig
 } from '../sharedTypes'
 import { Consumer } from './Context'
 import { isEqual } from '../utils'
@@ -37,9 +35,9 @@ export interface FieldConfig<T = any> {
 }
 
 export interface FieldMeta<T = any> {
-  visited: Visited<T>
+  visited: boolean
   isDirty: boolean
-  touched: Touched<T>
+  touched: boolean
   isActive: boolean
   isValid: boolean
   errors: string[]
@@ -50,7 +48,7 @@ export interface FieldMeta<T = any> {
   setTouched: (value: boolean) => void
 }
 
-export interface InnerFieldProps<T = any> extends P<T>, Partial<ValidatorConfig<T>> {
+export interface InnerFieldProps<T = any> extends FormProvider<T>, Partial<ValidatorConfig<T>> {
   name: Name
   formValue: T
   value: any
@@ -114,6 +112,11 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
 
   validate(formValue: any, ret: FormErrors): string[] {
     const { name, path, validators = [] } = this.props
+
+    if (validators.length === 0) {
+      return []
+    }
+
     const nextValue = _.get(formValue, path)
     let errors: string[] = []
     for (let k in validators) {
@@ -221,8 +224,8 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
 
     const field: FieldMeta = {
       errors,
-      visited,
-      touched,
+      visited: !!visited,
+      touched: !!touched,
       initialValue,
       defaultValue,
       setValue: this.setValue,
@@ -284,7 +287,7 @@ export default class Field extends React.PureComponent<FieldConfig> {
     this._render = this._render.bind(this)
   }
 
-  _render(ip: P) {
+  _render(ip: FormProvider) {
     const {
       name,
       render,
@@ -311,8 +314,11 @@ export default class Field extends React.PureComponent<FieldConfig> {
         visited={ip.visited && (!!ip.visited[name] as any)}
         initialValue={ip.initialValue && ip.initialValue[name]}
         defaultValue={ip.defaultValue && ip.defaultValue[name]}
+        unregisterSection={ip.unregisterSection}
         submitting={ip.submitting}
         registeredFields={ip.registeredFields}
+        registerSection={ip.registerSection}
+        registeredSections={ip.registeredSections}
         initialFormValue={ip.initialFormValue}
         activeField={ip.activeField}
         initialMount={ip.initialValue}

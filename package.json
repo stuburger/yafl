@@ -24,7 +24,8 @@
   "author": "Stuart Bourhill",
   "license": "MIT",
   "dependencies": {
-    "lodash": "^4.6.0"
+    "lodash": "^4.6.0",
+    "object-path-immutable": "^1.0.2"
   },
   "keywords": [
     "react",

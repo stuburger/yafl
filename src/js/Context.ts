@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  Provider as P,
+  FormProvider,
   FormErrors,
   Path,
   AggregateValidator,
@@ -40,7 +40,9 @@ interface DefaultProviderValue<T> extends FormState<T> {
   setVisited: ((value: Visited<T>, overwrite: boolean) => void) | Noop
   setFormValue: ((value: Partial<T>, overwrite: boolean) => void) | Noop
   registerField: ((path: Path, validator: AggregateValidator) => void) | Noop
+  registerSection: ((path: Path, validator: AggregateValidator) => void) | Noop
   unregisterField: ((path: Path, validator?: AggregateValidator) => void) | Noop
+  unregisterSection: ((path: Path, validator?: AggregateValidator) => void) | Noop
 }
 
 function noop(): never {
@@ -68,6 +70,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     touched: {} as Touched<T>,
     visited: {} as Visited<T>,
     registeredFields: [] as Path[],
+    registeredSections: [] as Path[],
     touchedState: {} as Touched<T>,
     visitedState: {} as Visited<T>,
     errors: {} as FormErrors<T>,
@@ -85,8 +88,12 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     setFormValue: noop,
     registerField: noop,
     setActiveField: noop,
-    unregisterField: noop
+    registerSection: noop,
+    unregisterField: noop,
+    unregisterSection: noop
   }
 }
 
-export const { Provider, Consumer } = React.createContext<P<any>>(getDefaultProviderValue())
+export const { Provider, Consumer } = React.createContext<FormProvider<any>>(
+  getDefaultProviderValue()
+)

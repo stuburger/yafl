@@ -1,20 +1,23 @@
 import * as React from 'react'
 import { Provider, Consumer } from './Context'
+import * as _ from 'lodash'
 import { isEqual } from '../utils'
-import { Name, Provider as P, FormErrors, Visited, Touched } from '../sharedTypes'
+import { Name, FormProvider, FormErrors, Visited, Touched, Validator } from '../sharedTypes'
 
 export interface ArrayHelpers<T = any> {
   push: (value: any) => void
 }
 
-export interface ForkProviderConfig<T = any> extends P<T> {
+export interface ForkProviderConfig<T = any> extends FormProvider<T> {
   name: Name
+  validators: Validator<T>[]
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
 export interface SectionConfig<T = any> {
   name: Name
   defaultValue?: any
+  validators?: Validator<T>[]
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
@@ -33,6 +36,8 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
   constructor(props: ForkProviderConfig) {
     super(props)
     this.push = this.push.bind(this)
+    this.validate = this.validate.bind(this)
+    this.registerSection = this.registerSection.bind(this)
   }
 
   shouldComponentUpdate(np: ForkProviderConfig) {
@@ -47,8 +52,32 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
   }
 
   componentWillUnmount() {
-    const { unregisterField, path } = this.props
-    unregisterField(path)
+    const { unregisterSection, path } = this.props
+    unregisterSection(path, this.validate)
+  }
+
+  registerSection() {
+    const { path, registerSection } = this.props
+    registerSection(path, this.validate)
+  }
+
+  validate(formValue: any, ret: FormErrors) {
+    const { path, validators, name } = this.props
+    const errors: string[] = []
+
+    if (validators.length === 0) {
+      return errors
+    }
+
+    const nextValue = _.get(formValue, path)
+    for (let test of validators) {
+      const error = test(nextValue, formValue, name)
+      if (typeof error === 'string') {
+        errors.push(error)
+      }
+    }
+
+    return errors
   }
 
   push(valueToPush: any) {
@@ -73,8 +102,8 @@ export default class Section extends React.PureComponent<SectionConfig> {
     this._render = this._render.bind(this)
   }
 
-  _render(incomingProps: P<any>) {
-    const { children, name } = this.props
+  _render(incomingProps: FormProvider<any>) {
+    const { children, name, validators = [] } = this.props
     const {
       value = {},
       touched = {},
@@ -93,6 +122,7 @@ export default class Section extends React.PureComponent<SectionConfig> {
       <ForkProvider
         {...props}
         name={name}
+        validators={validators}
         activeField={activeField}
         value={value[name]}
         initialValue={initialValue[name]}

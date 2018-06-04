@@ -44,6 +44,7 @@ export interface FormConfig<T = any> extends ValidatorConfig<T> {
 
 export default class Form extends React.Component<FormConfig, FormState> {
   validators: FieldValidatorList = []
+  sectionValidators: FieldValidatorList = []
   constructor(props: FormConfig) {
     super(props)
 
@@ -63,7 +64,9 @@ export default class Form extends React.Component<FormConfig, FormState> {
     this.setVisited = loadedGuard(this.setVisited)
     this.buildErrors = bind(this, this.buildErrors)
     this.registerField = bind(this, this.registerField)
+    this.registerSection = bind(this, this.registerSection)
     this.unregisterField = bind(this, this.unregisterField)
+    this.unregisterSection = bind(this, this.unregisterSection)
     this.state = {
       initialMount: false,
       formValue: {},
@@ -75,6 +78,7 @@ export default class Form extends React.Component<FormConfig, FormState> {
       submitting: false,
       formIsTouched: false,
       registeredFields: [],
+      registeredSections: [],
       initialFormValue: {},
       submitCount: 0
     }
@@ -96,11 +100,20 @@ export default class Form extends React.Component<FormConfig, FormState> {
 
   registerField(path: Path, test: AggregateValidator) {
     this.validators.push({ path, test })
-    this.setState(({ registeredFields, touched, visited }) => {
+    this.setState(({ registeredFields }) => {
       return {
-        registeredFields: registeredFields.concat([path]),
-        touched: s(touched, path, false),
-        visited: s(visited, path, false)
+        registeredFields: [...registeredFields, path]
+        // touched: s(touched, path, false),
+        // visited: s(visited, path, false)
+      }
+    })
+  }
+
+  registerSection(path: Path, test: AggregateValidator) {
+    this.sectionValidators.push({ path, test })
+    this.setState(({ registeredSections }) => {
+      return {
+        registeredSections: [...registeredSections, path]
       }
     })
   }
@@ -114,6 +127,17 @@ export default class Form extends React.Component<FormConfig, FormState> {
         registeredFields: registeredFields.filter(x => !_.isEqual(x, path)),
         touched: us(touched, path),
         visited: us(visited, path)
+      }
+    })
+  }
+
+  unregisterSection(path: Path, test?: AggregateValidator) {
+    if (test) {
+      this.sectionValidators = this.sectionValidators.filter(validator => validator.test !== test)
+    }
+    this.setState(({ registeredSections }) => {
+      return {
+        registeredSections: registeredSections.filter(x => !_.isEqual(x, path))
       }
     })
   }
@@ -253,6 +277,8 @@ export default class Form extends React.Component<FormConfig, FormState> {
           registerField: this.registerField,
           setActiveField: this.setActiveField,
           unregisterField: this.unregisterField,
+          registerSection: this.registerSection,
+          unregisterSection: this.unregisterSection,
           touchedState: this.state.touched,
           visitedState: this.state.visited,
           initialValue: this.state.initialFormValue

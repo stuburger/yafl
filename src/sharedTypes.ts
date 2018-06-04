@@ -87,6 +87,7 @@ export interface FormState<T = any> {
   initialFormValue: T
   formValue: T
   registeredFields: Path[]
+  registeredSections: Path[]
   isBusy: boolean
   loaded: boolean
   submitting: boolean
@@ -94,7 +95,7 @@ export interface FormState<T = any> {
   submitCount: number
 }
 
-export interface Provider<T = any> extends FormState<T> {
+export interface FormProvider<T = any> extends FormState<T> {
   value: any
   path: Path
   defaultFormValue: T
@@ -121,5 +122,7 @@ export interface Provider<T = any> extends FormState<T> {
   setTouched: ((value: Touched<T>, overwrite: boolean) => void)
   setVisited: ((value: Visited<T>, overwrite: boolean) => void)
   registerField: ((path: Path, validator: AggregateValidator) => void)
+  registerSection: ((path: Path, validator: AggregateValidator) => void)
   unregisterField: ((path: Path, validator?: AggregateValidator) => void)
+  unregisterSection: ((path: Path, validator?: AggregateValidator) => void)
 }
