@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+// import * as _ from 'lodash'
 import * as React from 'react'
 import {
   FormMeta,
@@ -6,10 +6,11 @@ import {
   FormProvider,
   Validator,
   ValidatorConfig,
-  AggregateValidator,
-  Path
+  Path,
+  Touched,
+  Visited
 } from '../sharedTypes'
-import { Consumer, ValidatorConsumer } from './Context'
+import { Consumer } from './Context'
 import { isEqual } from '../utils'
 
 export interface InputProps<T = any> {
@@ -32,12 +33,7 @@ export interface FieldConfig<T = any> {
   validators?: Validator<T>[]
   render?: (state: FieldProps<T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T>>
-  registerValidator: ((
-    path: Path,
-    validator: AggregateValidator,
-    type: 'section' | 'field'
-  ) => void)
-  unregisterValidator: ((path: Path) => void)
+  setErrors: ((path: Path, errors: string[]) => void)
   [key: string]: any
 }
 
@@ -65,12 +61,7 @@ export interface InnerFieldProps<T = any> extends FormProvider<T>, Partial<Valid
   forwardProps: { [key: string]: any }
   render?: (state: FieldProps<T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T>>
-  registerValidator: ((
-    path: Path,
-    validator: AggregateValidator,
-    type: 'section' | 'field'
-  ) => void)
-  unregisterValidator: ((path: Path) => void)
+  setErrors: ((path: Path, errors: string[]) => void)
 }
 
 // const ignoreProps = ['registeredFields', 'path']
@@ -80,6 +71,7 @@ const listenForProps: (keyof InnerFieldProps)[] = [
   'value',
   'touched',
   'visited',
+  'validators',
   'forwardProps'
 ]
 
@@ -103,8 +95,16 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     this.registerField()
   }
 
+  componentDidMount() {
+    this.validate()
+  }
+
   shouldComponentUpdate(nextProps: InnerFieldProps) {
-    return listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
+    return true || listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
+  }
+
+  componentDidUpdate() {
+    this.validate()
   }
 
   componentWillUnmount() {
@@ -112,34 +112,31 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   registerField(): void {
-    const { registerField, registerValidator, path } = this.props
-    registerValidator(path, this.validate, 'field')
+    const { registerField, path } = this.props
     registerField(path, 'field')
   }
 
   unregisterField(): void {
-    const { path, unregisterField, unregisterValidator } = this.props
-    unregisterValidator(path)
+    const { path, unregisterField } = this.props
     unregisterField(path)
   }
 
-  validate(formValue: any): string[] {
-    const { name, path, validators = [] } = this.props
+  validate() {
+    const { name, setErrors, path, errors, value, formValue, validators = [] } = this.props
 
-    if (validators.length === 0) {
-      return []
-    }
+    if (validators.length === 0) return
 
-    const nextValue = _.get(formValue, path)
-    let errors: string[] = []
+    let nextErrors: string[] = []
     for (let k in validators) {
-      const err = validators[k](nextValue, formValue, name)
+      const err = validators[k](value, formValue, name)
       if (typeof err === 'string') {
-        errors.push(err)
+        nextErrors.push(err)
       }
     }
 
-    return errors
+    if (!isEqual(nextErrors, errors)) {
+      setErrors(path, nextErrors)
+    }
   }
 
   setValue(value: any): void {
@@ -213,9 +210,6 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       formIsTouched,
       defaultFormValue,
       initialFormValue,
-      errorState,
-      touchedState,
-      visitedState,
       forwardProps
     } = this.props
 
@@ -229,8 +223,8 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
 
     const field: FieldMeta = {
       errors,
-      visited: !!visited,
-      touched: !!touched,
+      visited: !!visited, //:  _.get(visited, path, false),
+      touched: !!touched, //_.get(touched, path, false),
       initialValue,
       defaultValue,
       setValue: this.setValue,
@@ -249,6 +243,9 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       submitting,
       submitCount,
       loaded,
+      visited,
+      touched,
+      errors,
       resetForm,
       submit: onSubmit,
       setFormValue,
@@ -260,10 +257,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       touchField,
       isValid: formIsValid,
       isDirty: formIsDirty,
-      isTouched: formIsTouched,
-      touched: touchedState,
-      visited: visitedState,
-      errors: errorState
+      isTouched: formIsTouched
     }
 
     return { input, field, form, ...forwardProps }
@@ -298,8 +292,6 @@ class Field extends React.PureComponent<FieldConfig> {
       render,
       children,
       component,
-      registerValidator,
-      unregisterValidator,
       validators = emptyValidators,
       ...forwardProps
     } = this.props
@@ -315,28 +307,24 @@ class Field extends React.PureComponent<FieldConfig> {
         validators={validators}
         path={ip.path.concat([name])}
         forwardProps={forwardProps}
-        value={ip.value && ip.value[name]}
         errors={ip.errors && ip.errors[name]}
-        touched={ip.touched && (!!ip.touched[name] as any)}
-        visited={ip.visited && (!!ip.visited[name] as any)}
+        touched={ip.touched && (ip.touched[name] as Touched)}
+        visited={ip.visited && (ip.visited[name] as Visited)}
+        setErrors={ip.setErrors}
+        value={ip.value && ip.value[name]}
         initialValue={ip.initialValue && ip.initialValue[name]}
         defaultValue={ip.defaultValue && ip.defaultValue[name]}
         submitting={ip.submitting}
         registeredFields={ip.registeredFields}
-        registerValidator={registerValidator}
         initialFormValue={ip.initialFormValue}
         activeField={ip.activeField}
         initialMount={ip.initialValue}
         formValue={ip.formValue}
         defaultFormValue={ip.defaultFormValue}
         submitCount={ip.submitCount}
-        sectionErrors={ip.sectionErrors}
         formIsValid={ip.formIsValid}
         formIsDirty={ip.formIsDirty}
         formIsTouched={ip.formIsTouched}
-        errorState={ip.errorState}
-        touchedState={ip.touchedState}
-        visitedState={ip.visitedState}
         onSubmit={ip.onSubmit}
         resetForm={ip.resetForm}
         clearForm={ip.clearForm}
@@ -351,7 +339,6 @@ class Field extends React.PureComponent<FieldConfig> {
         setVisited={ip.setVisited}
         registerField={ip.registerField}
         unregisterField={ip.unregisterField}
-        unregisterValidator={unregisterValidator}
       />
     )
   }
@@ -361,22 +348,4 @@ class Field extends React.PureComponent<FieldConfig> {
   }
 }
 
-export default class FieldWrapper extends React.Component<any> {
-  render() {
-    return (
-      <ValidatorConsumer>
-        {props => {
-          return (
-            <Field
-              {...this.props as any}
-              registerValidator={props.registerValidator}
-              unregisterValidator={props.unregisterValidator}
-            >
-              {this.props.children}
-            </Field>
-          )
-        }}
-      </ValidatorConsumer>
-    )
-  }
-}
+export default Field

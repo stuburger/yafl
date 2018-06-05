@@ -1,17 +1,7 @@
 import * as React from 'react'
-import { Provider, Consumer, ValidatorConsumer } from './Context'
-import * as _ from 'lodash'
+import { Provider, Consumer } from './Context'
 import { isEqual } from '../utils'
-import {
-  Name,
-  Path,
-  FormProvider,
-  FormErrors,
-  Visited,
-  Touched,
-  Validator,
-  AggregateValidator
-} from '../sharedTypes'
+import { Name, Path, FormProvider, FormErrors, Validator, Visited, Touched } from '../sharedTypes'
 
 export interface ArrayHelpers<T = any> {
   push: (value: any) => void
@@ -20,12 +10,7 @@ export interface ArrayHelpers<T = any> {
 export interface ForkProviderConfig<T = any> extends FormProvider<T> {
   name: Name
   validators: Validator<T>[]
-  registerValidator: ((
-    path: Path,
-    validator: AggregateValidator<T>,
-    type: 'section' | 'field'
-  ) => void)
-  unregisterValidator: ((path: Path) => void)
+  setErrors: ((path: Path, errors: string[]) => void)
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
@@ -33,25 +18,11 @@ export interface SectionConfig<T = any> {
   name: Name
   defaultValue?: any
   validators?: Validator<T>[]
-  registerValidator: ((
-    path: Path,
-    validator: AggregateValidator<T>,
-    type: 'section' | 'field'
-  ) => void)
-  unregisterValidator: ((path: Path) => void)
+  setErrors: ((path: Path, errors: string[]) => void)
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
-const ignoreProps: (keyof ForkProviderConfig)[] = [
-  'path',
-  'errors',
-  'formValue',
-  'registeredFields',
-  'touchedState',
-  'visitedState',
-  'errorState',
-  'children'
-]
+const listenForProps: (keyof ForkProviderConfig)[] = ['activeField', 'value', 'touched', 'visited']
 
 class ForkProvider extends React.Component<ForkProviderConfig> {
   constructor(props: ForkProviderConfig) {
@@ -62,46 +33,43 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
     this.registerField()
   }
 
-  shouldComponentUpdate(np: ForkProviderConfig) {
-    let k: keyof ForkProviderConfig
-    let shouldUpdate = false
-    for (k in np) {
-      if (shouldUpdate) break
-      if (ignoreProps.includes(k)) continue
-      shouldUpdate = isEqual(np[k], this.props[k])
-    }
-    return shouldUpdate
+  shouldComponentUpdate(nextProps: ForkProviderConfig) {
+    return true || listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
+  }
+
+  componentDidMount() {
+    this.validate()
+  }
+
+  componentDidUpdate() {
+    this.validate()
   }
 
   componentWillUnmount() {
-    const { unregisterField, unregisterValidator, path } = this.props
-    unregisterValidator(path)
-    unregisterField(path)
+    const { unregisterField, path } = this.props
+    unregisterField(path) // 'section'
   }
 
   registerField() {
-    const { path, registerField, registerValidator } = this.props
-    registerValidator(path, this.validate, 'section')
+    const { path, registerField } = this.props
     registerField(path, 'section')
   }
 
-  validate(formValue: any) {
-    const { path, validators, name } = this.props
-    const errors: string[] = []
+  validate() {
+    const { path, setErrors, errors = {}, value, validators, formValue, name } = this.props
+    if (validators.length === 0) return
+    const nextErrors: string[] = []
 
-    if (validators.length === 0) {
-      return errors
-    }
-
-    const nextValue = _.get(formValue, path)
     for (let test of validators) {
-      const error = test(nextValue, formValue, name)
+      const error = test(value, formValue, name)
       if (typeof error === 'string') {
-        errors.push(error)
+        nextErrors.push(error)
       }
     }
-
-    return errors
+    const sectionErrors = (errors as any)._errors
+    if (!isEqual(nextErrors, sectionErrors)) {
+      setErrors([...path, '_errors'], nextErrors)
+    }
   }
 
   push(valueToPush: any) {
@@ -127,12 +95,12 @@ class Section extends React.PureComponent<SectionConfig> {
   }
 
   _render(incomingProps: FormProvider<any>) {
-    const { children, name, validators = [], registerValidator, unregisterValidator } = this.props
+    const { children, name, validators = [] } = this.props
     const {
       value = {},
+      errors = {},
       touched = {},
       visited = {},
-      errors = {},
       defaultValue = {},
       initialValue = {},
       path = [],
@@ -146,16 +114,14 @@ class Section extends React.PureComponent<SectionConfig> {
       <ForkProvider
         {...props}
         name={name}
-        registerValidator={registerValidator}
-        unregisterValidator={unregisterValidator}
         validators={validators}
         activeField={activeField}
         value={value[name]}
+        touched={touched[name] as Touched}
+        visited={visited[name] as Visited}
         initialValue={initialValue[name]}
         defaultValue={defaultValue[name]}
         errors={errors[name] as FormErrors}
-        touched={touched[name] as Touched}
-        visited={visited[name] as Visited}
         path={nextPath}
       >
         {children}
@@ -168,22 +134,4 @@ class Section extends React.PureComponent<SectionConfig> {
   }
 }
 
-export default class SectionWrapper extends React.Component<any> {
-  render() {
-    return (
-      <ValidatorConsumer>
-        {props => {
-          return (
-            <Section
-              {...this.props as any}
-              registerValidator={props.registerValidator}
-              unregisterValidator={props.unregisterValidator}
-            >
-              {this.props.children}
-            </Section>
-          )
-        }}
-      </ValidatorConsumer>
-    )
-  }
-}
+export default Section

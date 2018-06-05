@@ -19,10 +19,6 @@ interface DefaultProviderValue<T> extends FormState<T> {
   formIsValid: boolean
   formIsDirty: boolean
   errors: FormErrors<T>
-  errorState: FormErrors<T>
-  sectionErrors: FormErrors<T>
-  touchedState: Touched<T>
-  visitedState: Visited<T>
   onSubmit: (() => void) | Noop
   resetForm: (() => void) | Noop
   clearForm: (() => void) | Noop
@@ -32,6 +28,7 @@ interface DefaultProviderValue<T> extends FormState<T> {
   touchField: ((path: Path, touched: boolean) => void) | Noop
   visitField: ((path: Path, visited: boolean) => void) | Noop
   renameField: ((prevName: Path, nextName: Path) => void) | Noop
+  setErrors: ((path: Path, errors: string[]) => void) | Noop
   setTouched: ((value: Touched<T>, overwrite: boolean) => void) | Noop
   setVisited: ((value: Visited<T>, overwrite: boolean) => void) | Noop
   setFormValue: ((value: Partial<T>, overwrite: boolean) => void) | Noop
@@ -64,12 +61,9 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     touched: {} as Touched<T>,
     visited: {} as Visited<T>,
     registeredFields: [] as Path[],
-    touchedState: {} as Touched<T>,
-    visitedState: {} as Visited<T>,
     errors: {} as FormErrors<T>,
-    errorState: {} as FormErrors<T>,
-    sectionErrors: {} as FormErrors<T>,
     onSubmit: noop,
+    setErrors: noop,
     resetForm: noop,
     setValue: noop,
     clearForm: noop,
@@ -89,7 +83,3 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
 export const { Provider, Consumer } = React.createContext<FormProvider<any>>(
   getDefaultProviderValue()
 )
-
-const context = React.createContext<any>({})
-export const ValidatorProvider = context.Provider
-export const ValidatorConsumer = context.Consumer

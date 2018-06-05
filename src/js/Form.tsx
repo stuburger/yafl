@@ -1,15 +1,7 @@
 import * as React from 'react'
 import * as _ from 'lodash'
-import { Provider, ValidatorProvider } from './Context'
-import {
-  Path,
-  FormErrors,
-  AggregateValidator,
-  ValidatorConfig,
-  FormState,
-  Touched,
-  Visited
-} from '../sharedTypes'
+import { Provider } from './Context'
+import { Path, ValidatorConfig, FormState, Touched, Visited } from '../sharedTypes'
 import { bind, trueIfAbsent, s, us, build, shallowCopy } from '../utils'
 
 const noop = (...params: any[]) => {
@@ -40,7 +32,6 @@ export interface FormConfig<T = any> extends ValidatorConfig<T> {
   allowReinitialize?: boolean
   rememberStateOnReinitialize?: boolean
   validate: any
-  // registerValidator: ((path: Path, validator: AggregateValidator) => void)
 }
 
 class Form extends React.Component<FormConfig, FormState> {
@@ -59,6 +50,7 @@ class Form extends React.Component<FormConfig, FormState> {
     this.renameField = loadedGuard(this.renameField)
     this.resetForm = loadedGuard(this.resetForm)
     this.setFormValue = loadedGuard(this.setFormValue)
+    this.setErrors = loadedGuard(this.setErrors)
     this.setTouched = loadedGuard(this.setTouched)
     this.setVisited = loadedGuard(this.setVisited)
     this.registerField = bind(this, this.registerField)
@@ -105,9 +97,10 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   unregisterField(path: Path) {
-    this.setState(({ registeredFields, touched, visited }) => {
+    this.setState(({ registeredFields, touched, visited, errors }) => {
       return {
         registeredFields: registeredFields.filter(x => !_.isEqual(x, path)),
+        errors: us(errors, path),
         touched: us(touched, path),
         visited: us(visited, path)
       }
@@ -176,6 +169,14 @@ class Form extends React.Component<FormConfig, FormState> {
     })
   }
 
+  setErrors(path: Path, errors: string[]) {
+    this.setState(({ errors: prev }) => {
+      return {
+        errors: s(prev, path, errors)
+      }
+    })
+  }
+
   setActiveField(activeField: Path) {
     this.setState({ activeField })
   }
@@ -221,13 +222,12 @@ class Form extends React.Component<FormConfig, FormState> {
           path: startingPath,
           defaultValue,
           ...this.state,
-          sectionErrors: {},
-          errorState: this.state.errors,
           formIsValid: true,
           formIsDirty: false,
           onSubmit: this.submit,
           setValue: this.setValue,
           clearForm: this.clearForm,
+          setErrors: this.setErrors,
           resetForm: this.resetForm,
           value: this.state.formValue,
           visitField: this.visitField,
@@ -241,8 +241,6 @@ class Form extends React.Component<FormConfig, FormState> {
           registerField: this.registerField,
           setActiveField: this.setActiveField,
           unregisterField: this.unregisterField,
-          touchedState: this.state.touched,
-          visitedState: this.state.visited,
           initialValue: this.state.initialFormValue
         }}
       >
@@ -277,7 +275,6 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
   if (!ps.loaded && loaded) {
     state.initialFormValue = initialValue
     state.formValue = initialValue
-    state.errors = np.validate(ps.formValue)
     return state
   }
 
@@ -290,61 +287,7 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
       state.visited = {}
     }
   }
-  state.errors = np.validate(ps.formValue)
   return state
 }
 
-class ValidatorContainer extends React.Component<any, { validators: any[] }> {
-  state = { validators: [] }
-
-  constructor(props: any) {
-    super(props)
-    this.registerValidator = this.registerValidator.bind(this)
-    this.unregisterValidator = this.unregisterValidator.bind(this)
-    this.validate = this.validate.bind(this)
-  }
-
-  registerValidator(path: Path, test: AggregateValidator<any>, type: 'section' | 'field') {
-    this.setState(({ validators }) => ({ validators: [...validators, { path, test, type }] }))
-  }
-
-  unregisterValidator(path: Path) {
-    this.setState(({ validators }) => ({
-      validators: [...validators.filter(x => !_.isEqual(x.path, path))]
-    }))
-  }
-
-  validate(formValue: any): FormErrors {
-    const ret: FormErrors = {}
-    const { validators } = this.state
-    validators.forEach(({ test, path, type }: any) => {
-      const errors = test(formValue)
-      if (type === 'field') {
-        _.set(ret, path, errors)
-      } else {
-        _.set(ret, path, []) // why do I have to do this?
-        _.set(ret, [...path, '_errors'], errors)
-      }
-    })
-    return ret
-  }
-
-  render() {
-    const { children, ...incoming } = this.props
-    return (
-      <ValidatorProvider
-        value={{
-          validate: this.validate,
-          registerValidator: this.registerValidator,
-          unregisterValidator: this.unregisterValidator
-        }}
-      >
-        <Form {...incoming as any} validate={this.validate}>
-          {children}
-        </Form>
-      </ValidatorProvider>
-    )
-  }
-}
-
-export default ValidatorContainer
+export default Form

@@ -110,15 +110,12 @@ export interface FormProvider<T = any> extends FormState<T> {
   formIsDirty: boolean
   formIsTouched: boolean
   errors: FormErrors<T>
-  errorState: FormErrors<T>
-  sectionErrors: FormErrors<T>
-  touchedState: Touched<T>
-  visitedState: Visited<T>
   onSubmit: (() => void)
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
   setActiveField: ((path: Path) => void)
+  setErrors: ((path: Path, errors: string[]) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)

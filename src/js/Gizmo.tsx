@@ -7,9 +7,10 @@ type GeneralComponentConfig<T = any> = FormProvider<T> &
   GizmoConfig<T> & { forwardProps: { [key: string]: any } }
 
 const listenForProps: (keyof GeneralComponentConfig)[] = [
+  'errors',
+  'touched',
+  'visited',
   'isDirty',
-  'visitedState',
-  'touchedState',
   'formValue',
   'forwardProps'
 ]
@@ -27,16 +28,11 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
   collectProps(): GizmoProps {
     const {
       render,
-      visited,
-      touched,
       onSubmit,
       children,
-      errorState,
       formIsValid,
       formIsDirty,
       forwardProps,
-      touchedState,
-      visitedState,
       formIsTouched,
       component: Component,
       ...props
@@ -48,8 +44,6 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
       isValid: formIsValid,
       isDirty: formIsDirty,
       isTouched: formIsTouched,
-      touched: touchedState,
-      visited: visitedState,
       ...forwardProps
     }
   }
