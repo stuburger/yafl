@@ -91,7 +91,6 @@ export interface FormState<T = any> {
   initialFormValue: T
   formValue: T
   registeredFields: Path[]
-  registeredSections: Path[]
   isBusy: boolean
   loaded: boolean
   submitting: boolean

@@ -64,7 +64,6 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     touched: {} as Touched<T>,
     visited: {} as Visited<T>,
     registeredFields: [] as Path[],
-    registeredSections: [] as Path[],
     touchedState: {} as Touched<T>,
     visitedState: {} as Visited<T>,
     errors: {} as FormErrors<T>,

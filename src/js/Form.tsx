@@ -74,7 +74,6 @@ class Form extends React.Component<FormConfig, FormState> {
       submitting: false,
       formIsTouched: false,
       registeredFields: [],
-      registeredSections: [],
       initialFormValue: {},
       submitCount: 0,
       errors: {}

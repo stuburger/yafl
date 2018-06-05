@@ -323,7 +323,6 @@ class Field extends React.PureComponent<FieldConfig> {
         defaultValue={ip.defaultValue && ip.defaultValue[name]}
         submitting={ip.submitting}
         registeredFields={ip.registeredFields}
-        registeredSections={ip.registeredSections}
         registerValidator={registerValidator}
         initialFormValue={ip.initialFormValue}
         activeField={ip.activeField}
