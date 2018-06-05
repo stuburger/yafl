@@ -67,7 +67,7 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
       }
     }
     const sectionErrors = (errors as any)._errors
-    if (!isEqual(nextErrors, sectionErrors)) {
+    if (sectionErrors && !isEqual(nextErrors, sectionErrors)) {
       setErrors([...path, '_errors'], nextErrors)
     }
   }

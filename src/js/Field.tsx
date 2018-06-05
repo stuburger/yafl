@@ -122,7 +122,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   validate() {
-    const { name, setErrors, path, errors, value, formValue, validators = [] } = this.props
+    const { name, setErrors, path, errors = [], value, formValue, validators = [] } = this.props
 
     if (validators.length === 0) return
 
@@ -134,7 +134,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       }
     }
 
-    if (!isEqual(nextErrors, errors)) {
+    if (nextErrors && !isEqual(nextErrors, errors)) {
       setErrors(path, nextErrors)
     }
   }
