@@ -1,8 +1,8 @@
 import minLength from './minLength'
-import { FormFieldState } from '../sharedTypes'
-import { Person } from '../sharedTypes'
+// import { FormFieldState } from '../sharedTypes'
+// import { Person } from '../sharedTypes'
 
-const formTouchedInvalid: FormFieldState<Person> = {
+const formTouchedInvalid: any = {
   name: {
     value: 'j',
     originalValue: 'j',
@@ -45,7 +45,8 @@ const formTouchedInvalid: FormFieldState<Person> = {
   }
 }
 
-const formTouchedValid: FormFieldState<Person> = {
+// const formTouchedValid: FormFieldState<Person> = {
+const formTouchedValid: any = {
   name: {
     value: 'st',
     originalValue: 'stuart',

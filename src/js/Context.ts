@@ -1,5 +1,13 @@
 import React from 'react'
-import { FormProvider, FormErrors, Path, Visited, Touched, FormState } from '../sharedTypes'
+import {
+  FormProvider,
+  FormErrors,
+  Path,
+  Visited,
+  Touched,
+  FormState,
+  ValidateOn
+} from '../sharedTypes'
 
 const { whyDidYouUpdate } = require('why-did-you-update')
 whyDidYouUpdate(React)
@@ -19,6 +27,7 @@ interface DefaultProviderValue<T> extends FormState<T> {
   formIsValid: boolean
   formIsDirty: boolean
   errors: FormErrors<T>
+  validateOn: ValidateOn<T>
   onSubmit: (() => void) | Noop
   resetForm: (() => void) | Noop
   clearForm: (() => void) | Noop
@@ -62,6 +71,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     visited: {} as Visited<T>,
     registeredFields: [] as Path[],
     errors: {} as FormErrors<T>,
+    validateOn: 'blur',
     onSubmit: noop,
     setErrors: noop,
     resetForm: noop,

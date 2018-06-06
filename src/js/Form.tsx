@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as _ from 'lodash'
 import { Provider } from './Context'
-import { Path, ValidatorConfig, FormState, Touched, Visited } from '../sharedTypes'
+import { Path, ValidatorConfig, FormState, Touched, Visited, ValidateOn } from '../sharedTypes'
 import { bind, trueIfAbsent, s, us, build, shallowCopy } from '../utils'
 
 const noop = (...params: any[]) => {
@@ -26,6 +26,7 @@ export interface FormConfig<T = any> extends ValidatorConfig<T> {
   initialValue?: T
   defaultValue?: T
   onSubmit?: (formValue: T) => void
+  validateOn?: ValidateOn<T>
   children: React.ReactNode
   loaded?: boolean
   submitting?: boolean

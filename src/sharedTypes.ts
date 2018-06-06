@@ -1,7 +1,13 @@
 export type Name = string | number
 export type Path = Name[]
 export type ValidationType = 'change' | 'blur' | 'submit'
-export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
+// export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
+export interface FormFieldState<T = any> {
+  touched: Touched<T>
+  visited: Visited<T>
+  initialValue: T
+  defaultValue: T
+}
 export type FieldValidatorPair<T = any> = {
   path: Path
   test: AggregateValidator<T>
@@ -56,6 +62,7 @@ export interface FormMeta<T = any> {
 }
 
 export interface FieldState<T> {
+  name: Name
   value: T
   visited: boolean
   touched: boolean
@@ -80,7 +87,7 @@ export interface ValidatorConfig<T> {
 }
 
 export interface ValidateOnCustom<T> {
-  (field: any, fields: FormFieldState<T>, fieldName: Name): boolean
+  (field: FieldState<T>, fieldName: Name, fields?: FormFieldState<T>): boolean
 }
 
 export interface FormState<T = any> {
@@ -114,6 +121,7 @@ export interface FormProvider<T = any> extends FormState<T> {
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
+  validateOn?: ValidateOn<T>
   setActiveField: ((path: Path) => void)
   setErrors: ((path: Path, errors: string[]) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)

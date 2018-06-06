@@ -1,4 +1,3 @@
-// import * as _ from 'lodash'
 import * as React from 'react'
 import {
   FormMeta,
@@ -8,10 +7,16 @@ import {
   ValidatorConfig,
   Path,
   Touched,
-  Visited
+  Visited,
+  ValidateOn,
+  ValidationType
 } from '../sharedTypes'
 import { Consumer } from './Context'
 import { isEqual } from '../utils'
+
+const incl = (arrayOrString: ValidationType[] | ValidationType, value: ValidationType) => {
+  return (arrayOrString as string[] & string).includes(value)
+}
 
 export interface InputProps<T = any> {
   name: Name
@@ -31,6 +36,7 @@ export interface FieldProps<T = any> {
 export interface FieldConfig<T = any> {
   name: Name
   validators?: Validator<T>[]
+  validateOn?: ValidateOn<T>
   render?: (state: FieldProps<T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T>>
   setErrors: ((path: Path, errors: string[]) => void)
@@ -59,12 +65,12 @@ export interface InnerFieldProps<T = any> extends FormProvider<T>, Partial<Valid
   initialValue: any
   validators: Validator<T>[]
   forwardProps: { [key: string]: any }
+  validateOn: ValidateOn<T>
   render?: (state: FieldProps<T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T>>
   setErrors: ((path: Path, errors: string[]) => void)
 }
 
-// const ignoreProps = ['registeredFields', 'path']
 const listenForProps: (keyof InnerFieldProps)[] = [
   'errors',
   'name',
@@ -88,6 +94,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     this.touchField = this.touchField.bind(this)
     this.visitField = this.visitField.bind(this)
     this.validate = this.validate.bind(this)
+    this.shouldValidate = this.shouldValidate.bind(this)
     this.onBlur = this.onBlur.bind(this)
     this.onChange = this.onChange.bind(this)
     this.onFocus = this.onFocus.bind(this)
@@ -121,7 +128,50 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     unregisterField(path)
   }
 
+  shouldValidate(): boolean {
+    const {
+      name,
+      value,
+      visited,
+      touched,
+      validators,
+      validateOn,
+      submitCount,
+      initialValue,
+      initialFormValue,
+      defaultFormValue
+    } = this.props
+    if (validators && validators.length) {
+      if (typeof validateOn === 'function') {
+        return validateOn(
+          {
+            name,
+            value,
+            touched: !!touched, // todo
+            visited: !!visited,
+            originalValue: initialValue
+          },
+          name,
+          {
+            visited,
+            touched,
+            initialValue: initialFormValue,
+            defaultValue: defaultFormValue
+          }
+        )
+      } else {
+        return (
+          (!!visited && incl(validateOn, 'blur')) ||
+          (!!touched && incl(validateOn, 'change')) ||
+          (submitCount > 0 && incl(validateOn, 'submit'))
+        )
+      }
+    }
+    return false
+  }
+
   validate() {
+    if (!this.shouldValidate()) return
     const { name, setErrors, path, errors = [], value, formValue, validators = [] } = this.props
 
     if (validators.length === 0) return
@@ -292,6 +342,7 @@ class Field extends React.PureComponent<FieldConfig> {
       render,
       children,
       component,
+      validateOn = ip.validateOn || 'blur',
       validators = emptyValidators,
       ...forwardProps
     } = this.props
@@ -306,6 +357,7 @@ class Field extends React.PureComponent<FieldConfig> {
         component={component}
         validators={validators}
         path={ip.path.concat([name])}
+        validateOn={validateOn}
         forwardProps={forwardProps}
         errors={ip.errors && ip.errors[name]}
         touched={ip.touched && (ip.touched[name] as Touched)}
