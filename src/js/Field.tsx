@@ -1,15 +1,16 @@
 import * as React from 'react'
+import * as _ from 'lodash'
 import {
   FormMeta,
   Name,
   FormProvider,
   Validator,
   ValidatorConfig,
-  Path,
   Touched,
   Visited,
   ValidateOn,
-  ValidationType
+  ValidationType,
+  FormState
 } from '../sharedTypes'
 import { Consumer } from './Context'
 import { isEqual } from '../utils'
@@ -39,7 +40,6 @@ export interface FieldConfig<T = any> {
   validateOn?: ValidateOn<T>
   render?: (state: FieldProps<T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T>>
-  setErrors: ((path: Path, errors: string[]) => void)
   [key: string]: any
 }
 
@@ -62,14 +62,12 @@ export interface InnerFieldProps<T = any> extends FormProvider<T>, Partial<Valid
   formValue: T
   value: any
   errors: any // string[]
-  formErrors: any // string[]
   initialValue: any
   validators: Validator<T>[]
   forwardProps: { [key: string]: any }
   validateOn: ValidateOn<T>
   render?: (state: FieldProps<T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T>>
-  setErrors: ((path: Path, errors: string[]) => void)
 }
 
 const listenForProps: (keyof InnerFieldProps)[] = [
@@ -103,19 +101,14 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     this.registerField()
   }
 
-  componentDidMount() {
-    if (this.shouldValidate()) {
-      this.validate()
-    }
-  }
-
   shouldComponentUpdate(nextProps: InnerFieldProps) {
-    return true || listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
+    return listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
   }
 
   componentDidUpdate(pp: InnerFieldProps) {
-    if (this.shouldValidate()) {
-      this.validate()
+    const { registeredFields, path } = this.props
+    if (!registeredFields[path.join('.')]) {
+      this.registerField()
     }
   }
 
@@ -125,7 +118,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
 
   registerField(): void {
     const { registerField, path } = this.props
-    registerField(path, 'field')
+    registerField(path, 'field', this.validate as any)
   }
 
   unregisterField(): void {
@@ -133,26 +126,17 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     unregisterField(path)
   }
 
-  shouldValidate(): boolean {
+  shouldValidate(value: any, { touched, visited, submitCount }: FormState): boolean {
     const { validators } = this.props
     if (validators && validators.length) {
-      const {
-        name,
-        value,
-        visited,
-        touched,
-        validateOn,
-        submitCount,
-        initialValue,
-        initialFormValue
-      } = this.props
+      const { name, path, validateOn, initialValue, initialFormValue } = this.props
       if (typeof validateOn === 'function') {
         return validateOn(
           {
             name,
             value,
-            touched: !!touched, // todo
-            visited: !!visited,
+            touched: !!_.get(path, touched as any), // todo
+            visited: !!_.get(path, visited as any),
             originalValue: initialValue
           },
           name,
@@ -173,10 +157,9 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     return false
   }
 
-  validate() {
-    const { name, setErrors, path, errors = [], value, formValue, validators = [] } = this.props
-
-    if (validators.length === 0) return
+  validate(value: any, formValue: any, name: Name, formState: FormState) {
+    const { validators = [] } = this.props
+    if (!this.shouldValidate(value, formState)) return []
 
     let nextErrors: string[] = []
     for (let k in validators) {
@@ -186,9 +169,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       }
     }
 
-    if (!isEqual(nextErrors, errors)) {
-      setErrors(path, nextErrors)
-    }
+    return nextErrors
   }
 
   setValue(value: any): void {
@@ -249,7 +230,6 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       forgetState,
       formIsDirty,
       errors = [],
-      formErrors = [],
       submitting,
       formValue,
       setVisited,
@@ -266,8 +246,6 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       forwardProps
     } = this.props
 
-    const allErrors = [...errors, ...formErrors]
-
     const input: InputProps = {
       name,
       value,
@@ -277,7 +255,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     }
 
     const field: FieldMeta = {
-      errors: allErrors,
+      errors,
       visited: !!visited,
       touched: !!touched,
       initialValue,
@@ -285,7 +263,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       setValue: this.setValue,
       setTouched: this.touchField,
       setVisited: this.visitField,
-      isValid: allErrors.length === 0,
+      isValid: errors.length === 0,
       isActive: activeField.every((x, _i) => x === path[_i]),
       isDirty: formIsDirty && initialValue === value
     }
@@ -365,10 +343,8 @@ class Field extends React.PureComponent<FieldConfig> {
         validateOn={validateOn}
         forwardProps={forwardProps}
         errors={ip.errors && ip.errors[name]}
-        formErrors={ip.formErrors && ip.formErrors[name]}
         touched={ip.touched && (ip.touched[name] as Touched)}
         visited={ip.visited && (ip.visited[name] as Visited)}
-        setErrors={ip.setErrors}
         value={ip.value && ip.value[name]}
         initialValue={ip.initialValue && ip.initialValue[name]}
         defaultValue={ip.defaultValue && ip.defaultValue[name]}

@@ -8,9 +8,12 @@ import {
   Touched,
   Visited,
   ValidateOn,
-  FormErrors
+  FormErrors,
+  Validator,
+  RegisteredField,
+  RegisteredFields
 } from '../sharedTypes'
-import { bind, trueIfAbsent, s, us, build, shallowCopy } from '../utils'
+import { bind, trueIfAbsent, s, us, shallowCopy } from '../utils'
 
 const noop = (...params: any[]) => {
   console.log('not loaded or field non existent')
@@ -44,6 +47,7 @@ export interface FormConfig<T = any> extends ValidatorConfig<T> {
 }
 
 class Form extends React.Component<FormConfig, FormState> {
+  registeredFields: RegisteredField<any>[] = []
   constructor(props: FormConfig) {
     super(props)
 
@@ -59,11 +63,11 @@ class Form extends React.Component<FormConfig, FormState> {
     this.renameField = loadedGuard(this.renameField)
     this.resetForm = loadedGuard(this.resetForm)
     this.setFormValue = loadedGuard(this.setFormValue)
-    this.setErrors = loadedGuard(this.setErrors)
     this.setTouched = loadedGuard(this.setTouched)
     this.setVisited = loadedGuard(this.setVisited)
     this.registerField = bind(this, this.registerField)
     this.unregisterField = bind(this, this.unregisterField)
+    this.flush = bind(this, this.flush)
     this.state = {
       initialMount: false,
       formValue: {},
@@ -74,11 +78,9 @@ class Form extends React.Component<FormConfig, FormState> {
       isBusy: false,
       submitting: false,
       formIsTouched: false,
-      registeredFields: [],
+      registeredFields: {},
       initialFormValue: {},
-      submitCount: 0,
-      errors: {},
-      formErrors: {}
+      submitCount: 0
     }
   }
 
@@ -96,19 +98,35 @@ class Form extends React.Component<FormConfig, FormState> {
     this.setState({ initialMount: true })
   }
 
-  registerField(path: Path, type: 'section' | 'field') {
-    this.setState(({ registeredFields }) => {
-      return {
-        registeredFields: [...registeredFields, path]
+  componentDidUpdate() {
+    this.flush()
+  }
+
+  flush() {
+    if (this.registeredFields.length > 0) {
+      let fields: RegisteredFields = {}
+      while (this.registeredFields.length > 0) {
+        const field = this.registeredFields.pop()
+        if (field) {
+          fields = { ...fields, [field.path.join('.')]: field }
+        }
       }
-    })
+      this.setState(({ registeredFields }) => ({
+        registeredFields: { ...registeredFields, ...fields }
+      }))
+    }
+  }
+
+  registerField(path: Path, type: 'section' | 'field', validate: Validator) {
+    this.registeredFields.push({ path, type, validate })
   }
 
   unregisterField(path: Path) {
-    this.setState(({ registeredFields, touched, visited, errors }) => {
+    this.setState(({ registeredFields: prev, touched, visited }) => {
+      const registeredFields = { ...prev }
+      delete registeredFields[path.join('.')]
       return {
-        registeredFields: registeredFields.filter(x => !_.isEqual(x, path)),
-        errors: us(errors, path),
+        registeredFields,
         touched: us(touched, path),
         visited: us(visited, path)
       }
@@ -136,7 +154,6 @@ class Form extends React.Component<FormConfig, FormState> {
     })
   }
 
-  // val is of type T
   setFormValue(val: any, overwrite = false) {
     this.setState(({ formValue }) => {
       return {
@@ -156,11 +173,9 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   setTouched(touched: Touched, overwrite = false) {
-    this.setState(({ touched: prev }) => {
-      return {
-        touched: overwrite ? touched : _.merge({}, prev, touched)
-      }
-    })
+    this.setState(({ touched: prev }) => ({
+      touched: overwrite ? touched : _.merge({}, prev, touched)
+    }))
   }
 
   visitField(path: Path, visited: boolean) {
@@ -177,37 +192,20 @@ class Form extends React.Component<FormConfig, FormState> {
     })
   }
 
-  setErrors(path: Path, errors: string[]) {
-    this.setState(({ errors: prev }) => {
-      return {
-        errors: s(prev, path, errors)
-      }
-    })
-  }
-
   setActiveField(activeField: Path) {
     this.setState({ activeField })
   }
 
   clearForm() {
     const { defaultValue = {} as any } = this.props
-    this.setState(({ registeredFields }) => {
-      const touched = build<Touched>(registeredFields, false)
-      const visited = touched
-      return {
-        touched,
-        visited,
-        formValue: defaultValue,
-        submitCount: 0
-      }
-    })
+    this.setState(() => ({
+      touched: {},
+      visited: {},
+      registeredFields: {},
+      formValue: defaultValue,
+      submitCount: 0
+    }))
   }
-
-  // validate() {
-  //   const { validate } = this.props
-  //   const { formValue } = this.state
-  //   this.setState(({ errors }) => ({ errors: validate(formValue) }))
-  // }
 
   resetForm() {
     this.setState(({ initialFormValue }) => ({
@@ -217,19 +215,33 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   forgetState() {
-    this.setState(({ registeredFields }) => {
-      const touched = build<Touched>(registeredFields, false)
-      const visited = touched
-      return {
-        touched,
-        visited,
-        submitCount: 0
-      }
-    })
+    this.setState(({ registeredFields }) => ({
+      touched: {},
+      visited: {},
+      submitCount: 0
+    }))
   }
 
   render() {
-    const { defaultValue, validateOn } = this.props
+    const { defaultValue, validateOn, validate } = this.props
+    const { registeredFields, formValue, touched, visited, submitCount, loaded } = this.state
+
+    const errors = loaded
+      ? Object.values(registeredFields).reduce((ret: FormErrors, curr: RegisteredField) => {
+          const value = _.get(formValue, curr.path)
+          const error = (curr.validate as any)(value, formValue, '', {
+            touched,
+            visited,
+            submitCount
+          })
+          if (error && error.length) {
+            _.set(ret, curr.type === 'section' ? [...curr.path, '_error'] : curr.path, error)
+          }
+          return ret
+        }, {})
+      : {}
+
+    console.log(errors)
 
     return (
       <Provider
@@ -238,12 +250,12 @@ class Form extends React.Component<FormConfig, FormState> {
           path: startingPath,
           defaultValue,
           ...this.state,
+          errors: _.merge({}, errors, validateForm(validate, this.state)),
           formIsValid: true,
           formIsDirty: false,
           onSubmit: this.submit,
           setValue: this.setValue,
           clearForm: this.clearForm,
-          setErrors: this.setErrors,
           resetForm: this.resetForm,
           value: this.state.formValue,
           visitField: this.visitField,
@@ -274,25 +286,23 @@ function validateForm<T>(validate: any, { formValue, touched, visited, submitCou
   const setError = (path: Path | string, error: Error | GetError) => {
     if (typeof error === 'string') {
       error = [error]
+      _.set(obj, path, error)
     } else if (typeof error === 'function') {
       const fieldTouched = _.get(touched, path)
       const fieldVisited = _.get(visited, path)
       let result = error({ touched: fieldTouched, visited: fieldVisited })
-      if (!result) {
-        return obj
-      }
       if (typeof result === 'string') {
         result = [result]
       }
       if (result && result.length) {
-        return _.set(obj, path, result)
+        _.set(obj, path, result)
       }
     } else if (Array.isArray(error)) {
-      return _.set(obj, path, error)
+      _.set(obj, path, error)
     }
     return obj
   }
-  // if a value is returned then that value should take priority
+  // if a value is returned then that value takes priority
   return validate(formValue, { setError, submitCount }) || obj
 }
 
@@ -330,10 +340,6 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
       state.touched = {}
       state.visited = {}
     }
-  }
-
-  if (typeof np.validate === 'function') {
-    state.formErrors = validateForm(np.validate, ps)
   }
   return state
 }

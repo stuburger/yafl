@@ -72,7 +72,7 @@ export interface AggregateValidator<T = any> {
   (formValue: T, ret: FormErrors<T>): string[]
 }
 
-export interface Validator<T> {
+export interface Validator<T = any> {
   (value: any, formValue: T, fieldName: Name): string | undefined
 }
 
@@ -89,6 +89,16 @@ export interface ValidateOnCustom<T> {
   (field: FieldState<T>, fieldName: Name, fields?: FormFieldState<T>): boolean
 }
 
+export interface RegisteredField<T = any> {
+  path: Path
+  type: 'section' | 'field'
+  validate: Validator<T>
+}
+
+export type RegisteredFields<T = any> = {
+  [key: string]: RegisteredField<T>
+}
+
 export interface FormState<T = any> {
   initialMount: boolean
   touched: Touched<T>
@@ -96,14 +106,12 @@ export interface FormState<T = any> {
   activeField: Path
   initialFormValue: T
   formValue: T
-  registeredFields: Path[]
+  registeredFields: RegisteredFields<T>
   isBusy: boolean
   loaded: boolean
   submitting: boolean
   formIsTouched: boolean
   submitCount: number
-  errors: FormErrors<T>
-  formErrors: FormErrors<T>
 }
 
 export interface FormProvider<T = any> extends FormState<T> {
@@ -123,7 +131,6 @@ export interface FormProvider<T = any> extends FormState<T> {
   forgetState: (() => void)
   validateOn?: ValidateOn<T>
   setActiveField: ((path: Path) => void)
-  setErrors: ((path: Path, errors: string[]) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)
@@ -131,6 +138,6 @@ export interface FormProvider<T = any> extends FormState<T> {
   setFormValue: ((value: Partial<T>, overwrite: boolean) => void)
   setTouched: ((value: Touched<T>, overwrite: boolean) => void)
   setVisited: ((value: Visited<T>, overwrite: boolean) => void)
-  registerField: ((path: Path, type: 'section' | 'field') => void)
+  registerField: ((path: Path, type: 'section' | 'field', validate: Validator) => void)
   unregisterField: ((path: Path) => void)
 }
