@@ -62,6 +62,7 @@ export interface InnerFieldProps<T = any> extends FormProvider<T>, Partial<Valid
   formValue: T
   value: any
   errors: any // string[]
+  formErrors: any // string[]
   initialValue: any
   validators: Validator<T>[]
   forwardProps: { [key: string]: any }
@@ -103,15 +104,19 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   componentDidMount() {
-    this.validate()
+    if (this.shouldValidate()) {
+      this.validate()
+    }
   }
 
   shouldComponentUpdate(nextProps: InnerFieldProps) {
     return true || listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
   }
 
-  componentDidUpdate() {
-    this.validate()
+  componentDidUpdate(pp: InnerFieldProps) {
+    if (this.shouldValidate()) {
+      this.validate()
+    }
   }
 
   componentWillUnmount() {
@@ -129,19 +134,18 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   shouldValidate(): boolean {
-    const {
-      name,
-      value,
-      visited,
-      touched,
-      validators,
-      validateOn,
-      submitCount,
-      initialValue,
-      initialFormValue,
-      defaultFormValue
-    } = this.props
+    const { validators } = this.props
     if (validators && validators.length) {
+      const {
+        name,
+        value,
+        visited,
+        touched,
+        validateOn,
+        submitCount,
+        initialValue,
+        initialFormValue
+      } = this.props
       if (typeof validateOn === 'function') {
         return validateOn(
           {
@@ -155,8 +159,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
           {
             visited,
             touched,
-            initialValue: initialFormValue,
-            defaultValue: defaultFormValue
+            initialValue: initialFormValue
           }
         )
       } else {
@@ -171,7 +174,6 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   validate() {
-    if (!this.shouldValidate()) return
     const { name, setErrors, path, errors = [], value, formValue, validators = [] } = this.props
 
     if (validators.length === 0) return
@@ -184,7 +186,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       }
     }
 
-    if (nextErrors && !isEqual(nextErrors, errors)) {
+    if (!isEqual(nextErrors, errors)) {
       setErrors(path, nextErrors)
     }
   }
@@ -247,6 +249,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       forgetState,
       formIsDirty,
       errors = [],
+      formErrors = [],
       submitting,
       formValue,
       setVisited,
@@ -263,6 +266,8 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       forwardProps
     } = this.props
 
+    const allErrors = [...errors, ...formErrors]
+
     const input: InputProps = {
       name,
       value,
@@ -272,15 +277,15 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     }
 
     const field: FieldMeta = {
-      errors,
-      visited: !!visited, //:  _.get(visited, path, false),
-      touched: !!touched, //_.get(touched, path, false),
+      errors: allErrors,
+      visited: !!visited,
+      touched: !!touched,
       initialValue,
       defaultValue,
       setValue: this.setValue,
       setTouched: this.touchField,
       setVisited: this.visitField,
-      isValid: errors.length === 0,
+      isValid: allErrors.length === 0,
       isActive: activeField.every((x, _i) => x === path[_i]),
       isDirty: formIsDirty && initialValue === value
     }
@@ -360,6 +365,7 @@ class Field extends React.PureComponent<FieldConfig> {
         validateOn={validateOn}
         forwardProps={forwardProps}
         errors={ip.errors && ip.errors[name]}
+        formErrors={ip.formErrors && ip.formErrors[name]}
         touched={ip.touched && (ip.touched[name] as Touched)}
         visited={ip.visited && (ip.visited[name] as Visited)}
         setErrors={ip.setErrors}

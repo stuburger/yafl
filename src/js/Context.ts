@@ -1,55 +1,19 @@
 import React from 'react'
-import {
-  FormProvider,
-  FormErrors,
-  Path,
-  Visited,
-  Touched,
-  FormState,
-  ValidateOn
-} from '../sharedTypes'
+import { FormProvider, FormErrors, Path, Visited, Touched } from '../sharedTypes'
 
-const { whyDidYouUpdate } = require('why-did-you-update')
-whyDidYouUpdate(React)
+// const { whyDidYouUpdate } = require('why-did-you-update')
+// whyDidYouUpdate(React)
 
 /* @internal */
 export interface Noop {
   (): never
 }
 
-/* @internal */
-interface DefaultProviderValue<T> extends FormState<T> {
-  value: any
-  path: Path
-  defaultValue: any
-  initialValue: T
-  defaultFormValue: T
-  formIsValid: boolean
-  formIsDirty: boolean
-  errors: FormErrors<T>
-  validateOn: ValidateOn<T>
-  onSubmit: (() => void) | Noop
-  resetForm: (() => void) | Noop
-  clearForm: (() => void) | Noop
-  forgetState: (() => void) | Noop
-  setActiveField: ((path: Path) => void) | Noop
-  setValue: ((path: Path, value: boolean) => void) | Noop
-  touchField: ((path: Path, touched: boolean) => void) | Noop
-  visitField: ((path: Path, visited: boolean) => void) | Noop
-  renameField: ((prevName: Path, nextName: Path) => void) | Noop
-  setErrors: ((path: Path, errors: string[]) => void) | Noop
-  setTouched: ((value: Touched<T>, overwrite: boolean) => void) | Noop
-  setVisited: ((value: Visited<T>, overwrite: boolean) => void) | Noop
-  setFormValue: ((value: Partial<T>, overwrite: boolean) => void) | Noop
-  registerField: ((path: Path) => void) | Noop
-  unregisterField: ((path: Path) => void) | Noop
-}
-
 function noop(): never {
   throw new Error('A <Field /> component can only appear inside a <Form /> component')
 }
 
-function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
+function getDefaultProviderValue<T>(): FormProvider<T> {
   return {
     path: [],
     value: {},
@@ -71,6 +35,7 @@ function getDefaultProviderValue<T>(): DefaultProviderValue<T> {
     visited: {} as Visited<T>,
     registeredFields: [] as Path[],
     errors: {} as FormErrors<T>,
+    formErrors: {} as FormErrors<T>,
     validateOn: 'blur',
     onSubmit: noop,
     setErrors: noop,

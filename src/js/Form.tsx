@@ -1,7 +1,15 @@
 import * as React from 'react'
 import * as _ from 'lodash'
 import { Provider } from './Context'
-import { Path, ValidatorConfig, FormState, Touched, Visited, ValidateOn } from '../sharedTypes'
+import {
+  Path,
+  ValidatorConfig,
+  FormState,
+  Touched,
+  Visited,
+  ValidateOn,
+  FormErrors
+} from '../sharedTypes'
 import { bind, trueIfAbsent, s, us, build, shallowCopy } from '../utils'
 
 const noop = (...params: any[]) => {
@@ -69,7 +77,8 @@ class Form extends React.Component<FormConfig, FormState> {
       registeredFields: [],
       initialFormValue: {},
       submitCount: 0,
-      errors: {}
+      errors: {},
+      formErrors: {}
     }
   }
 
@@ -91,8 +100,6 @@ class Form extends React.Component<FormConfig, FormState> {
     this.setState(({ registeredFields }) => {
       return {
         registeredFields: [...registeredFields, path]
-        // touched: s(touched, path, false),
-        // visited: s(visited, path, false)
       }
     })
   }
@@ -196,6 +203,12 @@ class Form extends React.Component<FormConfig, FormState> {
     })
   }
 
+  // validate() {
+  //   const { validate } = this.props
+  //   const { formValue } = this.state
+  //   this.setState(({ errors }) => ({ errors: validate(formValue) }))
+  // }
+
   resetForm() {
     this.setState(({ initialFormValue }) => ({
       formValue: initialFormValue,
@@ -216,10 +229,12 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   render() {
-    const { defaultValue } = this.props
+    const { defaultValue, validateOn } = this.props
+
     return (
       <Provider
         value={{
+          validateOn,
           path: startingPath,
           defaultValue,
           ...this.state,
@@ -251,6 +266,36 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 }
 
+type Error = string | string[]
+type GetError = (obj: any) => Error
+
+function validateForm<T>(validate: any, { formValue, touched, visited, submitCount }: FormState) {
+  const obj: FormErrors = {}
+  const setError = (path: Path | string, error: Error | GetError) => {
+    if (typeof error === 'string') {
+      error = [error]
+    } else if (typeof error === 'function') {
+      const fieldTouched = _.get(touched, path)
+      const fieldVisited = _.get(visited, path)
+      let result = error({ touched: fieldTouched, visited: fieldVisited })
+      if (!result) {
+        return obj
+      }
+      if (typeof result === 'string') {
+        result = [result]
+      }
+      if (result && result.length) {
+        return _.set(obj, path, result)
+      }
+    } else if (Array.isArray(error)) {
+      return _.set(obj, path, error)
+    }
+    return obj
+  }
+  // if a value is returned then that value should take priority
+  return validate(formValue, { setError, submitCount }) || obj
+}
+
 function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormState> {
   const loaded = trueIfAbsent(np.loaded)
   const submitting = !!np.submitting
@@ -273,13 +318,11 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
     np.initialValue || shallowCopy(base),
     np.defaultValue || shallowCopy(base)
   )
+
   if (!ps.loaded && loaded) {
     state.initialFormValue = initialValue
     state.formValue = initialValue
-    return state
-  }
-
-  if (np.loaded && np.allowReinitialize && !_.isEqual(ps.initialFormValue, initialValue)) {
+  } else if (np.loaded && np.allowReinitialize && !_.isEqual(ps.initialFormValue, initialValue)) {
     state.formValue = initialValue
     state.initialFormValue = initialValue
     if (!np.rememberStateOnReinitialize) {
@@ -287,6 +330,10 @@ function getDerivedStateFromProps(np: FormConfig, ps: FormState): Partial<FormSt
       state.touched = {}
       state.visited = {}
     }
+  }
+
+  if (typeof np.validate === 'function') {
+    state.formErrors = validateForm(np.validate, ps)
   }
   return state
 }

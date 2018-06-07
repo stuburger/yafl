@@ -66,8 +66,8 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
         nextErrors.push(error)
       }
     }
-    const sectionErrors = (errors as any)._errors
-    if (sectionErrors && !isEqual(nextErrors, sectionErrors)) {
+    const sectionErrors = (errors as any)._errors || []
+    if (!isEqual(nextErrors, sectionErrors)) {
       setErrors([...path, '_errors'], nextErrors)
     }
   }
@@ -99,6 +99,7 @@ class Section extends React.PureComponent<SectionConfig> {
     const {
       value = {},
       errors = {},
+      formErrors = {},
       touched = {},
       visited = {},
       defaultValue = {},
@@ -109,7 +110,9 @@ class Section extends React.PureComponent<SectionConfig> {
     } = incomingProps
 
     const nextPath = [...path, name]
-
+    // todo what if value is null for a section and not undefined.
+    // yafl needs to make a guarentee that every section has a value,
+    // which is ALWAYS either an array or an object
     return (
       <ForkProvider
         {...props}
@@ -122,6 +125,7 @@ class Section extends React.PureComponent<SectionConfig> {
         initialValue={initialValue[name]}
         defaultValue={defaultValue[name]}
         errors={errors[name] as FormErrors}
+        formErrors={formErrors[name] as FormErrors}
         path={nextPath}
       >
         {children}

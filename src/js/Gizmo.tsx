@@ -28,8 +28,10 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
   collectProps(): GizmoProps {
     const {
       render,
+      errors,
       onSubmit,
       children,
+      formErrors,
       formIsValid,
       formIsDirty,
       forwardProps,
@@ -40,6 +42,7 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
 
     return {
       ...props,
+      errors: _.merge({}, formErrors, errors),
       submit: onSubmit,
       isValid: formIsValid,
       isDirty: formIsDirty,

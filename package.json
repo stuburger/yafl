@@ -24,9 +24,11 @@
   "author": "Stuart Bourhill",
   "license": "MIT",
   "dependencies": {
+    "@types/prop-types": "^15.5.3",
     "lodash": "^4.6.0",
-		"object-path-immutable": "^1.0.2",
-		"why-did-you-update": "^0.1.1"
+    "object-path-immutable": "^1.0.2",
+    "prop-types": "^15.6.1",
+    "why-did-you-update": "^0.1.1"
   },
   "keywords": [
     "react",

@@ -6,7 +6,6 @@ export interface FormFieldState<T = any> {
   touched: Touched<T>
   visited: Visited<T>
   initialValue: T
-  defaultValue: T
 }
 export type FieldValidatorPair<T = any> = {
   path: Path
@@ -104,6 +103,7 @@ export interface FormState<T = any> {
   formIsTouched: boolean
   submitCount: number
   errors: FormErrors<T>
+  formErrors: FormErrors<T>
 }
 
 export interface FormProvider<T = any> extends FormState<T> {
