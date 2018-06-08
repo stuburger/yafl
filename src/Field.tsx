@@ -5,14 +5,13 @@ import {
   Name,
   FormProvider,
   Validator,
-  Touched,
-  Visited,
   ValidateOn,
   FormState,
-  FormErrors
+  FormErrors,
+  FieldValidator
 } from './sharedTypes'
 import { Consumer } from './Context'
-import { isEqual, toArray, incl } from './utils'
+import { isEqual, toArray, incl, conv } from './utils'
 
 export interface InputProps<T = any> {
   name: Name
@@ -31,7 +30,7 @@ export interface FieldProps<T = any> {
 
 export interface FieldConfig<T = any> {
   name: Name
-  validators?: Validator<T>[]
+  validate?: Validator<T>[]
   validateOn?: ValidateOn<T>
   render?: (state: FieldProps<T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<T>>
@@ -52,13 +51,12 @@ export interface FieldMeta<T = any> {
   setTouched: (value: boolean) => void
 }
 
-export interface InnerFieldProps<T = any> extends FormProvider<T> {
+export interface InnerFieldProps<T extends object = {}> extends FormProvider<any> {
   name: Name
   formValue: T
   value: any
-  errors: any // string[]
   initialValue: any
-  validators: Validator<T>[]
+  validate: FieldValidator<T>
   forwardProps: { [key: string]: any }
   validateOn: ValidateOn<T>
   render?: (state: FieldProps<T>) => React.ReactNode
@@ -71,15 +69,11 @@ const listenForProps: (keyof InnerFieldProps)[] = [
   'value',
   'touched',
   'visited',
-  'validators',
+  'validate',
   'forwardProps'
 ]
 
 class FieldConsumer extends React.Component<InnerFieldProps> {
-  static defaultProps = {
-    validators: []
-  }
-
   constructor(props: InnerFieldProps) {
     super(props)
     this.registerField = this.registerField.bind(this)
@@ -101,8 +95,8 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   componentDidUpdate(pp: InnerFieldProps) {
-    const { registeredFields, path } = this.props
-    if (!registeredFields[path.join('.')]) {
+    const { registeredFields, path, name } = this.props
+    if (pp.name !== name || !registeredFields[conv.toString(path)]) {
       this.registerField()
     }
   }
@@ -122,15 +116,15 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
   }
 
   shouldValidate(state: FormState): boolean {
-    const { name, path, validateOn, initialValue, validators } = this.props
-    if (!validators || !validators.length) return false
+    const { name, path, validateOn, initialValue, validate } = this.props
+    if (!validate || !validate.length) return false
     if (typeof validateOn === 'function') {
       return validateOn(
         {
           name,
-          value: _.get(state.formValue, path),
-          touched: !!_.get(path, state.touched as any), // todo
-          visited: !!_.get(path, state.visited as any),
+          value: _.get(path, state.formValue),
+          touched: _.get(state.touched, path) as any, // todo
+          visited: _.get(state.visited, path) as any,
           originalValue: initialValue
         },
         name,
@@ -142,24 +136,22 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       )
     } else {
       return (
-        (!!state.visited && incl(validateOn, 'blur')) ||
-        (!!state.touched && incl(validateOn, 'change')) ||
+        (state.visited && incl(validateOn, 'blur')) ||
+        (state.touched && incl(validateOn, 'change')) ||
         (state.submitCount > 0 && incl(validateOn, 'submit'))
       )
     }
   }
 
   validate(state: FormState, ret: FormErrors): string[] {
-    const { validators = [], path, name } = this.props
+    const { validate, path, name } = this.props
+    const validators = toArray(validate)
     let errors: string[] = []
     const value = _.get(state.formValue, path)
-    errors = validators.reduce(
-      (ret, validate) => {
-        const result = validate(value, state.formValue, name)
-        return result === undefined ? ret : [...ret, ...toArray(result)]
-      },
-      [] as string[]
-    )
+    errors = validators.reduce((ret, validate) => {
+      const result = validate(value, state.formValue, name)
+      return result === undefined ? ret : [...ret, ...toArray(result)]
+    }, errors)
 
     if (ret && errors.length) {
       _.set(ret, path, errors)
@@ -197,7 +189,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     if (forwardProps.onFocus) {
       forwardProps.onFocus(e)
     }
-    setActiveField(path)
+    setActiveField(conv.toString(path))
   }
 
   onBlur(e: React.FocusEvent<any>) {
@@ -205,91 +197,50 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     if (forwardProps.onBlur) {
       forwardProps.onBlur(e)
     }
-    setActiveField([])
+    setActiveField(null)
     if (visited || e.isDefaultPrevented()) return
     this.visitField(true)
   }
 
   collectProps(): FieldProps {
-    const {
-      name,
-      path,
-      value,
-      loaded,
-      onSubmit,
-      resetForm,
-      clearForm,
-      activeField,
-      visited,
-      touched,
-      submitCount,
-      forgetState,
-      formIsDirty,
-      errors = [],
-      submitting,
-      formValue,
-      setVisited,
-      setTouched,
-      visitField,
-      touchField,
-      formIsValid,
-      setFormValue,
-      initialValue,
-      defaultValue,
-      formIsTouched,
-      defaultFormValue,
-      initialFormValue,
-      forwardProps
-    } = this.props
-
+    const p = this.props
     const input: InputProps = {
-      name,
-      value,
+      name: p.name,
+      value: p.value,
       onFocus: this.onFocus,
       onBlur: this.onBlur,
       onChange: this.onChange
     }
 
     const field: FieldMeta = {
-      errors,
-      visited: !!visited,
-      touched: !!touched,
-      initialValue,
-      defaultValue,
+      errors: (p.errors || []) as any,
+      visited: !!p.visited,
+      touched: !!p.touched,
       setValue: this.setValue,
       setTouched: this.touchField,
       setVisited: this.visitField,
-      isValid: errors.length === 0,
-      isActive: activeField.every((x, _i) => x === path[_i]),
-      isDirty: formIsDirty && initialValue === value
+      initialValue: p.initialValue,
+      defaultValue: p.defaultValue,
+      isValid: ((p.errors || []) as any).length === 0,
+      isActive: p.activeField === conv.toString(p.path),
+      isDirty: p.formIsDirty && p.initialValue === p.value
     }
 
     const form: FormMeta = {
-      formValue,
-      activeField,
-      defaultValue: defaultFormValue,
-      initialValue: initialFormValue,
-      submitting,
-      submitCount,
-      loaded,
-      visited,
-      touched,
-      errors,
-      resetForm,
-      submit: onSubmit,
-      setFormValue,
-      forgetState,
-      setVisited,
-      setTouched,
-      clearForm,
-      visitField,
-      touchField,
-      isValid: formIsValid,
-      isDirty: formIsDirty,
-      isTouched: formIsTouched
+      submitting: p.submitting,
+      loaded: p.loaded,
+      resetForm: p.resetForm,
+      submit: p.onSubmit,
+      setFormValue: p.setFormValue,
+      forgetState: p.forgetState,
+      setVisited: p.setVisited,
+      setTouched: p.setTouched,
+      clearForm: p.clearForm,
+      visitField: p.visitField,
+      touchField: p.touchField
     }
 
-    return { input, field, form, ...forwardProps }
+    return { input, field, form, ...p.forwardProps }
   }
 
   render() {
@@ -322,53 +273,29 @@ class Field extends React.PureComponent<FieldConfig> {
       children,
       component,
       validateOn = ip.validateOn || 'blur',
-      validators = emptyValidators,
+      validate = emptyValidators,
       ...forwardProps
     } = this.props
 
+    const { value, errors, touched, visited, initialValue, defaultValue, ...props } = ip
+
     return (
       <FieldConsumer
+        {...props}
         name={name}
         render={render}
-        loaded={ip.loaded}
-        isBusy={ip.isBusy}
         children={children}
         component={component}
-        validators={validators}
-        path={ip.path.concat([name])}
+        validate={validate}
+        path={ip.path.concat(name)}
         validateOn={validateOn}
         forwardProps={forwardProps}
-        errors={ip.errors && ip.errors[name]}
-        touched={ip.touched && (ip.touched[name] as Touched)}
-        visited={ip.visited && (ip.visited[name] as Visited)}
-        value={ip.value && ip.value[name]}
-        initialValue={ip.initialValue && ip.initialValue[name]}
-        defaultValue={ip.defaultValue && ip.defaultValue[name]}
-        submitting={ip.submitting}
-        registeredFields={ip.registeredFields}
-        initialFormValue={ip.initialFormValue}
-        activeField={ip.activeField}
-        initialMount={ip.initialValue}
-        formValue={ip.formValue}
-        defaultFormValue={ip.defaultFormValue}
-        submitCount={ip.submitCount}
-        formIsValid={ip.formIsValid}
-        formIsDirty={ip.formIsDirty}
-        formIsTouched={ip.formIsTouched}
-        onSubmit={ip.onSubmit}
-        resetForm={ip.resetForm}
-        clearForm={ip.clearForm}
-        forgetState={ip.forgetState}
-        setActiveField={ip.setActiveField}
-        setValue={ip.setValue}
-        touchField={ip.touchField}
-        visitField={ip.visitField}
-        renameField={ip.renameField}
-        setFormValue={ip.setFormValue}
-        setTouched={ip.setTouched}
-        setVisited={ip.setVisited}
-        registerField={ip.registerField}
-        unregisterField={ip.unregisterField}
+        value={value && value[name]}
+        errors={errors && (errors as any)[name]}
+        touched={touched && (touched as any)[name]}
+        visited={visited && (visited as any)[name]}
+        initialValue={initialValue && initialValue[name]}
+        defaultValue={defaultValue && defaultValue[name]}
       />
     )
   }

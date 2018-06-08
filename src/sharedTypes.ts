@@ -14,11 +14,11 @@ export type FieldValidatorPair<T = any> = {
 }
 
 export type FieldValidatorList<T = any> = FieldValidatorPair<T>[]
-export type Touched<T = any> = { [K in keyof T]: any extends object ? Touched<T[K]> : boolean }
-export type Visited<T = any> = { [K in keyof T]: any extends object ? Visited<T[K]> : boolean }
+export type Touched<T = any> = { [K in keyof T]: T[K] extends object ? Touched<T[K]> : boolean }
+export type Visited<T = any> = { [K in keyof T]: T[K] extends object ? Visited<T[K]> : boolean }
 export type ValidateOn<T> = ValidationType | ValidationType[] | ValidateOnCustom<T>
 export type FormErrors<T = any> = {
-  [P in keyof T]: T[P] extends object ? FormErrors<T[P]> : string[]
+  [P in keyof T]: T[P] extends object ? FormErrors<T[P]> & { _errors: string[] } : string[]
 }
 
 /* @internal */
@@ -34,22 +34,18 @@ export interface Person {
 /* @internal */
 export interface Contact {
   tel: string
+  address: Address
+}
+
+/* @internal */
+export interface Address {
+  code: string
+  street: string
 }
 
 export interface FormMeta<T = any> {
-  formValue: T
-  defaultValue: T
-  initialValue: T
-  submitCount: number
   loaded: boolean
   submitting: boolean
-  activeField: Path
-  isTouched: boolean
-  isDirty: boolean
-  isValid: boolean
-  visited: Visited<T>
-  touched: Touched<T>
-  errors: FormErrors<T>
   resetForm: () => void
   submit: () => void
   forgetState: () => void
@@ -73,12 +69,10 @@ export interface AggregateValidator<T = any> {
   (formState: FormState<T>, ret: FormErrors<T>): string[]
 }
 
+export type FieldValidator<T = any> = Validator<T> | Validator<T>[]
+
 export interface Validator<T = any> {
   (value: any, formValue: T, fieldName: Name): string | undefined
-}
-
-export interface FieldValidator<T = any> {
-  (value: any, formValue: T, fieldName: Name): string[]
 }
 
 export interface ValidateOnCustom<T> {
@@ -110,7 +104,7 @@ export interface FormState<T = any> {
   initialMount: boolean
   touched: Touched<T>
   visited: Visited<T>
-  activeField: Path
+  activeField: string | null
   initialFormValue: T
   formValue: T
   registeredFields: RegisteredFields<T>
@@ -127,7 +121,6 @@ export interface FormProvider<T = any> extends FormState<T> {
   defaultFormValue: T
   defaultValue: any
   initialValue: any
-  submitCount: number
   formIsValid: boolean
   formIsDirty: boolean
   formIsTouched: boolean
@@ -137,7 +130,7 @@ export interface FormProvider<T = any> extends FormState<T> {
   clearForm: (() => void)
   forgetState: (() => void)
   validateOn: ValidateOn<T>
-  setActiveField: ((path: Path) => void)
+  setActiveField: ((path: string | null) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)

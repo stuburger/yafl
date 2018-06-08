@@ -13,15 +13,14 @@ import {
   RegisteredFields,
   ValidatorDictionary
 } from './sharedTypes'
-import { bind, trueIfAbsent, s, us, shallowCopy } from './utils'
+import { bind, trueIfAbsent, s, us, shallowCopy, toArray, conv } from './utils'
 
 const noop = (...params: any[]) => {
   console.log('not loaded or field non existent')
 }
 
-const default_validate_on = 'blur'
-
 const startingPath: Path = []
+const default_validate_on = 'blur'
 
 function onlyIfLoaded(func: any, defaultFunc = noop) {
   func = bind(this, func)
@@ -73,7 +72,7 @@ class Form extends React.Component<FormConfig, FormState> {
     this.state = {
       initialMount: false,
       formValue: {},
-      activeField: [],
+      activeField: null,
       touched: {},
       visited: {},
       loaded: false,
@@ -109,7 +108,7 @@ class Form extends React.Component<FormConfig, FormState> {
       let fields: RegisteredFields = {}
       let field: RegisteredField | undefined
       while ((field = this.fieldsToRegister.pop())) {
-        fields[field.path.join('.')] = field
+        fields[conv.toString(field.path)] = field
       }
       this.setState(({ registeredFields }) => ({
         registeredFields: { ...registeredFields, ...fields }
@@ -121,16 +120,16 @@ class Form extends React.Component<FormConfig, FormState> {
     this.fieldsToRegister.push({ path, type })
     this.validators = {
       ...this.validators,
-      [path.join('.')]: config
+      [conv.toString(path)]: config
     }
   }
 
   unregisterField(path: Path) {
-    const str = path.join('.')
-    delete this.validators[str]
+    const key = conv.toString(path)
+    delete this.validators[key]
     this.setState(({ registeredFields: prev, touched, visited }) => {
       const registeredFields = { ...prev }
-      delete registeredFields[str]
+      delete registeredFields[key]
       return {
         registeredFields,
         touched: us(touched, path),
@@ -197,7 +196,7 @@ class Form extends React.Component<FormConfig, FormState> {
     })
   }
 
-  setActiveField(activeField: Path) {
+  setActiveField(activeField: string | null) {
     this.setState({ activeField })
   }
 
@@ -248,7 +247,7 @@ class Form extends React.Component<FormConfig, FormState> {
     let errors: FormErrors = {}
     if (loaded) {
       errors = Object.values(this.validators).reduce(this.getErrors, errors)
-      errors = _.merge({}, errors, validateForm(validate, this.state))
+      errors = _.merge({}, errors, validateForm(validate, this.state, this.validators))
     }
 
     return (
@@ -287,33 +286,36 @@ class Form extends React.Component<FormConfig, FormState> {
 }
 
 type Error = string | string[]
-type GetError = (obj: any) => Error
+type GetError<T> = (obj: any) => Error
 
 function validateForm<T>(
   validate: any,
-  { formValue, touched, visited, submitCount }: FormState
+  state: FormState,
+  validators: ValidatorDictionary<T>
 ): FormErrors<T> {
   const obj: FormErrors = {}
-  const setError = (path: Path | string, error: Error | GetError) => {
-    // todo check if the path param belongs to a registered field
-    // maybe provide option to set error even if field is not registered
-    if (typeof error === 'string') {
-      error = [error]
-      _.set(obj, path, error)
-    } else if (typeof error === 'function') {
-      const fieldTouched = _.get(touched, path)
-      const fieldVisited = _.get(visited, path)
-      let result = error({ touched: fieldTouched, visited: fieldVisited })
-      if (typeof result === 'string') {
-        result = [result]
-      }
-      if (result && result.length) {
-        _.set(obj, path, result)
-      }
-    } else if (Array.isArray(error)) {
-      _.set(obj, path, error)
+  const { formValue, touched, visited, submitCount, registeredFields } = state
+  const setError = (path: Path, error: Error | GetError<T>, ignoreFieldValidateOn = false) => {
+    const key = conv.toString(path)
+    if (!error || !registeredFields[key] || !validators[key]) {
+      return obj
     }
-    return obj
+
+    if (ignoreFieldValidateOn || !validators[key].shouldValidate(state)) {
+      return obj
+    }
+
+    if (typeof error === 'function') {
+      const fieldTouched: Touched<T> = _.get(touched, path)
+      const fieldVisited: Visited<T> = _.get(visited, path)
+      const result = toArray(error({ touched: fieldTouched, visited: fieldVisited }))
+      if (result.length) {
+        return _.set(obj, path, result)
+      }
+      return obj
+    }
+
+    return _.set(obj, path, toArray(error))
   }
   // if a value is returned then that value takes priority
   return validate(formValue, { setError, submitCount }) || obj

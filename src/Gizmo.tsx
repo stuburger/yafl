@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { FormProvider, FormMeta } from './sharedTypes'
+import { FormProvider, FormMeta, FormErrors, Touched, Visited } from './sharedTypes'
 import * as _ from 'lodash'
 import { Consumer } from './Context'
 
@@ -70,6 +70,17 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
 }
 
 export interface GizmoProps<T = any> extends FormMeta<T> {
+  formValue: T
+  defaultValue: T
+  initialValue: T
+  submitCount: number
+  activeField: string | null
+  isTouched: boolean
+  isDirty: boolean
+  isValid: boolean
+  visited: Visited<T>
+  touched: Touched<T>
+  errors: FormErrors<T>
   [key: string]: any
 }
 

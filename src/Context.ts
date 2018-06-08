@@ -1,5 +1,5 @@
 import React from 'react'
-import { FormProvider, FormErrors, Path, Visited, Touched, RegisteredFields } from './sharedTypes'
+import { FormProvider, FormErrors, Visited, Touched, RegisteredFields } from './sharedTypes'
 
 // const { whyDidYouUpdate } = require('why-did-you-update')
 // whyDidYouUpdate(React)
@@ -30,7 +30,7 @@ function getDefaultProviderValue<T>(): FormProvider<T> {
     defaultValue: {} as T,
     initialFormValue: {} as T,
     defaultFormValue: {} as T,
-    activeField: [] as Path,
+    activeField: null,
     touched: {} as Touched<T>,
     visited: {} as Visited<T>,
     registeredFields: {} as RegisteredFields<T>,

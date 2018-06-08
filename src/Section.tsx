@@ -1,34 +1,32 @@
 import * as React from 'react'
 import { Provider, Consumer } from './Context'
-import { isEqual, toArray, incl } from './utils'
+import { isEqual, toArray, incl, conv } from './utils'
 import * as _ from 'lodash'
 import {
   Name,
   FormProvider,
   FormErrors,
-  Validator,
-  Visited,
-  Touched,
   FormState,
-  ValidateOn
+  ValidateOn,
+  FieldValidator
 } from './sharedTypes'
 
 export interface ArrayHelpers<T = any> {
   push: (value: any) => void
 }
 
-export interface ForkProviderConfig<T = any> extends FormProvider<T> {
+export interface ForkProviderConfig<T extends object = {}> extends FormProvider<T> {
   name: Name
-  validators: Validator<T>[]
+  validate: FieldValidator<T>
   validateOn: ValidateOn<T>
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
-export interface SectionConfig<T = any> {
+export interface SectionConfig<T extends object = {}> {
   name: Name
   defaultValue?: any
   validateOn?: ValidateOn<T>
-  validators?: Validator<T>[]
+  validate: FieldValidator<T>
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
@@ -37,7 +35,8 @@ const listenForProps: (keyof ForkProviderConfig)[] = [
   'value',
   'touched',
   'visited',
-  'errors'
+  'errors',
+  'validate'
 ]
 
 class ForkProvider extends React.Component<ForkProviderConfig> {
@@ -55,8 +54,8 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
   }
 
   componentDidUpdate(pp: ForkProviderConfig) {
-    const { registeredFields, path } = this.props
-    if (!registeredFields[path.join('.')]) {
+    const { registeredFields, path, name } = this.props
+    if (pp.name !== name || !registeredFields[conv.toString(path)]) {
       this.registerField()
     }
   }
@@ -67,15 +66,15 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
   }
 
   shouldValidate(state: FormState): boolean {
-    const { name, path, validateOn, initialValue, validators } = this.props
-    if (!validators || !validators.length) return false
+    const { name, path, validateOn, initialValue, validate } = this.props
+    if (!validate || !validate.length) return false
     if (typeof validateOn === 'function') {
       return validateOn(
         {
           name,
-          value: _.get(state.formValue, path),
-          touched: !!_.get(path, state.touched as any), // todo
-          visited: !!_.get(path, state.visited as any),
+          value: _.get(path, state.formValue),
+          touched: _.get(state.touched, path) as any, // todo
+          visited: _.get(state.visited, path) as any,
           originalValue: initialValue
         },
         name,
@@ -100,16 +99,14 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
   }
 
   validate(state: FormState, ret: FormErrors): string[] {
-    const { validators = [], path, name } = this.props
+    const { validate = [], path, name } = this.props
     let errors: string[] = []
+    const validators = toArray(validate)
     const value = _.get(state.formValue, path)
-    errors = validators.reduce(
-      (ret, validate) => {
-        const result = validate(value, state.formValue, name)
-        return result === undefined ? ret : [...ret, ...toArray(result)]
-      },
-      [] as string[]
-    )
+    errors = validators.reduce((ret, validate) => {
+      const result = validate(value, state.formValue, name)
+      return result === undefined ? ret : [...ret, ...toArray(result)]
+    }, errors)
 
     if (ret && errors.length) {
       _.set(ret, path.concat('_error'), errors)
@@ -140,21 +137,19 @@ class Section extends React.PureComponent<SectionConfig> {
     this._render = this._render.bind(this)
   }
 
-  _render(incomingProps: FormProvider<any>) {
-    const { children, name, validators = [] } = this.props
+  _render(incomingProps: FormProvider) {
+    const { children, name, validate, validateOn = 'blur' } = this.props
     const {
+      path,
       value = {},
       errors = {},
       touched = {},
       visited = {},
       defaultValue = {},
       initialValue = {},
-      path = [],
-      activeField,
       ...props
     } = incomingProps
 
-    const nextPath = [...path, name]
     // todo what if value is null for a section and not undefined.
     // yafl needs to make a guarentee that every section has a value,
     // which is ALWAYS either an array or an object
@@ -162,15 +157,15 @@ class Section extends React.PureComponent<SectionConfig> {
       <ForkProvider
         {...props}
         name={name}
-        validators={validators}
-        activeField={activeField}
+        validate={validate}
         value={value[name]}
-        touched={touched[name] as Touched}
-        visited={visited[name] as Visited}
+        validateOn={validateOn}
+        touched={touched[name]}
+        visited={visited[name]}
+        path={path.concat(name)}
+        errors={(errors as any)[name]}
         initialValue={initialValue[name]}
         defaultValue={defaultValue[name]}
-        errors={errors[name] as FormErrors}
-        path={nextPath}
       >
         {children}
       </ForkProvider>
