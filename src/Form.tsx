@@ -3,15 +3,15 @@ import * as _ from 'lodash'
 import { Provider } from './Context'
 import {
   Path,
-  ValidatorConfig,
   FormState,
   Touched,
   Visited,
   ValidateOn,
   FormErrors,
-  Validator,
   RegisteredField,
-  RegisteredFields
+  ValidatorConfig,
+  RegisteredFields,
+  ValidatorDictionary
 } from './sharedTypes'
 import { bind, trueIfAbsent, s, us, shallowCopy } from './utils'
 
@@ -33,21 +33,22 @@ function onlyIfLoaded(func: any, defaultFunc = noop) {
   })
 }
 
-export interface FormConfig<T = any> extends ValidatorConfig<T> {
+export interface FormConfig<T = any> {
   initialValue?: T
   defaultValue?: T
   onSubmit?: (formValue: T) => void
-  validateOn?: ValidateOn<T>
   children: React.ReactNode
   loaded?: boolean
   submitting?: boolean
   allowReinitialize?: boolean
   rememberStateOnReinitialize?: boolean
   validate: any
+  validateOn?: ValidateOn<T>
 }
 
 class Form extends React.Component<FormConfig, FormState> {
   registeredFields: RegisteredField<any>[] = []
+  validators: ValidatorDictionary<any> = {}
   constructor(props: FormConfig) {
     super(props)
 
@@ -65,6 +66,7 @@ class Form extends React.Component<FormConfig, FormState> {
     this.setFormValue = loadedGuard(this.setFormValue)
     this.setTouched = loadedGuard(this.setTouched)
     this.setVisited = loadedGuard(this.setVisited)
+    this.getErrors = bind(this, this.getErrors)
     this.registerField = bind(this, this.registerField)
     this.unregisterField = bind(this, this.unregisterField)
     this.flush = bind(this, this.flush)
@@ -117,14 +119,20 @@ class Form extends React.Component<FormConfig, FormState> {
     }
   }
 
-  registerField(path: Path, type: 'section' | 'field', validate: Validator) {
-    this.registeredFields.push({ path, type, validate })
+  registerField(path: Path, type: 'section' | 'field', config: ValidatorConfig) {
+    this.registeredFields.push({ path, type })
+    this.validators = {
+      ...this.validators,
+      [path.join('.')]: config
+    }
   }
 
   unregisterField(path: Path) {
+    const str = path.join('.')
+    delete this.validators[str]
     this.setState(({ registeredFields: prev, touched, visited }) => {
       const registeredFields = { ...prev }
-      delete registeredFields[path.join('.')]
+      delete registeredFields[str]
       return {
         registeredFields,
         touched: us(touched, path),
@@ -133,11 +141,12 @@ class Form extends React.Component<FormConfig, FormState> {
     })
   }
 
-  submit() {
+  submit(includeUnregisteredFields = false) {
     const { onSubmit = noop } = this.props
     this.setState(({ submitCount }) => ({
       submitCount: submitCount + 1
     }))
+    // todo include/exclude registered fields
     onSubmit(this.state.formValue)
   }
 
@@ -155,11 +164,9 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   setFormValue(val: any, overwrite = false) {
-    this.setState(({ formValue }) => {
-      return {
-        formValue: overwrite ? val : _.merge({}, formValue, val)
-      }
-    })
+    this.setState(({ formValue }) => ({
+      formValue: overwrite ? val : _.merge({}, formValue, val)
+    }))
   }
 
   renameField(prevName: Path, nextName: Path) {
@@ -197,7 +204,11 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   clearForm() {
-    const { defaultValue = {} as any } = this.props
+    const { defaultValue } = this.props
+    // nb. when resetting validators like this it is vital to also
+    // reset all registered fields. If a Field detects that is is
+    // unregistered on cDU it will re-register itself
+    this.validators = {}
     this.setState(() => ({
       touched: {},
       visited: {},
@@ -208,8 +219,10 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   resetForm() {
+    this.validators = {}
     this.setState(({ initialFormValue }) => ({
       formValue: initialFormValue,
+      registeredFields: {},
       submitCount: 0
     }))
   }
@@ -222,35 +235,32 @@ class Form extends React.Component<FormConfig, FormState> {
     }))
   }
 
+  getErrors(ret: FormErrors, config: ValidatorConfig): FormErrors {
+    if (config.shouldValidate(this.state)) {
+      // mutable magic happening here..
+      config.validate(this.state, ret)
+    }
+    return ret
+  }
+
   render() {
     const { defaultValue, validateOn, validate } = this.props
-    const { registeredFields, formValue, touched, visited, submitCount, loaded } = this.state
+    const { loaded } = this.state
 
-    const errors = loaded
-      ? Object.values(registeredFields).reduce((ret: FormErrors, curr: RegisteredField) => {
-          const value = _.get(formValue, curr.path)
-          const error = (curr.validate as any)(value, formValue, '', {
-            touched,
-            visited,
-            submitCount
-          })
-          if (error && error.length) {
-            _.set(ret, curr.type === 'section' ? [...curr.path, '_error'] : curr.path, error)
-          }
-          return ret
-        }, {})
-      : {}
-
-    console.log(errors)
+    let errors: FormErrors = {}
+    if (loaded) {
+      errors = Object.values(this.validators).reduce(this.getErrors, errors)
+      errors = _.merge({}, errors, validateForm(validate, this.state))
+    }
 
     return (
       <Provider
         value={{
-          validateOn,
+          errors,
+          validateOn: validateOn || default_validate_on,
           path: startingPath,
           defaultValue,
           ...this.state,
-          errors: _.merge({}, errors, validateForm(validate, this.state)),
           formIsValid: true,
           formIsDirty: false,
           onSubmit: this.submit,
@@ -281,9 +291,14 @@ class Form extends React.Component<FormConfig, FormState> {
 type Error = string | string[]
 type GetError = (obj: any) => Error
 
-function validateForm<T>(validate: any, { formValue, touched, visited, submitCount }: FormState) {
+function validateForm<T>(
+  validate: any,
+  { formValue, touched, visited, submitCount }: FormState
+): FormErrors<T> {
   const obj: FormErrors = {}
   const setError = (path: Path | string, error: Error | GetError) => {
+    // todo check if the path param belongs to a registered field
+    // maybe provide option to set error even if field is not registered
     if (typeof error === 'string') {
       error = [error]
       _.set(obj, path, error)

@@ -12,6 +12,7 @@ export type FieldValidatorPair<T = any> = {
   test: AggregateValidator<T>
   type: 'section' | 'field'
 }
+
 export type FieldValidatorList<T = any> = FieldValidatorPair<T>[]
 export type Touched<T = any> = { [K in keyof T]: any extends object ? Touched<T[K]> : boolean }
 export type Visited<T = any> = { [K in keyof T]: any extends object ? Visited<T[K]> : boolean }
@@ -69,7 +70,7 @@ export interface FieldState<T> {
 }
 
 export interface AggregateValidator<T = any> {
-  (formValue: T, ret: FormErrors<T>): string[]
+  (formState: FormState<T>, ret: FormErrors<T>): string[]
 }
 
 export interface Validator<T = any> {
@@ -80,11 +81,6 @@ export interface FieldValidator<T = any> {
   (value: any, formValue: T, fieldName: Name): string[]
 }
 
-export interface ValidatorConfig<T> {
-  validateOn?: ValidateOn<T>
-  validators: Validator<T>[]
-}
-
 export interface ValidateOnCustom<T> {
   (field: FieldState<T>, fieldName: Name, fields?: FormFieldState<T>): boolean
 }
@@ -92,7 +88,18 @@ export interface ValidateOnCustom<T> {
 export interface RegisteredField<T = any> {
   path: Path
   type: 'section' | 'field'
-  validate: Validator<T>
+}
+export interface ValidatorConfig<T = any> {
+  validate: AggregateValidator<T>
+  shouldValidate: ShouldValidateFunc<T>
+}
+
+export interface ShouldValidateFunc<T = any> {
+  (state: FormState<T>): boolean
+}
+
+export interface ValidatorDictionary<T = any> {
+  [key: string]: ValidatorConfig<T>
 }
 
 export type RegisteredFields<T = any> = {
@@ -129,7 +136,7 @@ export interface FormProvider<T = any> extends FormState<T> {
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
-  validateOn?: ValidateOn<T>
+  validateOn: ValidateOn<T>
   setActiveField: ((path: Path) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
@@ -138,6 +145,6 @@ export interface FormProvider<T = any> extends FormState<T> {
   setFormValue: ((value: Partial<T>, overwrite: boolean) => void)
   setTouched: ((value: Touched<T>, overwrite: boolean) => void)
   setVisited: ((value: Visited<T>, overwrite: boolean) => void)
-  registerField: ((path: Path, type: 'section' | 'field', validate: Validator) => void)
   unregisterField: ((path: Path) => void)
+  registerField: ((path: Path, type: 'section' | 'field', config: ValidatorConfig<T>) => void)
 }

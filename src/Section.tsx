@@ -1,7 +1,17 @@
 import * as React from 'react'
 import { Provider, Consumer } from './Context'
-import { isEqual } from './utils'
-import { Name, FormProvider, FormErrors, Validator, Visited, Touched } from './sharedTypes'
+import { isEqual, toArray, incl } from './utils'
+import * as _ from 'lodash'
+import {
+  Name,
+  FormProvider,
+  FormErrors,
+  Validator,
+  Visited,
+  Touched,
+  FormState,
+  ValidateOn
+} from './sharedTypes'
 
 export interface ArrayHelpers<T = any> {
   push: (value: any) => void
@@ -10,12 +20,14 @@ export interface ArrayHelpers<T = any> {
 export interface ForkProviderConfig<T = any> extends FormProvider<T> {
   name: Name
   validators: Validator<T>[]
+  validateOn: ValidateOn<T>
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
 export interface SectionConfig<T = any> {
   name: Name
   defaultValue?: any
+  validateOn?: ValidateOn<T>
   validators?: Validator<T>[]
   children: React.ReactNode | ((value: any, utils: ArrayHelpers<T>) => React.ReactNode)
 }
@@ -34,6 +46,7 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
     this.push = this.push.bind(this)
     this.validate = this.validate.bind(this)
     this.registerField = this.registerField.bind(this)
+    this.shouldValidate = this.shouldValidate.bind(this)
     this.registerField()
   }
 
@@ -50,26 +63,59 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
 
   componentWillUnmount() {
     const { unregisterField, path } = this.props
-    unregisterField(path) // 'section'
+    unregisterField(path)
+  }
+
+  shouldValidate(state: FormState): boolean {
+    const { name, path, validateOn, initialValue, validators } = this.props
+    if (!validators || !validators.length) return false
+    if (typeof validateOn === 'function') {
+      return validateOn(
+        {
+          name,
+          value: _.get(state.formValue, path),
+          touched: !!_.get(path, state.touched as any), // todo
+          visited: !!_.get(path, state.visited as any),
+          originalValue: initialValue
+        },
+        name,
+        {
+          visited: state.visited,
+          touched: state.touched,
+          initialValue: state.initialFormValue
+        }
+      )
+    } else {
+      return (
+        (!!state.visited && incl(validateOn, 'blur')) ||
+        (!!state.touched && incl(validateOn, 'change')) ||
+        (state.submitCount > 0 && incl(validateOn, 'submit'))
+      )
+    }
   }
 
   registerField() {
     const { path, registerField } = this.props
-    registerField(path, 'section', this.validate as any)
+    registerField(path, 'section', { validate: this.validate, shouldValidate: this.shouldValidate })
   }
 
-  validate(value: any, formValue: any, name: Name): string[] {
-    const { validators } = this.props
-    if (validators.length === 0) return []
-    const nextErrors: string[] = []
+  validate(state: FormState, ret: FormErrors): string[] {
+    const { validators = [], path, name } = this.props
+    let errors: string[] = []
+    const value = _.get(state.formValue, path)
+    errors = validators.reduce(
+      (ret, validate) => {
+        const result = validate(value, state.formValue, name)
+        return result === undefined ? ret : [...ret, ...toArray(result)]
+      },
+      [] as string[]
+    )
 
-    for (let test of validators) {
-      const error = test(value, formValue, name)
-      if (typeof error === 'string') {
-        nextErrors.push(error)
-      }
+    if (ret && errors.length) {
+      _.set(ret, path.concat('_error'), errors)
     }
-    return nextErrors
+
+    return errors
   }
 
   push(valueToPush: any) {

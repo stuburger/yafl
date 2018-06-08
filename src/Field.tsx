@@ -5,19 +5,14 @@ import {
   Name,
   FormProvider,
   Validator,
-  ValidatorConfig,
   Touched,
   Visited,
   ValidateOn,
-  ValidationType,
-  FormState
+  FormState,
+  FormErrors
 } from './sharedTypes'
 import { Consumer } from './Context'
-import { isEqual } from './utils'
-
-const incl = (arrayOrString: ValidationType[] | ValidationType, value: ValidationType) => {
-  return (arrayOrString as string[] & string).includes(value)
-}
+import { isEqual, toArray, incl } from './utils'
 
 export interface InputProps<T = any> {
   name: Name
@@ -57,7 +52,7 @@ export interface FieldMeta<T = any> {
   setTouched: (value: boolean) => void
 }
 
-export interface InnerFieldProps<T = any> extends FormProvider<T>, Partial<ValidatorConfig<T>> {
+export interface InnerFieldProps<T = any> extends FormProvider<T> {
   name: Name
   formValue: T
   value: any
@@ -118,7 +113,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
 
   registerField(): void {
     const { registerField, path } = this.props
-    registerField(path, 'field', this.validate as any)
+    registerField(path, 'field', { validate: this.validate, shouldValidate: this.shouldValidate })
   }
 
   unregisterField(): void {
@@ -126,50 +121,51 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     unregisterField(path)
   }
 
-  shouldValidate(value: any, { touched, visited, submitCount }: FormState): boolean {
-    const { validators } = this.props
-    if (validators && validators.length) {
-      const { name, path, validateOn, initialValue, initialFormValue } = this.props
-      if (typeof validateOn === 'function') {
-        return validateOn(
-          {
-            name,
-            value,
-            touched: !!_.get(path, touched as any), // todo
-            visited: !!_.get(path, visited as any),
-            originalValue: initialValue
-          },
+  shouldValidate(state: FormState): boolean {
+    const { name, path, validateOn, initialValue, validators } = this.props
+    if (!validators || !validators.length) return false
+    if (typeof validateOn === 'function') {
+      return validateOn(
+        {
           name,
-          {
-            visited,
-            touched,
-            initialValue: initialFormValue
-          }
-        )
-      } else {
-        return (
-          (!!visited && incl(validateOn, 'blur')) ||
-          (!!touched && incl(validateOn, 'change')) ||
-          (submitCount > 0 && incl(validateOn, 'submit'))
-        )
-      }
+          value: _.get(state.formValue, path),
+          touched: !!_.get(path, state.touched as any), // todo
+          visited: !!_.get(path, state.visited as any),
+          originalValue: initialValue
+        },
+        name,
+        {
+          visited: state.visited,
+          touched: state.touched,
+          initialValue: state.initialFormValue
+        }
+      )
+    } else {
+      return (
+        (!!state.visited && incl(validateOn, 'blur')) ||
+        (!!state.touched && incl(validateOn, 'change')) ||
+        (state.submitCount > 0 && incl(validateOn, 'submit'))
+      )
     }
-    return false
   }
 
-  validate(value: any, formValue: any, name: Name, formState: FormState) {
-    const { validators = [] } = this.props
-    if (!this.shouldValidate(value, formState)) return []
+  validate(state: FormState, ret: FormErrors): string[] {
+    const { validators = [], path, name } = this.props
+    let errors: string[] = []
+    const value = _.get(state.formValue, path)
+    errors = validators.reduce(
+      (ret, validate) => {
+        const result = validate(value, state.formValue, name)
+        return result === undefined ? ret : [...ret, ...toArray(result)]
+      },
+      [] as string[]
+    )
 
-    let nextErrors: string[] = []
-    for (let k in validators) {
-      const err = validators[k](value, formValue, name)
-      if (typeof err === 'string') {
-        nextErrors.push(err)
-      }
+    if (ret && errors.length) {
+      _.set(ret, path, errors)
     }
 
-    return nextErrors
+    return errors
   }
 
   setValue(value: any): void {
