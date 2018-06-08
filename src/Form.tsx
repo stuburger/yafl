@@ -12,8 +12,8 @@ import {
   Validator,
   RegisteredField,
   RegisteredFields
-} from '../sharedTypes'
-import { bind, trueIfAbsent, s, us, shallowCopy } from '../utils'
+} from './sharedTypes'
+import { bind, trueIfAbsent, s, us, shallowCopy } from './utils'
 
 const noop = (...params: any[]) => {
   console.log('not loaded or field non existent')

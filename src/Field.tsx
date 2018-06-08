@@ -11,9 +11,9 @@ import {
   ValidateOn,
   ValidationType,
   FormState
-} from '../sharedTypes'
+} from './sharedTypes'
 import { Consumer } from './Context'
-import { isEqual } from '../utils'
+import { isEqual } from './utils'
 
 const incl = (arrayOrString: ValidationType[] | ValidationType, value: ValidationType) => {
   return (arrayOrString as string[] & string).includes(value)

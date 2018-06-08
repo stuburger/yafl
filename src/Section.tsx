@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Provider, Consumer } from './Context'
-import { isEqual } from '../utils'
-import { Name, FormProvider, FormErrors, Validator, Visited, Touched } from '../sharedTypes'
+import { isEqual } from './utils'
+import { Name, FormProvider, FormErrors, Validator, Visited, Touched } from './sharedTypes'
 
 export interface ArrayHelpers<T = any> {
   push: (value: any) => void

@@ -1,5 +1,5 @@
 import React from 'react'
-import { FormProvider, FormErrors, Path, Visited, Touched, RegisteredFields } from '../sharedTypes'
+import { FormProvider, FormErrors, Path, Visited, Touched, RegisteredFields } from './sharedTypes'
 
 // const { whyDidYouUpdate } = require('why-did-you-update')
 // whyDidYouUpdate(React)

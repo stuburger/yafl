@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { FormProvider, FormMeta } from '../sharedTypes'
+import { FormProvider, FormMeta } from './sharedTypes'
 import * as _ from 'lodash'
 import { Consumer } from './Context'
 
