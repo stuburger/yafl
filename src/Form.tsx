@@ -47,7 +47,7 @@ export interface FormConfig<T = any> {
 }
 
 class Form extends React.Component<FormConfig, FormState> {
-  registeredFields: RegisteredField<any>[] = []
+  fieldsToRegister: RegisteredField<any>[] = []
   validators: ValidatorDictionary<any> = {}
   constructor(props: FormConfig) {
     super(props)
@@ -105,13 +105,11 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   flush() {
-    if (this.registeredFields.length > 0) {
+    if (this.fieldsToRegister.length > 0) {
       let fields: RegisteredFields = {}
-      while (this.registeredFields.length > 0) {
-        const field = this.registeredFields.pop()
-        if (field) {
-          fields = { ...fields, [field.path.join('.')]: field }
-        }
+      let field: RegisteredField | undefined
+      while ((field = this.fieldsToRegister.pop())) {
+        fields[field.path.join('.')] = field
       }
       this.setState(({ registeredFields }) => ({
         registeredFields: { ...registeredFields, ...fields }
@@ -120,7 +118,7 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   registerField(path: Path, type: 'section' | 'field', config: ValidatorConfig) {
-    this.registeredFields.push({ path, type })
+    this.fieldsToRegister.push({ path, type })
     this.validators = {
       ...this.validators,
       [path.join('.')]: config
@@ -228,7 +226,7 @@ class Form extends React.Component<FormConfig, FormState> {
   }
 
   forgetState() {
-    this.setState(({ registeredFields }) => ({
+    this.setState(() => ({
       touched: {},
       visited: {},
       submitCount: 0
