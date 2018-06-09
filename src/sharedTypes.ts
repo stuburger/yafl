@@ -134,7 +134,6 @@ export interface FormProvider<T = any> extends FormState<T> {
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)
-  renameField: ((prevName: Path, nextName: Path) => void)
   setFormValue: ((value: Partial<T>, overwrite: boolean) => void)
   setTouched: ((value: Touched<T>, overwrite: boolean) => void)
   setVisited: ((value: Visited<T>, overwrite: boolean) => void)

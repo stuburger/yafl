@@ -70,6 +70,7 @@ const listenForProps: (keyof InnerFieldProps)[] = [
   'touched',
   'visited',
   'validate',
+  'validateOn',
   'forwardProps'
 ]
 

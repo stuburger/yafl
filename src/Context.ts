@@ -43,7 +43,6 @@ function getDefaultProviderValue<T>(): FormProvider<T> {
     setTouched: noop,
     setVisited: noop,
     touchField: noop,
-    renameField: noop,
     forgetState: noop,
     visitField: noop,
     setFormValue: noop,

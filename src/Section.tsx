@@ -36,7 +36,8 @@ const listenForProps: (keyof ForkProviderConfig)[] = [
   'touched',
   'visited',
   'errors',
-  'validate'
+  'validate',
+  'validateOn'
 ]
 
 class ForkProvider extends React.Component<ForkProviderConfig> {

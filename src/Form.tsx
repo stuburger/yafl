@@ -60,7 +60,6 @@ class Form extends React.Component<FormConfig, FormState> {
     this.clearForm = loadedGuard(this.clearForm)
     this.touchField = loadedGuard(this.touchField)
     this.setActiveField = loadedGuard(this.setActiveField)
-    this.renameField = loadedGuard(this.renameField)
     this.resetForm = loadedGuard(this.resetForm)
     this.setFormValue = loadedGuard(this.setFormValue)
     this.setTouched = loadedGuard(this.setTouched)
@@ -127,7 +126,7 @@ class Form extends React.Component<FormConfig, FormState> {
   unregisterField(path: Path) {
     const key = conv.toString(path)
     delete this.validators[key]
-    this.setState(({ registeredFields: prev, touched, visited }) => {
+    this.setState(({ registeredFields: prev, formValue, touched, visited }) => {
       const registeredFields = { ...prev }
       delete registeredFields[key]
       return {
@@ -164,10 +163,6 @@ class Form extends React.Component<FormConfig, FormState> {
     this.setState(({ formValue }) => ({
       formValue: overwrite ? val : _.merge({}, formValue, val)
     }))
-  }
-
-  renameField(prevName: Path, nextName: Path) {
-    // todo
   }
 
   touchField(path: Path, touched: boolean) {
@@ -268,7 +263,6 @@ class Form extends React.Component<FormConfig, FormState> {
           visitField: this.visitField,
           touchField: this.touchField,
           defaultFormValue: defaultValue,
-          renameField: this.renameField,
           setTouched: this.setTouched,
           setVisited: this.setVisited,
           forgetState: this.forgetState,
