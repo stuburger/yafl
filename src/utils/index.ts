@@ -1,11 +1,7 @@
-import * as path from './path'
-export const conv = path
+export { default as toStrPath } from './path'
 export { default as any } from './any'
-export { default as isEqual } from './isEqual'
 export { default as trueIfAbsent } from './trueIfAbsent'
 export { default as bind } from './bind'
-export { default as getDefaultOfType } from './getDefaultOfType'
-export { default as shallowCopy } from './shallowCopy'
 export { default as toArray } from './toArray'
 export { default as incl } from './includes'
 export * from './checkType'

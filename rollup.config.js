@@ -1,5 +1,4 @@
-import commonjs from 'rollup-plugin-node-resolve'
-import typescript from 'rollup-plugin-typescript2'
+import commonjs from 'rollup-plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import replace from 'rollup-plugin-replace'
 import resolve from 'rollup-plugin-node-resolve'
@@ -10,59 +9,57 @@ import pkg from './package.json'
 const input = './compiled/index.js'
 const external = ['react', 'react-native']
 
-function rollupUmd({ env }) {
-  return {
-    input,
-    external,
-    output: {
-      name: 'react-yafl',
-      format: 'umd',
-      sourcemap: true,
-      file: env === 'production' ? './lib/react-yafl.umd.min.js' : './lib/react-yafl.umd.js',
-      exports: 'named',
-      globals: {
-        react: 'React',
-        'react-native': 'ReactNative'
-      }
-    },
+const rollupUmd = ({ env }) => ({
+  input,
+  external,
+  output: {
+    name: 'react-yafl',
+    format: 'umd',
+    sourcemap: true,
+    file:
+      env === 'production' ? `./lib/react-yafl.umd.${env}.js` : `./lib/react-yafl.umd.${env}.js`,
+    exports: 'named',
+    globals: {
+      react: 'React',
+      'react-native': 'ReactNative'
+    }
+  },
 
-    plugins: [
-      resolve(),
-      replace({
-        exclude: 'node_modules/**',
-        'process.env.NODE_ENV': JSON.stringify(env)
-      }),
-      commonjs({
-        include: /node_modules/
-        // namedExports: {
-        //   'node_modules/prop-types/index.js': [
-        //     'object',
-        //     'oneOfType',
-        //     'string',
-        //     'node',
-        //     'func',
-        //     'bool',
-        //     'element'
-        //   ]
-        // }
-      }),
-      sourceMaps(),
-      env === 'production' && filesize(),
-      env === 'production' &&
-        uglify({
-          output: { comments: false },
-          compress: {
-            keep_infinity: true,
-            pure_getters: true
-          },
-          warnings: true,
-          // ecma: 5,
-          toplevel: false
-        }),
-      typescript()
-    ]
-  }
-}
+  plugins: [
+    resolve(),
+    replace({
+      exclude: 'node_modules/**',
+      'process.env.NODE_ENV': JSON.stringify(env)
+    }),
+    commonjs({
+      include: /node_modules/,
+      namedExports: {
+        'node_modules/prop-types/index.js': [
+          'object',
+          'oneOfType',
+          'string',
+          'node',
+          'func',
+          'bool',
+          'element'
+        ]
+      }
+    }),
+    sourceMaps(),
+    env === 'production' && filesize(),
+    env === 'production' &&
+      uglify({
+        output: { comments: false },
+        compress: {
+          keep_infinity: true,
+          pure_getters: true
+        },
+        warnings: true,
+        // ecma: 5,
+        toplevel: false
+      })
+  ]
+})
 
 const rollupCjs = ({ env }) => ({
   input,
@@ -87,13 +84,9 @@ const rollupCjs = ({ env }) => ({
 
 export default [
   rollupUmd({ env: 'production' }),
-
   rollupUmd({ env: 'development' }),
-
-  rollupCjs({ env: 'development' }),
-
   rollupCjs({ env: 'production' }),
-
+  rollupCjs({ env: 'development' }),
   {
     input,
     external: external.concat(Object.keys(pkg.dependencies)),

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { FormProvider, FormMeta, FormErrors, Touched, Visited } from './sharedTypes'
-import * as _ from 'lodash'
+import isEqual from 'react-fast-compare'
 import { Consumer } from './Context'
 
 type GeneralComponentConfig<T = any> = FormProvider<T> &
@@ -22,7 +22,7 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
   }
 
   shouldComponentUpdate(np: GeneralComponentConfig) {
-    return listenForProps.some(key => !_.isEqual(this.props[key], np[key]))
+    return listenForProps.some(key => !isEqual(this.props[key], np[key]))
   }
 
   collectProps(): GizmoProps {
@@ -31,7 +31,6 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
       errors,
       onSubmit,
       children,
-      formErrors,
       formIsValid,
       formIsDirty,
       forwardProps,
@@ -42,7 +41,7 @@ class GeneralComponent extends React.Component<GeneralComponentConfig> {
 
     return {
       ...props,
-      errors: _.merge({}, formErrors, errors),
+      errors,
       submit: onSubmit,
       isValid: formIsValid,
       isDirty: formIsDirty,

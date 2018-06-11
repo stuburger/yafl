@@ -1,7 +1,9 @@
 import * as React from 'react'
 import { Provider, Consumer } from './Context'
-import { isEqual, toArray, incl, conv } from './utils'
-import * as _ from 'lodash'
+import { toArray, incl, toStrPath } from './utils'
+import isEqual from 'react-fast-compare'
+import get from 'lodash.get'
+import set from 'lodash.set'
 import {
   Name,
   FormProvider,
@@ -56,7 +58,7 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
 
   componentDidUpdate(pp: ForkProviderConfig) {
     const { registeredFields, path, name } = this.props
-    if (pp.name !== name || !registeredFields[conv.toString(path)]) {
+    if (pp.name !== name || !registeredFields[toStrPath(path)]) {
       this.registerField()
     }
   }
@@ -73,9 +75,9 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
       return validateOn(
         {
           name,
-          value: _.get(path, state.formValue),
-          touched: _.get(state.touched, path) as any, // todo
-          visited: _.get(state.visited, path) as any,
+          value: get(path, state.formValue),
+          touched: get(state.touched, path) as any, // todo
+          visited: get(state.visited, path) as any,
           originalValue: initialValue
         },
         name,
@@ -103,14 +105,14 @@ class ForkProvider extends React.Component<ForkProviderConfig> {
     const { validate = [], path, name } = this.props
     let errors: string[] = []
     const validators = toArray(validate)
-    const value = _.get(state.formValue, path)
+    const value = get(state.formValue, path)
     errors = validators.reduce((ret, validate) => {
       const result = validate(value, state.formValue, name)
       return result === undefined ? ret : [...ret, ...toArray(result)]
     }, errors)
 
     if (ret && errors.length) {
-      _.set(ret, path.concat('_error'), errors)
+      set(ret, path.concat('_error'), errors)
     }
 
     return errors

@@ -1,5 +1,6 @@
 import * as React from 'react'
-import * as _ from 'lodash'
+import get from 'lodash.get'
+import set from 'lodash.set'
 import {
   FormMeta,
   Name,
@@ -11,7 +12,8 @@ import {
   FieldValidator
 } from './sharedTypes'
 import { Consumer } from './Context'
-import { isEqual, toArray, incl, conv } from './utils'
+import { toArray, incl, toStrPath } from './utils'
+import isEqual from 'react-fast-compare'
 
 export interface InputProps<T = any> {
   name: Name
@@ -97,7 +99,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
 
   componentDidUpdate(pp: InnerFieldProps) {
     const { registeredFields, path, name } = this.props
-    if (pp.name !== name || !registeredFields[conv.toString(path)]) {
+    if (pp.name !== name || !registeredFields[toStrPath(path)]) {
       this.registerField()
     }
   }
@@ -123,9 +125,9 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       return validateOn(
         {
           name,
-          value: _.get(path, state.formValue),
-          touched: _.get(state.touched, path) as any, // todo
-          visited: _.get(state.visited, path) as any,
+          value: get(path, state.formValue),
+          touched: get(state.touched, path) as any, // todo
+          visited: get(state.visited, path) as any,
           originalValue: initialValue
         },
         name,
@@ -148,14 +150,14 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     const { validate, path, name } = this.props
     const validators = toArray(validate)
     let errors: string[] = []
-    const value = _.get(state.formValue, path)
+    const value = get(state.formValue, path)
     errors = validators.reduce((ret, validate) => {
       const result = validate(value, state.formValue, name)
       return result === undefined ? ret : [...ret, ...toArray(result)]
     }, errors)
 
     if (ret && errors.length) {
-      _.set(ret, path, errors)
+      set(ret, path, errors)
     }
 
     return errors
@@ -190,7 +192,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
     if (forwardProps.onFocus) {
       forwardProps.onFocus(e)
     }
-    setActiveField(conv.toString(path))
+    setActiveField(toStrPath(path))
   }
 
   onBlur(e: React.FocusEvent<any>) {
@@ -223,7 +225,7 @@ class FieldConsumer extends React.Component<InnerFieldProps> {
       initialValue: p.initialValue,
       defaultValue: p.defaultValue,
       isValid: ((p.errors || []) as any).length === 0,
-      isActive: p.activeField === conv.toString(p.path),
+      isActive: p.activeField === toStrPath(p.path),
       isDirty: p.formIsDirty && p.initialValue === p.value
     }
 
