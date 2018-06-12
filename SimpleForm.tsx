@@ -1,29 +1,38 @@
 import * as React from 'react'
-import { createFormContext } from './src/form'
+import { createFormContext } from './src/index'
+import { Person, Contact } from './src/sharedTypes'
+
+const { Form, Section, Repeat, Field } = createFormContext<Person>()
 
 interface Guy {
   name: string
   friends: Array<Guy>
 }
 
-const { Form, Field, FieldMap } = createFormContext<Guy>({ name: '', friends: [] })
-
 const GuyFields = props => {
   return (
-    <>
-      <Field
-        name="name"
-        parent={props.parent}
-        render={({ input, ...props }) => <TextInput {...input} />}
-      />
-      <FieldMap
-        name="friends"
-        parent={props.parent}
-        render={props => {
-          return <GuyFields {...props} />
+    <Form initialValue={{} as Person}>
+      <Repeat<Contact> name="contacts">
+        {(value, utils) => {
+          return value.map((contact, i) => {
+            return (
+              <Section<Contact> name={i}>
+                <Field<string>
+                  name="name"
+                  parent={props.parent}
+                  render={({ input, ...props }) => {
+                    props.form.setFormValue({ age: 4 })
+                    return <TextInput {...input} />
+                  }}
+                />
+              </Section>
+            )
+          })
+
+          // utils.push({ address: { code: '', street: '' }, tel: '' })
         }}
-      />
-    </>
+      </Repeat>
+    </Form>
   )
 }
 

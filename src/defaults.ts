@@ -1,5 +1,4 @@
-import React from 'react'
-import { FormProvider, FormErrors, Visited, Touched, RegisteredFields } from './sharedTypes'
+import { FormProvider, BooleanTree } from './sharedTypes'
 
 // const { whyDidYouUpdate } = require('why-did-you-update')
 // whyDidYouUpdate(React)
@@ -9,14 +8,14 @@ export interface Noop {
   (): never
 }
 
-function noop(): never {
+export function noop(): never {
   throw new Error('A <Field /> component can only appear inside a <Form /> component')
 }
 
-function getDefaultProviderValue<T>(): FormProvider<T> {
+export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, T> {
   return {
     path: [],
-    value: {},
+    value: {} as T,
     isBusy: false,
     loaded: false,
     submitCount: 0,
@@ -25,16 +24,16 @@ function getDefaultProviderValue<T>(): FormProvider<T> {
     formIsDirty: false,
     initialMount: false,
     formIsTouched: false,
-    formValue: {} as T,
+    formValue: {} as F,
     initialValue: {} as T,
     defaultValue: {} as T,
-    initialFormValue: {} as T,
-    defaultFormValue: {} as T,
+    initialFormValue: {} as F,
+    defaultFormValue: {} as F,
     activeField: null,
-    touched: {} as Touched<T>,
-    visited: {} as Visited<T>,
-    registeredFields: {} as RegisteredFields<T>,
-    errors: {} as FormErrors<T>,
+    touched: {} as BooleanTree<T>,
+    visited: {} as BooleanTree<T>,
+    errors: {},
+    registeredFields: {},
     validateOn: 'blur',
     onSubmit: noop,
     resetForm: noop,
@@ -51,7 +50,3 @@ function getDefaultProviderValue<T>(): FormProvider<T> {
     unregisterField: noop
   }
 }
-
-export const { Provider, Consumer } = React.createContext<FormProvider<any>>(
-  getDefaultProviderValue()
-)

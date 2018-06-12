@@ -6,7 +6,7 @@ import { Path } from '../sharedTypes'
 import { isArray } from './checkType'
 import immutable from 'object-path-immutable'
 
-export function s<T extends object>(obj: T, path: Path, val: any): T {
+export function s<T>(obj: T, path: Path, val: any): T {
   return immutable.set(obj, path as string[], val)
 }
 
