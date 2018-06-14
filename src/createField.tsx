@@ -231,7 +231,7 @@ function createField<F extends object>() {
         submitting: p.submitting,
         loaded: p.loaded,
         resetForm: p.resetForm,
-        submit: p.onSubmit,
+        submit: p.submit,
         setFormValue: p.setFormValue,
         forgetState: p.forgetState,
         setVisited: p.setVisited,

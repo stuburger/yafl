@@ -3,6 +3,9 @@ import get from 'lodash.get'
 import set from 'lodash.set'
 import merge from 'lodash.merge'
 import defaultsDeep from 'lodash.defaultsdeep'
+import { bind, trueIfAbsent, s, us, toArray, toStrPath, any, isString, noop } from './utils'
+import onlyIfLoaded from './utils/onlyIfLoaded'
+import isEqual from 'react-fast-compare'
 import {
   Path,
   FormState,
@@ -15,37 +18,21 @@ import {
   FormProvider,
   BooleanTree
 } from './sharedTypes'
-import { bind, trueIfAbsent, s, us, toArray, toStrPath } from './utils'
-import isEqual from 'react-fast-compare'
-
-const noop = (...params: any[]) => {
-  console.log('not loaded or field non existent')
-}
 
 const startingPath: Path = []
 const default_validate_on = 'blur'
 
-function onlyIfLoaded(func: any, defaultFunc = noop) {
-  func = bind(this, func)
-  return bind(this, function(...params: any[]) {
-    if (!this.state.isBusy) {
-      return func(...params)
-    }
-    return defaultFunc(...params)
-  })
-}
-
 export interface FormConfig<T extends object> {
   initialValue?: T
   defaultValue?: T
-  onSubmit?: (formValue: T) => void
-  children: React.ReactNode
+  validate?: any
   loaded?: boolean
   submitting?: boolean
+  children: React.ReactNode
   allowReinitialize?: boolean
+  validateOn?: ValidateOn<T, any>
+  onSubmit?: (formValue: T) => void
   rememberStateOnReinitialize?: boolean
-  validate?: any
-  validateOn?: ValidateOn<T, any> // validateOn should be differet at each level
 }
 
 export type Error = string | string[]
@@ -170,9 +157,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     static defaultProps = {
       initialValue: {},
       defaultValue: {},
-      rememberStateOnReinitialize: false,
       allowReinitialize: false,
-      validateOn: default_validate_on
+      validateOn: default_validate_on,
+      rememberStateOnReinitialize: false
     }
 
     componentDidMount() {
@@ -220,24 +207,28 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     submit(includeUnregisteredFields = false) {
       const { onSubmit = noop } = this.props
+      const { formValue, registeredFields } = this.state
       this.setState(({ submitCount }) => ({
         submitCount: submitCount + 1
       }))
-      // todo include/exclude registered fields
-      onSubmit(this.state.formValue)
+
+      if (includeUnregisteredFields) {
+        onSubmit(formValue)
+      } else {
+        const retval: F = {} as F
+        Object.keys(registeredFields).forEach(key => {
+          const path = registeredFields[key].path
+          set(retval, path, get(formValue, path))
+        })
+        onSubmit(retval)
+      }
     }
 
     setValue(path: Path, val: any, setTouched = true) {
-      this.setState(({ formValue, touched }) => {
-        const newValue = s(formValue, path, val)
-        const ret = {
-          formValue: newValue
-        } as FormState<F>
-        if (setTouched) {
-          ret.touched = s(touched, path, true)
-        }
-        return ret
-      })
+      this.setState(({ formValue: prev, touched }) => ({
+        formValue: s(prev, path, val),
+        touched: setTouched ? s(touched, path, true) : touched
+      }))
     }
 
     setFormValue(val: any, overwrite = false) {
@@ -265,11 +256,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     setVisited(visited: BooleanTree<F>, overwrite = false) {
-      this.setState(({ visited: prev }) => {
-        return {
-          visited: overwrite ? visited : merge({}, prev, visited)
-        }
-      })
+      this.setState(({ visited: prev }) => ({
+        visited: overwrite ? visited : merge({}, prev, visited)
+      }))
     }
 
     setActiveField(activeField: string | null) {
@@ -282,13 +271,13 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       // reset all registered fields. If a Field detects that is is
       // unregistered on cDU it will re-register itself
       this.validators = {}
-      this.setState(() => ({
+      this.setState({
+        submitCount: 0,
+        registeredFields: {},
         touched: {} as BooleanTree<F>,
         visited: {} as BooleanTree<F>,
-        registeredFields: {},
-        formValue: defaultValue as F,
-        submitCount: 0
-      }))
+        formValue: defaultValue as F
+      })
     }
 
     resetForm() {
@@ -301,11 +290,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     forgetState() {
-      this.setState(() => ({
+      this.setState({
         touched: {} as BooleanTree<F>,
         visited: {} as BooleanTree<F>,
         submitCount: 0
-      }))
+      })
     }
 
     getErrors(ret: FormErrors<F>, config: ValidatorConfig<F>): FormErrors<F> {
@@ -317,8 +306,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     render() {
-      const { defaultValue = {} as F, validateOn, validate } = this.props
-      const { loaded } = this.state
+      const { defaultValue = {} as F, validateOn = default_validate_on, validate } = this.props
+      const { loaded, touched, initialFormValue, formValue } = this.state
 
       let errors: FormErrors<F> = {}
       if (loaded) {
@@ -330,13 +319,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         <Provider
           value={{
             errors,
-            validateOn: validateOn || default_validate_on,
-            path: startingPath,
+            validateOn,
             defaultValue,
             ...this.state,
-            formIsValid: true,
-            formIsDirty: false,
-            onSubmit: this.submit,
+            path: startingPath,
+            submit: this.submit,
             setValue: this.setValue,
             clearForm: this.clearForm,
             resetForm: this.resetForm,
@@ -351,7 +338,10 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             registerField: this.registerField,
             setActiveField: this.setActiveField,
             unregisterField: this.unregisterField,
-            initialValue: this.state.initialFormValue
+            initialValue: this.state.initialFormValue,
+            formIsValid: !loaded || !any(errors, isString),
+            formIsTouched: !loaded || any(touched, true),
+            formIsDirty: loaded && !isEqual(initialFormValue, formValue)
           }}
         >
           {this.props.children}

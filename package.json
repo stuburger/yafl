@@ -23,16 +23,17 @@
   },
   "author": "Stuart Bourhill",
   "license": "MIT",
-  "dependencies": {  
+  "dependencies": {
     "lodash.clonedeep": "^4.5.0",
     "lodash.defaultsdeep": "^4.6.0",
     "lodash.get": "^4.4.2",
     "lodash.merge": "^4.6.1",
+    "lodash.omit": "^4.5.0",
     "lodash.set": "^4.3.2",
     "lodash.unset": "^4.5.2",
     "object-path-immutable": "^1.0.2",
     "prop-types": "^15.6.1",
-    "react-fast-compare": "^2.0.0"    
+    "react-fast-compare": "^2.0.0"
   },
   "keywords": [
     "react",
@@ -45,15 +46,16 @@
   "devDependencies": {
     "@types/jest": "^23.0.0",
     "@types/lodash.clonedeep": "^4.5.3",
-		"@types/lodash.defaultsdeep": "^4.6.3",
-    "@types/lodash.get": "^4.4.3",   
+    "@types/lodash.defaultsdeep": "^4.6.3",
+    "@types/lodash.get": "^4.4.3",
     "@types/lodash.merge": "^4.6.3",
+    "@types/lodash.omit": "^4.5.3",
     "@types/lodash.set": "^4.3.3",
     "@types/lodash.unset": "^4.5.3",
-		"@types/node": "10.3.2",
-		"@types/prop-types": "^15.5.3",
+    "@types/node": "10.3.2",
+    "@types/prop-types": "^15.5.3",
     "@types/react": "^16.3.17",
-		"@types/react-dom": "^16.0.6",
+    "@types/react-dom": "^16.0.6",
     "cross-env": "^5.1.6",
     "husky": "^0.14.3",
     "jest": "^23.1.0",
@@ -71,9 +73,9 @@
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-uglify": "^4.0.0",
     "ts-jest": "^22.4.6",
-		"typescript": "^2.9.1",
-		"why-did-you-update": "^0.1.1",
-    "uglify-es": "^3.3.9"
+    "typescript": "^2.9.1",
+    "uglify-es": "^3.3.9",
+    "why-did-you-update": "^0.1.1"
   },
   "jest": {
     "collectCoverage": true,

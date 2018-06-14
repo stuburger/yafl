@@ -1,24 +1,28 @@
-import { isObject } from './checkType'
+import { isObject, isFunction } from './checkType'
 
 export interface EquityComparer {
   (a: any, b: any): boolean
 }
 
-const any = (obj: any, value: boolean | null | string | number): boolean => {
-  if (!isObject(obj)) {
-    return obj === value
-  }
+export interface ConditionCallback {
+  (value: any): boolean
+}
 
-  // if the object is an array or an object
+const baseAny = (obj: any, check: ConditionCallback): boolean => {
+  if (!isObject(obj)) {
+    return check(obj)
+  }
   let ret: boolean = false
   for (let key in obj) {
-    ret = any(obj[key], value)
+    ret = baseAny(obj[key], check)
     if (ret) break
   }
-
   return ret
-  // then iterate over the array, check if the same is true of its children
-  // otherwise compare for equality
+}
+
+const any = (obj: any, value: boolean | null | string | number | ConditionCallback): boolean => {
+  if (isFunction(value)) return baseAny(obj, value)
+  else return baseAny(obj, x => x === value)
 }
 
 export default any

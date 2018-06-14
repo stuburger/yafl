@@ -137,7 +137,7 @@ export interface FormProvider<F extends object, T = F> {
   formIsDirty: boolean
   formIsTouched: boolean
   errors: FormErrors<F>
-  onSubmit: (() => void)
+  submit: (() => void)
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)

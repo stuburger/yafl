@@ -1,9 +1,39 @@
 import * as React from 'react'
-import { FormProvider, FormMeta, FormErrors, BooleanTree } from './sharedTypes'
+import { FormProvider, FormMeta, FormErrors, BooleanTree, Path } from './sharedTypes'
 import isEqual from 'react-fast-compare'
+import omit from 'lodash.omit'
 
-type GeneralComponentConfig<F extends object> = FormProvider<F> &
-  GizmoConfig<F> & { forwardProps: { [key: string]: any } }
+interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
+  formValue: F
+  defaultValue: F
+  initialValue: F
+  defaultFormValue: F
+  initialFormValue: F
+  initialMount: boolean
+  touched: BooleanTree<F>
+  visited: BooleanTree<F>
+  activeField: string | null
+  isBusy: boolean
+  loaded: boolean
+  submitting: boolean
+  submitCount: number
+  formIsValid: boolean
+  formIsDirty: boolean
+  formIsTouched: boolean
+  errors: FormErrors<F>
+  submit: (() => void)
+  resetForm: (() => void)
+  clearForm: (() => void)
+  forgetState: (() => void)
+  setActiveField: ((path: string | null) => void)
+  setValue: ((path: Path, value: any, setTouched?: boolean) => void)
+  touchField: ((path: Path, touched: boolean) => void)
+  visitField: ((path: Path, visited: boolean) => void)
+  setFormValue: ((value: Partial<F>, overwrite?: boolean) => void)
+  setTouched: ((value: BooleanTree<F>, overwrite?: boolean) => void)
+  setVisited: ((value: BooleanTree<F>, overwrite?: boolean) => void)
+  forwardProps: { [key: string]: any }
+}
 
 const listenForProps: (keyof GeneralComponentConfig<any>)[] = [
   'errors',
@@ -12,6 +42,18 @@ const listenForProps: (keyof GeneralComponentConfig<any>)[] = [
   'isDirty',
   'formValue',
   'forwardProps'
+]
+
+const propsToOmit: (keyof FormProvider<any>)[] = [
+  'registeredFields',
+  'unregisterField',
+  'unregisterField',
+  'setActiveField',
+  'registerField',
+  'initialMount',
+  'validateOn',
+  'value',
+  'path'
 ]
 
 function createGizmo<F extends object>() {
@@ -26,20 +68,8 @@ function createGizmo<F extends object>() {
     }
 
     collectProps(): GizmoProps<F> {
-      const {
-        render,
-        onSubmit,
-        children,
-        forwardProps,
-        component: Component,
-        ...props
-      } = this.props
-
-      return {
-        ...props,
-        submit: onSubmit,
-        ...forwardProps
-      }
+      const { render, children, forwardProps, component: Component, ...props } = this.props
+      return { ...props, ...forwardProps }
     }
 
     render() {
@@ -65,6 +95,9 @@ export interface GizmoProps<F extends object> extends FormMeta<F> {
   formValue: F
   defaultValue: F
   initialValue: F
+  formIsTouched: boolean
+  formIsValid: boolean
+  formIsDirty: boolean
   submitCount: number
   activeField: string | null
   visited: BooleanTree<F>
@@ -90,10 +123,9 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
 
     _render(incomingProps: FormProvider<F, F>) {
       const { render, component, children, ...forwardProps } = this.props
-
       return (
         <InnerGizmo
-          {...incomingProps}
+          {...omit(incomingProps, propsToOmit) as GeneralComponentConfig<F>}
           render={render}
           component={component}
           forwardProps={forwardProps}
