@@ -1,4 +1,4 @@
-import { isObject, isFunction } from './checkType'
+import { isObject } from './checkType'
 
 export interface EquityComparer {
   (a: any, b: any): boolean
@@ -21,7 +21,7 @@ const baseAny = (obj: any, check: ConditionCallback): boolean => {
 }
 
 const any = (obj: any, value: boolean | null | string | number | ConditionCallback): boolean => {
-  if (isFunction(value)) return baseAny(obj, value)
+  if (typeof value === 'function') return baseAny(obj, value)
   else return baseAny(obj, x => x === value)
 }
 

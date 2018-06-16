@@ -1,4 +1,4 @@
-import { isNullOrUndefined, isArray } from './checkType'
+import { isNullOrUndefined } from './checkType'
 
 // creates an array out of a value.
 // if an array is supplied the original array is returned
@@ -7,7 +7,7 @@ export default function<T = any>(maybeArray: T | T[] | null | undefined): T[] {
   if (isNullOrUndefined(maybeArray)) {
     return []
   }
-  if (isArray(maybeArray)) {
+  if (Array.isArray(maybeArray)) {
     return maybeArray
   }
   return [maybeArray]

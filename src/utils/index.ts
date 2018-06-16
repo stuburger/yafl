@@ -1,7 +1,5 @@
-export * from './set'
 export * from './checkType'
 export { default as any } from './any'
-export { default as bind } from './bind'
 export { default as noop } from './noop'
 export { default as incl } from './includes'
 export { default as toStrPath } from './path'

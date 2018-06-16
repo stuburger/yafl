@@ -3,9 +3,10 @@ import get from 'lodash.get'
 import set from 'lodash.set'
 import merge from 'lodash.merge'
 import defaultsDeep from 'lodash.defaultsdeep'
-import { bind, trueIfAbsent, s, us, toArray, toStrPath, any, isString, noop } from './utils'
+import { trueIfAbsent, toArray, toStrPath, any, isString, noop } from './utils'
 import onlyIfLoaded from './utils/onlyIfLoaded'
 import isEqual from 'react-fast-compare'
+import immutable from 'object-path-immutable'
 import {
   Path,
   FormState,
@@ -119,23 +120,23 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     constructor(props: FormConfig<F>) {
       super(props)
 
-      const loadedGuard = bind(this, onlyIfLoaded)
+      const disabledGuard = onlyIfLoaded.bind(this)
 
-      this.submit = loadedGuard(this.submit)
-      this.setValue = loadedGuard(this.setValue)
-      this.visitField = loadedGuard(this.visitField)
-      this.forgetState = loadedGuard(this.forgetState)
-      this.clearForm = loadedGuard(this.clearForm)
-      this.touchField = loadedGuard(this.touchField)
-      this.setActiveField = loadedGuard(this.setActiveField)
-      this.resetForm = loadedGuard(this.resetForm)
-      this.setFormValue = loadedGuard(this.setFormValue)
-      this.setTouched = loadedGuard(this.setTouched)
-      this.setVisited = loadedGuard(this.setVisited)
-      this.getErrors = bind(this, this.getErrors)
-      this.registerField = bind(this, this.registerField)
-      this.unregisterField = bind(this, this.unregisterField)
-      this.flush = bind(this, this.flush)
+      this.submit = disabledGuard(this.submit)
+      this.setValue = disabledGuard(this.setValue)
+      this.visitField = disabledGuard(this.visitField)
+      this.forgetState = disabledGuard(this.forgetState)
+      this.clearForm = disabledGuard(this.clearForm)
+      this.touchField = disabledGuard(this.touchField)
+      this.setActiveField = disabledGuard(this.setActiveField)
+      this.resetForm = disabledGuard(this.resetForm)
+      this.setFormValue = disabledGuard(this.setFormValue)
+      this.setTouched = disabledGuard(this.setTouched)
+      this.setVisited = disabledGuard(this.setVisited)
+      this.getErrors = this.getErrors.bind(this)
+      this.registerField = this.registerField.bind(this)
+      this.unregisterField = this.unregisterField.bind(this)
+      this.flush = this.flush.bind(this)
       this.state = {
         initialMount: false,
         formValue: {} as F,
@@ -199,8 +200,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         delete registeredFields[key]
         return {
           registeredFields,
-          touched: us(touched, path),
-          visited: us(visited, path)
+          touched: immutable.del(touched, path as string[]),
+          visited: immutable.del(visited, path as string[])
         }
       })
     }
@@ -226,8 +227,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     setValue(path: Path, val: any, setTouched = true) {
       this.setState(({ formValue: prev, touched }) => ({
-        formValue: s(prev, path, val),
-        touched: setTouched ? s(touched, path, true) : touched
+        formValue: immutable.set(prev, path as string[], val),
+        touched: setTouched ? immutable.set(touched, path as string[], true) : touched
       }))
     }
 
@@ -239,7 +240,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     touchField(path: Path, touched: boolean) {
       this.setState(({ touched: prev }) => ({
-        touched: s(prev, path, touched)
+        touched: immutable.set(prev, path as string[], touched)
       }))
     }
 
@@ -251,7 +252,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     visitField(path: Path, visited: boolean) {
       this.setState(({ visited: prev }) => ({
-        visited: s(prev, path, visited)
+        visited: immutable.set(prev, path as string[], visited)
       }))
     }
 
