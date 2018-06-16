@@ -137,8 +137,8 @@ function createField<F extends object>() {
         )
       } else {
         return (
-          (state.visited && incl(validateOn, 'blur')) ||
-          (state.touched && incl(validateOn, 'change')) ||
+          (get(state.visited, path, false) && incl(validateOn, 'blur')) ||
+          (get(state.touched, path, false) && incl(validateOn, 'change')) ||
           (state.submitCount > 0 && incl(validateOn, 'submit'))
         )
       }
@@ -228,8 +228,6 @@ function createField<F extends object>() {
       }
 
       const form: FormMeta<F> = {
-        submitting: p.submitting,
-        loaded: p.loaded,
         resetForm: p.resetForm,
         submit: p.submit,
         setFormValue: p.setFormValue,

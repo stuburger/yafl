@@ -96,9 +96,8 @@ const { Form, Field, Section, Repeat, Gizmo } = createFormContext(defaultValue)
 | `initialValue?`                | object                           | The initial value of your form.                                                                           | `{}`         |
 | `defaultValue?`                | object                           | The default value of your form.                                                                           | `{}`         |
 | `onSubmit?`                     | function                                   | The function which to be called when submitting your form                                                 | `noop`       |
-| `loaded?`                      | boolean                                    | While this value is `false` all functionality is disabled                                                 | `true`       |
-| `submitting?`                  | boolean                                    | A value indicating when the form is submitting. While this value is `true` all functionality is disabled. | `false`      |
-| `allowReinitialize?`           | boolean                                    | Allow the form to reinitialize if and when 'initialValue' changes after the form has loaded               | `false`      |
+| `disabled?`                      | boolean                                    | While this value is `true` all functionality is disabled                                                 | `false`       |
+| `allowReinitialize?`           | boolean                                    | Allow the form to reinitialize if and when 'initialValue' changes              | `false`      |
 | `rememberStateOnReinitialize?` | boolean                                    |                                                                                                           | `false`      |
 | `validateOn?`                  | `'blur'| 'submit'| 'change' | function` | Validation timing for your form.                                                                          | `'blur'`     |
 | `validate`                     | function                                   | The initial value of your form                                                                            | `noop`       |

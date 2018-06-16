@@ -7,15 +7,10 @@ interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
   formValue: F
   defaultValue: F
   initialValue: F
-  defaultFormValue: F
-  initialFormValue: F
   initialMount: boolean
   touched: BooleanTree<F>
   visited: BooleanTree<F>
   activeField: string | null
-  isBusy: boolean
-  loaded: boolean
-  submitting: boolean
   submitCount: number
   formIsValid: boolean
   formIsDirty: boolean

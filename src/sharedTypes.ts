@@ -44,8 +44,6 @@ export interface Address {
 }
 
 export interface FormMeta<T extends object> {
-  loaded: boolean
-  submitting: boolean
   resetForm: () => void
   submit: () => void
   forgetState: () => void
@@ -105,13 +103,10 @@ export interface FormState<F extends object> {
   touched: BooleanTree<F>
   visited: BooleanTree<F>
   activeField: string | null
-  initialFormValue: F
+  initialValue: F | null
+  defaultValue: F
   formValue: F
   registeredFields: RegisteredFields
-  isBusy: boolean
-  loaded: boolean
-  submitting: boolean
-  formIsTouched: boolean
   submitCount: number
 }
 
@@ -121,16 +116,11 @@ export interface FormProvider<F extends object, T = F> {
   defaultValue: T
   initialValue: T
   formValue: F
-  defaultFormValue: F
-  initialFormValue: F
   initialMount: boolean
   touched: BooleanTree<T> // | boolean | undefined
   visited: BooleanTree<T> // | boolean | undefined
   activeField: string | null
   registeredFields: RegisteredFields
-  isBusy: boolean
-  loaded: boolean
-  submitting: boolean
   submitCount: number
   formIsValid: boolean
   validateOn: ValidateOn<F, T>

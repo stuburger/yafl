@@ -3,8 +3,8 @@ import get from 'lodash.get'
 import set from 'lodash.set'
 import merge from 'lodash.merge'
 import defaultsDeep from 'lodash.defaultsdeep'
-import { trueIfAbsent, toArray, toStrPath, any, isString, noop } from './utils'
-import onlyIfLoaded from './utils/onlyIfLoaded'
+import { toArray, toStrPath, any, isString, noop, isObject } from './utils'
+import whenEnabled from './utils/whenEnabled'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -27,8 +27,6 @@ export interface FormConfig<T extends object> {
   initialValue?: T
   defaultValue?: T
   validate?: any
-  loaded?: boolean
-  submitting?: boolean
   children: React.ReactNode
   allowReinitialize?: boolean
   validateOn?: ValidateOn<T, any>
@@ -72,47 +70,6 @@ export function validateForm<F extends object>(
   return validate(formValue, { setError, submitCount }) || obj
 }
 
-export function getDerivedStateFromProps<F extends object>(
-  np: FormConfig<F>,
-  ps: FormState<F>
-): Partial<FormState<F>> {
-  const loaded = trueIfAbsent(np.loaded)
-  const submitting = !!np.submitting
-
-  const state: Partial<FormState<F>> = {
-    loaded,
-    submitting,
-    isBusy: !loaded || submitting
-  }
-
-  if (!loaded) {
-    state.formValue = np.defaultValue || ({} as F)
-    return state
-  }
-
-  const base = Array.isArray(np.defaultValue) ? [] : {}
-
-  const initialValue = defaultsDeep(
-    base,
-    np.initialValue || { ...base },
-    np.defaultValue || { ...base }
-  )
-
-  if (!ps.loaded && loaded) {
-    state.initialFormValue = initialValue
-    state.formValue = initialValue
-  } else if (np.loaded && np.allowReinitialize && !isEqual(ps.initialFormValue, initialValue)) {
-    state.formValue = initialValue
-    state.initialFormValue = initialValue
-    if (!np.rememberStateOnReinitialize) {
-      state.submitCount = 0
-      state.touched = {} as BooleanTree<F>
-      state.visited = {} as BooleanTree<F>
-    }
-  }
-  return state
-}
-
 export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
     fieldsToRegister: RegisteredField[] = []
@@ -120,7 +77,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     constructor(props: FormConfig<F>) {
       super(props)
 
-      const disabledGuard = onlyIfLoaded.bind(this)
+      const disabledGuard = whenEnabled.bind(this)
 
       this.submit = disabledGuard(this.submit.bind(this))
       this.setValue = disabledGuard(this.setValue.bind(this))
@@ -143,21 +100,56 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         activeField: null,
         touched: {} as BooleanTree<F>,
         visited: {} as BooleanTree<F>,
-        loaded: false,
-        isBusy: false,
-        submitting: false,
-        formIsTouched: false,
         registeredFields: {},
-        initialFormValue: {} as F,
+        initialValue: null,
+        defaultValue: {} as F,
         submitCount: 0
       }
     }
 
-    static getDerivedStateFromProps = getDerivedStateFromProps
+    static getDerivedStateFromProps(np: FormConfig<F>, ps: FormState<F>) {
+      const state: Partial<FormState<F>> = {}
+
+      const alreadyHasValue = isObject(ps.initialValue)
+      const willHaveValue = isObject(np.initialValue)
+      // if form is still loading...
+      if (!(alreadyHasValue || willHaveValue)) {
+        state.formValue = np.defaultValue || ({} as F)
+        return state
+      }
+
+      let formWillPopulate = !alreadyHasValue && willHaveValue
+
+      let shouldUpdateValue = false
+      if (!isEqual(ps.initialValue, np.initialValue)) {
+        // regardless of whether allowReinitialize == true,
+        // set initialValue to whatever was incoming, this
+        // means that when reset is clicked it is reset to whatever
+        // the current 'initialValue' is. Check if this is desired,
+        // this can always be skipped
+        state.initialValue = np.initialValue || ({} as F)
+        shouldUpdateValue = true
+      }
+
+      if (!isEqual(ps.defaultValue, np.defaultValue)) {
+        state.defaultValue = np.defaultValue || ({} as F)
+        shouldUpdateValue = true
+      }
+
+      if (formWillPopulate || (shouldUpdateValue && np.allowReinitialize)) {
+        state.formValue = defaultsDeep({}, np.initialValue || {}, np.defaultValue || {})
+        if (np.rememberStateOnReinitialize) {
+          state.submitCount = 0
+          state.touched = {} as BooleanTree<F>
+          state.visited = {} as BooleanTree<F>
+        }
+        return state
+      }
+
+      return null
+    }
 
     static defaultProps = {
-      initialValue: {},
-      defaultValue: {},
       allowReinitialize: false,
       validateOn: default_validate_on,
       rememberStateOnReinitialize: false
@@ -167,7 +159,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setState({ initialMount: true })
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(pp: FormConfig<F>) {
       this.flush()
     }
 
@@ -283,8 +275,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     resetForm() {
       this.validators = {}
-      this.setState(({ initialFormValue }) => ({
-        formValue: initialFormValue,
+      this.setState(({ initialValue }) => ({
+        formValue: initialValue || ({} as F),
         registeredFields: {},
         submitCount: 0
       }))
@@ -307,11 +299,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     render() {
-      const { defaultValue = {} as F, validateOn = default_validate_on, validate } = this.props
-      const { loaded, touched, initialFormValue, formValue } = this.state
+      const { validateOn = default_validate_on, validate } = this.props
+      const { initialMount, defaultValue, touched, initialValue, formValue } = this.state
 
       let errors: FormErrors<F> = {}
-      if (loaded) {
+      if (initialMount) {
         errors = Object.values(this.validators).reduce(this.getErrors, errors)
         errors = merge({}, errors, validateForm(validate, this.state, this.validators))
       }
@@ -321,8 +313,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
           value={{
             errors,
             validateOn,
-            defaultValue,
             ...this.state,
+            defaultValue,
+            initialValue: initialValue || ({} as F),
             path: startingPath,
             submit: this.submit,
             setValue: this.setValue,
@@ -331,7 +324,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             value: this.state.formValue,
             visitField: this.visitField,
             touchField: this.touchField,
-            defaultFormValue: defaultValue,
             setTouched: this.setTouched,
             setVisited: this.setVisited,
             forgetState: this.forgetState,
@@ -339,10 +331,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             registerField: this.registerField,
             setActiveField: this.setActiveField,
             unregisterField: this.unregisterField,
-            initialValue: this.state.initialFormValue,
-            formIsValid: !loaded || !any(errors, isString),
-            formIsTouched: !loaded || any(touched, true),
-            formIsDirty: loaded && !isEqual(initialFormValue, formValue)
+            formIsValid: !initialMount || !any(errors, isString),
+            formIsTouched: initialMount && any(touched, true),
+            formIsDirty: initialMount && !isEqual(initialValue, formValue)
           }}
         >
           {this.props.children}
