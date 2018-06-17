@@ -4,7 +4,6 @@ import set from 'lodash.set'
 import merge from 'lodash.merge'
 import defaultsDeep from 'lodash.defaultsdeep'
 import { toArray, toStrPath, any, isString, noop, isObject } from './utils'
-import whenEnabled from './utils/whenEnabled'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -42,6 +41,7 @@ export function validateForm<F extends object>(
   state: FormState<F>,
   validators: ValidatorDictionary<F>
 ): FormErrors<F> {
+  validate = validate || (() => ({}))
   const obj: FormErrors<F> = {}
   const { formValue, touched, visited, submitCount, registeredFields } = state
   const setError = (path: Path, error: Error | GetError, ignoreFieldValidateOn = false) => {
@@ -68,6 +68,15 @@ export function validateForm<F extends object>(
   }
   // if a value is returned then that value takes priority
   return validate(formValue, { setError, submitCount }) || obj
+}
+
+function whenEnabled(func: any, defaultFunc = noop) {
+  return (...params: any[]) => {
+    if (!this.state.initialMount || this.props.disabled) {
+      return defaultFunc(...params)
+    }
+    return func(...params)
+  }
 }
 
 export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {

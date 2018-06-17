@@ -13,6 +13,7 @@
     "build": "cross-env NODE_ENV=production tsc -p tsconfig.base.json  && rollup -c && rimraf compiled && cp ./index.js ./lib/index.js",
     "watch": "tsc --watch",
     "test": "jest",
+    "jest:updatesnapshot": "jest --updateSnapshot",
     "precommit": "lint-staged"
   },
   "lint-staged": {
@@ -56,6 +57,7 @@
     "@types/prop-types": "^15.5.3",
     "@types/react": "^16.3.17",
     "@types/react-dom": "^16.0.6",
+    "@types/react-test-renderer": "^16.0.1",
     "cross-env": "^5.1.6",
     "husky": "^0.14.3",
     "jest": "^23.1.0",
@@ -64,6 +66,7 @@
     "prettier": "^1.13.5",
     "react": "^16.4.0",
     "react-dom": "^16.4.0",
+    "react-test-renderer": "^16.4.1",
     "rimraf": "^2.6.2",
     "rollup": "^0.60.1",
     "rollup-plugin-commonjs": "^9.1.3",

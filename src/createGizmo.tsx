@@ -102,8 +102,8 @@ export interface GizmoProps<F extends object> extends FormMeta<F> {
 }
 
 export interface GizmoConfig<F extends object> {
-  render: (props: GizmoProps<F>) => React.ReactNode
-  component: React.ComponentType<GizmoProps<F>>
+  render?: (props: GizmoProps<F>) => React.ReactNode
+  component?: React.ComponentType<GizmoProps<F>>
   [key: string]: any
 }
 

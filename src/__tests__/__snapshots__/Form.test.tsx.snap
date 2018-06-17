@@ -1,0 +1,160 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Form should render correctly 1`] = `
+Array [
+  <div>
+    <label>
+      First Name
+    </label>
+    <input
+      name="firstName"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="John"
+    />
+  </div>,
+  <div>
+    <label>
+      First Name
+    </label>
+    <input
+      name="tel"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="983838333"
+    />
+  </div>,
+  <div>
+    <label>
+      Email Address
+    </label>
+    <input
+      name="email"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="asdf@testing.com"
+    />
+  </div>,
+  <div>
+    <label>
+      Type of hobby
+    </label>
+    <input
+      name="type"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="art"
+    />
+  </div>,
+  <div>
+    <label>
+      Name of hobby
+    </label>
+    <input
+      name="name"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="print making"
+    />
+  </div>,
+  <div>
+    <label>
+      Type of hobby
+    </label>
+    <input
+      name="type"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="new"
+    />
+  </div>,
+  <div>
+    <label>
+      Name of hobby
+    </label>
+    <input
+      name="name"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="new"
+    />
+  </div>,
+  <div>
+    <label>
+      Type of hobby
+    </label>
+    <input
+      name="type"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="new"
+    />
+  </div>,
+  <div>
+    <label>
+      Name of hobby
+    </label>
+    <input
+      name="name"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      value="new"
+    />
+  </div>,
+  <pre>
+    {
+  "errors": {},
+  "formValue": {
+    "firstName": "John",
+    "lastName": "Woodcock",
+    "age": 30,
+    "contact": {
+      "tel": "983838333",
+      "email": "asdf@testing.com"
+    },
+    "friends": [
+      "stuart",
+      "oumar"
+    ]
+  },
+  "activeField": null,
+  "touched": {},
+  "visited": {},
+  "initialValue": {
+    "firstName": "John",
+    "lastName": "Woodcock",
+    "age": 30,
+    "contact": {
+      "tel": "983838333"
+    },
+    "friends": [
+      "stuart",
+      "oumar"
+    ]
+  },
+  "defaultValue": {
+    "firstName": "",
+    "lastName": "",
+    "age": 0,
+    "contact": {
+      "tel": "",
+      "email": "asdf@testing.com"
+    }
+  },
+  "submitCount": 0,
+  "formIsValid": true,
+  "formIsTouched": false,
+  "formIsDirty": false
+}
+  </pre>,
+]
+`;

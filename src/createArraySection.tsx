@@ -128,7 +128,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 
 export interface ArraySectionConfig<F extends object, T> {
   name: Name
-  defaultValue?: T[]
+  fallback?: T[]
   validateOn?: ValidateOn<F, T[]>
   validate?: FieldValidator<F, T[]>
   children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)
@@ -147,7 +147,7 @@ export default function<F extends object>(
     }
 
     _render(incomingProps: FormProvider<F, any>) {
-      const { children, name, validate, validateOn = 'blur' } = this.props
+      const { children, name, validate, validateOn = 'blur', fallback } = this.props
       const {
         path,
         value,
@@ -165,7 +165,7 @@ export default function<F extends object>(
           name={name}
           validate={validate}
           validateOn={validateOn}
-          value={get(value, name)}
+          value={get(value, name, fallback)}
           path={path.concat(name)}
           errors={get(errors, name)}
           touched={get(touched, name)}
