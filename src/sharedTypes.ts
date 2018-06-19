@@ -20,6 +20,8 @@ export type ValidateOn<F extends object, T = any> =
   | ValidationType[]
   | ValidateOnCustom<F, T>
 
+export type SectionValidateOn<F extends object, T = any> = 'submit' | SectionValidateOnCustom<F, T>
+
 /* @internal */
 export interface Person {
   name: string
@@ -60,7 +62,15 @@ export interface FieldState<T> {
   value: T
   visited: boolean
   touched: boolean
-  originalValue: T
+  initialValue: T
+}
+
+export interface SectionState<T> {
+  name: Name
+  value: T
+  visited: BooleanTree<T>
+  touched: BooleanTree<T>
+  initialValue: T
 }
 
 export interface AggregateValidator<F extends object> {
@@ -70,28 +80,23 @@ export interface AggregateValidator<F extends object> {
 export type FieldValidator<F extends object, T> = Validator<F, T> | Validator<F, T>[]
 
 export interface Validator<F extends object, T> {
-  (value: T, formValue: F, fieldName: Name): string | undefined
+  (value: T, fieldName: Name, formValue: F): string | undefined
 }
 
 export interface ValidateOnCustom<F extends object, T> {
-  (field: FieldState<T>, fieldName: Name, state: FormState<F>): boolean
+  (field: FieldState<T>, formState: FormState<F>): boolean
+}
+
+export interface SectionValidateOnCustom<F extends object, T> {
+  (field: SectionState<T>, formState: FormState<F>): boolean
 }
 
 export interface RegisteredField {
   path: Path
   type: 'section' | 'field'
 }
-export interface ValidatorConfig<F extends object> {
-  validate: AggregateValidator<F>
-  shouldValidate: ShouldValidateFunc<F>
-}
-
 export interface ShouldValidateFunc<F extends object> {
   (state: FormState<F>): boolean
-}
-
-export interface ValidatorDictionary<F extends object> {
-  [key: string]: ValidatorConfig<F>
 }
 
 export type RegisteredFields = {
@@ -99,6 +104,7 @@ export type RegisteredFields = {
 }
 
 export interface FormState<F extends object> {
+  errors: any
   initialMount: boolean
   touched: BooleanTree<F>
   visited: BooleanTree<F>
@@ -123,14 +129,16 @@ export interface FormProvider<F extends object, T = F> {
   registeredFields: RegisteredFields
   submitCount: number
   formIsValid: boolean
-  validateOn: ValidateOn<F, T>
+  validateOn: any // TODO
   formIsDirty: boolean
   formIsTouched: boolean
+  setErrors: any
   errors: FormErrors<F>
   submit: (() => void)
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
+  unwrapFormState: (() => FormState<F>)
   setActiveField: ((path: string | null) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
@@ -139,5 +147,5 @@ export interface FormProvider<F extends object, T = F> {
   setTouched: ((value: BooleanTree<F>, overwrite?: boolean) => void)
   setVisited: ((value: BooleanTree<F>, overwrite?: boolean) => void)
   unregisterField: ((path: Path) => void)
-  registerField: ((path: Path, type: 'section' | 'field', config: ValidatorConfig<F>) => void)
+  registerField: ((path: Path, type: 'section' | 'field') => void)
 }

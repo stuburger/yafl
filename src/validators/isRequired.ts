@@ -1,7 +1,6 @@
 function required<T extends object>(message?: string) {
   const test = function<P extends keyof T = keyof T>(
     value: T[P] & (string | any[]),
-    formValue: T,
     fieldName: P
   ): string | undefined {
     if (!value) {

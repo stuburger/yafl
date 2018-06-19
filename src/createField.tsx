@@ -1,17 +1,7 @@
 import * as React from 'react'
-import get from 'lodash.get'
-import set from 'lodash.set'
-import {
-  FormMeta,
-  Name,
-  FormProvider,
-  Validator,
-  ValidateOn,
-  FormState,
-  FormErrors,
-  FieldValidator
-} from './sharedTypes'
-import { toArray, incl, toStrPath } from './utils'
+import { Name, FormMeta, ValidateOn, FormProvider, FieldValidator } from './sharedTypes'
+import { getErrors, toStrPath, getArgLength, getMaxArgLength, shouldValidate } from './utils'
+import memoize from 'memoize-one'
 import isEqual from 'react-fast-compare'
 
 export interface InputProps<T = any> {
@@ -31,7 +21,7 @@ export interface FieldProps<F extends object, T = any> {
 
 export interface FieldConfig<F extends object, T = any> {
   name: Name
-  validate?: Validator<F, T>[]
+  validate?: FieldValidator<F, T>
   validateOn?: ValidateOn<F, T>
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>>
@@ -57,7 +47,7 @@ export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T>
   formValue: F
   value: T
   initialValue: T
-  validate: FieldValidator<F, T>
+  validate?: FieldValidator<F, T>
   validateOn: ValidateOn<F, T>
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>>
@@ -72,21 +62,21 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'visited',
   'validate',
   'validateOn',
+  'submitCount',
   'forwardProps'
 ]
-
-const emptyValidators: Validator<any, any>[] = []
 
 function createField<F extends object>() {
   return class FieldConsumer<T> extends React.Component<InnerFieldProps<F, T>> {
     constructor(props: InnerFieldProps<F, T>) {
       super(props)
       this.registerField = this.registerField.bind(this)
+      this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
+      this.setErrorsIfNeeded = this.setErrorsIfNeeded.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
       this.setValue = this.setValue.bind(this)
       this.touchField = this.touchField.bind(this)
       this.visitField = this.visitField.bind(this)
-      this.validate = this.validate.bind(this)
       this.shouldValidate = this.shouldValidate.bind(this)
       this.onBlur = this.onBlur.bind(this)
       this.onChange = this.onChange.bind(this)
@@ -95,70 +85,63 @@ function createField<F extends object>() {
       this.registerField()
     }
 
-    shouldComponentUpdate(nextProps: InnerFieldProps<F, T>) {
-      return listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
+    shouldComponentUpdate(np: InnerFieldProps<F, T>) {
+      return (
+        getMaxArgLength(np.validate) === 3 ||
+        getArgLength(np.validateOn) === 2 ||
+        listenForProps.some(key => !isEqual(np[key], this.props[key]))
+      )
     }
 
     componentDidUpdate(pp: InnerFieldProps<F, T>) {
-      const { registeredFields, path, name } = this.props
-      if (pp.name !== name || !registeredFields[toStrPath(path)]) {
-        this.registerField()
-      }
+      this.registerFieldIfNeeded(pp)
+      this.setErrorsIfNeeded(pp)
     }
 
     componentWillUnmount() {
       this.unregisterField()
     }
 
+    getErrors = memoize(getErrors)
+
+    shouldValidate = memoize(shouldValidate)
+
     registerField(): void {
       const { registerField, path } = this.props
-      registerField(path, 'field', { validate: this.validate, shouldValidate: this.shouldValidate })
+      registerField(path, 'field')
+    }
+
+    registerFieldIfNeeded(pp: InnerFieldProps<F, T>) {
+      const { registeredFields, path, name } = this.props
+      if (pp.name !== name || !registeredFields[toStrPath(path)]) {
+        this.registerField()
+      }
+    }
+
+    setErrorsIfNeeded(pp: InnerFieldProps<F, T>) {
+      const { name, value, validateOn, formValue, validate, unwrapFormState } = this.props
+      if (
+        this.shouldValidate(
+          value,
+          this.props.initialValue,
+          this.props.touched as any,
+          this.props.visited as any,
+          this.props.submitCount,
+          getArgLength(validateOn) === 2 && unwrapFormState(),
+          validate,
+          this.props.validateOn
+        )
+      ) {
+        const errors = this.getErrors(value, formValue, name, validate)
+        if (!isEqual(pp.errors, errors)) {
+          this.props.setErrors(this.props.path, errors)
+        }
+      }
     }
 
     unregisterField(): void {
       const { path, unregisterField } = this.props
       unregisterField(path)
-    }
-
-    shouldValidate(state: FormState<F>): boolean {
-      const { name, path, validateOn, initialValue, validate } = this.props
-      if (!validate || !validate.length) return false
-      if (typeof validateOn === 'function') {
-        return validateOn(
-          {
-            name,
-            value: get(state.formValue, path),
-            touched: get(state.touched, path),
-            visited: get(state.visited, path),
-            originalValue: initialValue
-          },
-          name,
-          state
-        )
-      } else {
-        return (
-          (get(state.visited, path, false) && incl(validateOn, 'blur')) ||
-          (get(state.touched, path, false) && incl(validateOn, 'change')) ||
-          (state.submitCount > 0 && incl(validateOn, 'submit'))
-        )
-      }
-    }
-
-    validate(state: FormState<F>, ret: FormErrors<F>): string[] {
-      const { validate, path, name } = this.props
-      const validators = toArray(validate)
-      let errors: string[] = []
-      const value = get(state.formValue, path)
-      errors = validators.reduce((ret, validate) => {
-        const result = validate(value, state.formValue, name)
-        return result === undefined ? ret : [...ret, ...toArray(result)]
-      }, errors)
-
-      if (ret && errors.length) {
-        set(ret, path, errors)
-      }
-
-      return errors
     }
 
     setValue(value: any): void {
@@ -272,13 +255,13 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
         name,
         render,
         children,
+        validate,
         component,
         validateOn = ip.validateOn || 'blur',
-        validate = emptyValidators,
         ...forwardProps
       } = this.props
 
-      const { value, errors, touched, visited, initialValue, defaultValue, ...props } = ip
+      const { value, path, errors, touched, visited, initialValue, defaultValue, ...props } = ip
 
       return (
         <FieldConsumer
@@ -286,17 +269,17 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
           name={name}
           render={render}
           children={children}
-          component={component}
           validate={validate}
-          path={ip.path.concat(name)}
+          component={component}
+          path={path.concat(name)}
           validateOn={validateOn}
           forwardProps={forwardProps}
-          value={get(value, name)}
-          errors={get(errors, name)}
-          touched={get(touched, name)}
-          visited={get(visited, name)}
-          initialValue={get(initialValue, name)}
-          defaultValue={get(defaultValue, name)}
+          value={Object(value)[name]}
+          errors={Object(errors)[name]}
+          touched={Object(touched)[name]}
+          visited={Object(visited)[name]}
+          initialValue={Object(initialValue)[name]}
+          defaultValue={Object(defaultValue)[name]}
         />
       )
     }

@@ -1,57 +1,52 @@
 import * as React from 'react'
-import { toArray, incl, toStrPath } from './utils'
+import { toStrPath, getErrors, getMaxArgLength, getArgLength, shouldValidateSection } from './utils'
 import isEqual from 'react-fast-compare'
+import memoize from 'memoize-one'
 import get from 'lodash.get'
-import set from 'lodash.set'
-import {
-  FormProvider,
-  FormErrors,
-  FormState,
-  ValidateOn,
-  FieldValidator,
-  Name
-} from './sharedTypes'
+import { Name, FormProvider, FieldValidator, SectionValidateOn } from './sharedTypes'
 
 export interface ArrayHelpers<T = any> {
   push: (value: T[keyof T]) => void
 }
-
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
   name: Name
   validate?: FieldValidator<F, T>
-  validateOn: ValidateOn<F, T>
+  validateOn: SectionValidateOn<F, T>
   children: React.ReactNode
 }
 
 const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
-  'activeField',
   'value',
   'touched',
   'visited',
   'errors',
   'validate',
-  'validateOn'
+  'validateOn',
+  'activeField',
+  'submitCount'
 ]
 
 function createForkProvider<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
   return class ForkProvider<T> extends React.Component<ForkProviderConfig<F, T>> {
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
-      this.validate = this.validate.bind(this)
       this.registerField = this.registerField.bind(this)
-      this.shouldValidate = this.shouldValidate.bind(this)
+      this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
+      this.setErrorsIfNeeded = this.setErrorsIfNeeded.bind(this)
       this.registerField()
     }
 
-    shouldComponentUpdate(nextProps: ForkProviderConfig<F, T>) {
-      return listenForProps.some(key => !isEqual(nextProps[key], this.props[key]))
+    shouldComponentUpdate(np: ForkProviderConfig<F, T>) {
+      return (
+        getMaxArgLength(np.validate) === 3 ||
+        getArgLength(np.validateOn) === 2 ||
+        listenForProps.some(key => !isEqual(np[key], this.props[key]))
+      )
     }
 
     componentDidUpdate(pp: ForkProviderConfig<F, T>) {
-      const { registeredFields, path, name } = this.props
-      if (pp.name !== name || !registeredFields[toStrPath(path)]) {
-        this.registerField()
-      }
+      this.registerFieldIfNeeded(pp)
+      this.setErrorsIfNeeded(pp)
     }
 
     componentWillUnmount() {
@@ -59,53 +54,41 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       unregisterField(path)
     }
 
-    shouldValidate(state: FormState<F>): boolean {
-      const { name, path, validateOn, initialValue, validate } = this.props
-      if (!validate || !validate.length) return false
-      if (typeof validateOn === 'function') {
-        return validateOn(
-          {
-            name: name as string,
-            value: get(state.formValue, path),
-            touched: get(state.touched, path), // todo
-            visited: get(state.visited, path),
-            originalValue: initialValue
-          },
-          name as string,
-          state
+    getErrors = memoize(getErrors)
+
+    shouldValidate = memoize(shouldValidateSection)
+
+    registerFieldIfNeeded(pp: ForkProviderConfig<F, T>) {
+      const { registeredFields, path, name } = this.props
+      if (pp.name !== name || !registeredFields[toStrPath(path)]) {
+        this.registerField()
+      }
+    }
+
+    setErrorsIfNeeded(pp: ForkProviderConfig<F, T>) {
+      const { path, name, value, formValue, validate, validateOn, unwrapFormState } = this.props
+      if (
+        this.shouldValidate(
+          this.props.value,
+          this.props.initialValue,
+          this.props.touched,
+          this.props.visited,
+          this.props.submitCount,
+          getArgLength(validateOn) === 2 && unwrapFormState(),
+          validate,
+          this.props.validateOn
         )
-      } else {
-        return (
-          (!!state.visited && incl(validateOn, 'blur')) ||
-          (!!state.touched && incl(validateOn, 'change')) ||
-          (state.submitCount > 0 && incl(validateOn, 'submit'))
-        )
+      ) {
+        const errors = this.getErrors(value, formValue, name, validate)
+        if (!isEqual(get(pp.errors, '_errors'), errors)) {
+          this.props.setErrors(path.concat(['_errors']), errors)
+        }
       }
     }
 
     registerField() {
       const { path, registerField } = this.props
-      registerField(path, 'section', {
-        validate: this.validate,
-        shouldValidate: this.shouldValidate
-      })
-    }
-
-    validate(state: FormState<F>, ret: FormErrors<F>): string[] {
-      const { validate = [], path, name } = this.props
-      let errors: string[] = []
-      const validators = toArray(validate)
-      const value = get(state.formValue, path)
-      errors = validators.reduce((ret, validate) => {
-        const result = validate(value, state.formValue, name as string)
-        return result === undefined ? ret : [...ret, ...toArray(result)]
-      }, errors)
-
-      if (ret && errors.length) {
-        set(ret, path.concat('_errors'), errors)
-      }
-
-      return errors
+      registerField(path, 'section')
     }
 
     render() {
@@ -119,7 +102,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 export interface SectionConfig<F extends object, T> {
   name: Name
   fallback?: T
-  validateOn?: ValidateOn<F, T>
+  validateOn?: SectionValidateOn<F, T>
   validate?: FieldValidator<F, T>
   children: React.ReactNode
 }
@@ -137,7 +120,7 @@ export default function<F extends object>(
     }
 
     _render(incomingProps: FormProvider<F, any>) {
-      const { children, name, validate, fallback, validateOn = 'blur' } = this.props
+      const { children, name, validate, fallback, validateOn = 'submit' } = this.props
       const {
         path,
         value,
@@ -154,14 +137,14 @@ export default function<F extends object>(
           {...props}
           name={name}
           validate={validate}
-          value={get(value, name, fallback)}
           validateOn={validateOn}
-          touched={get(touched, name)}
-          visited={get(visited, name)}
           path={path.concat(name)}
-          errors={get(errors, name)}
-          initialValue={get(initialValue, name)}
-          defaultValue={get(defaultValue, name)}
+          errors={Object(errors)[name]}
+          touched={Object(touched)[name]}
+          visited={Object(visited)[name]}
+          value={Object(value)[name] || fallback}
+          initialValue={Object(initialValue)[name]}
+          defaultValue={Object(defaultValue)[name]}
         >
           {children}
         </InnerComponent>

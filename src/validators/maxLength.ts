@@ -1,7 +1,6 @@
 function maxLength<T>(length: number, message?: string) {
   const test = function<P extends keyof T>(
     value: T[P] & (string | any[]),
-    formValue: T,
     fieldName: P
   ): string | undefined {
     const val = value || ''

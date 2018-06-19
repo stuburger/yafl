@@ -36,6 +36,8 @@ const listenForProps: (keyof GeneralComponentConfig<any>)[] = [
   'visited',
   'isDirty',
   'formValue',
+  'submitCount',
+  'activeField',
   'forwardProps'
 ]
 

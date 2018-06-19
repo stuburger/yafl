@@ -42,7 +42,12 @@ describe('Form', () => {
         <Form initialValue={initialValue} defaultValue={defaultValue}>
           <Field name="firstName" label="First Name" component={TextInput} />
           <Section name="contact">
-            <Field name="tel" label="First Name" component={TextInput} />
+            <Field
+              name="tel"
+              label="First Name"
+              validate={value => 'There is always an error here'}
+              component={TextInput}
+            />
             <Field name="email" label="Email Address" component={TextInput} />
           </Section>
           <Repeat<{ type: string; name: string }>

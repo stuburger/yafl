@@ -31,6 +31,7 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     registeredFields: {},
     validateOn: 'blur',
     submit: noop,
+    setErrors: noop,
     resetForm: noop,
     setValue: noop,
     clearForm: noop,
@@ -42,6 +43,7 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     setFormValue: noop,
     registerField: noop,
     setActiveField: noop,
-    unregisterField: noop
+    unregisterField: noop,
+    unwrapFormState: noop
   }
 }

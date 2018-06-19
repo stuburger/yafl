@@ -5,25 +5,25 @@ import minLength from './minLength'
 const formTouchedInvalid: any = {
   name: {
     value: 'j',
-    originalValue: 'j',
+    initialValue: 'j',
     visited: true,
     touched: true
   },
   age: {
     value: 0,
-    originalValue: 0,
+    initialValue: 0,
     visited: true,
     touched: true
   },
   surname: {
     value: 'b',
-    originalValue: 'b',
+    initialValue: 'b',
     visited: true,
     touched: true
   },
   gender: {
     value: 'f',
-    originalValue: 'f',
+    initialValue: 'f',
     visited: true,
     touched: true
   },
@@ -31,7 +31,7 @@ const formTouchedInvalid: any = {
     value: {
       tel: ''
     },
-    originalValue: {
+    initialValue: {
       tel: ''
     },
     visited: true,
@@ -39,7 +39,7 @@ const formTouchedInvalid: any = {
   },
   favorites: {
     value: [],
-    originalValue: [],
+    initialValue: [],
     visited: true,
     touched: true
   }
@@ -49,25 +49,25 @@ const formTouchedInvalid: any = {
 const formTouchedValid: any = {
   name: {
     value: 'st',
-    originalValue: 'stuart',
+    initialValue: 'stuart',
     visited: true,
     touched: true
   },
   age: {
     value: 30,
-    originalValue: 30,
+    initialValue: 30,
     visited: true,
     touched: true
   },
   surname: {
     value: 'Bou',
-    originalValue: 'Bourhill',
+    initialValue: 'Bourhill',
     visited: true,
     touched: true
   },
   gender: {
     value: 'male',
-    originalValue: 'male',
+    initialValue: 'male',
     visited: true,
     touched: true
   },
@@ -75,7 +75,7 @@ const formTouchedValid: any = {
     value: {
       tel: '0786656565'
     },
-    originalValue: {
+    initialValue: {
       tel: '0786656565'
     },
     visited: true,
@@ -83,7 +83,7 @@ const formTouchedValid: any = {
   },
   favorites: {
     value: ['books', 'rock n roll'],
-    originalValue: ['books', 'rock n roll'],
+    initialValue: ['books', 'rock n roll'],
     visited: true,
     touched: true
   }
@@ -92,25 +92,25 @@ const formTouchedValid: any = {
 const badValuesForm = {
   name: {
     value: '',
-    originalValue: null,
+    initialValue: null,
     visited: true,
     touched: true
   },
   age: {
     value: 30,
-    originalValue: 30,
+    initialValue: 30,
     visited: true,
     touched: true
   },
   surname: {
     value: null,
-    originalValue: null,
+    initialValue: null,
     visited: true,
     touched: true
   },
   gender: {
     value: '',
-    originalValue: null,
+    initialValue: null,
     visited: true,
     touched: true
   },
@@ -118,13 +118,13 @@ const badValuesForm = {
     value: {
       tel: null
     },
-    originalValue: null,
+    initialValue: null,
     visited: true,
     touched: true
   },
   favorites: {
     value: null,
-    originalValue: null,
+    initialValue: null,
     visited: true,
     touched: true
   }
@@ -136,47 +136,45 @@ describe('minLength validator correctly validates field', () => {
 
   describe('valid results return undefinded', () => {
     test('valid because form is touched and valid', () => {
-      expect(validate1(formTouchedValid.name.value, formTouchedValid, 'name')).toBe(undefined)
-      expect(validate1(formTouchedValid.surname.value, formTouchedValid, 'surname')).toBe(undefined)
-      expect(validate1(formTouchedValid.gender.value, formTouchedValid, 'gender')).toBe(undefined)
+      expect(validate1(formTouchedValid.name.value, 'name')).toBe(undefined)
+      expect(validate1(formTouchedValid.surname.value, 'surname')).toBe(undefined)
+      expect(validate1(formTouchedValid.gender.value, 'gender')).toBe(undefined)
     })
   })
 
   test('calling minLength validator on invalid fields returns default message', () => {
-    expect(validate1(formTouchedInvalid.name.value, formTouchedInvalid, 'name')).toBe(
+    expect(validate1(formTouchedInvalid.name.value, 'name')).toBe(
       'name should be at least 2 characters'
     )
-    expect(validate1(formTouchedInvalid.surname.value, formTouchedInvalid, 'surname')).toBe(
+    expect(validate1(formTouchedInvalid.surname.value, 'surname')).toBe(
       'surname should be at least 2 characters'
     )
-    expect(validate1(formTouchedInvalid.gender.value, formTouchedInvalid, 'gender')).toBe(
+    expect(validate1(formTouchedInvalid.gender.value, 'gender')).toBe(
       'gender should be at least 2 characters'
     )
   })
 
   test('calling minLength validator on invalid fields return custom message', () => {
-    expect(validate2(formTouchedInvalid.name.value, formTouchedInvalid, 'name')).toBe('abcdefg')
-    expect(validate2(formTouchedInvalid.surname.value, formTouchedInvalid, 'surname')).toBe(
-      'abcdefg'
-    )
-    expect(validate2(formTouchedInvalid.gender.value, formTouchedInvalid, 'gender')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.name.value, 'name')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.surname.value, 'surname')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.gender.value, 'gender')).toBe('abcdefg')
   })
 
   describe('calling minLength on null or undefined values', () => {
     test('should not throw exceptions', () => {
-      expect(() => validate1(badValuesForm.name.value, badValuesForm, 'name')).not.toThrow()
-      expect(() => validate1(badValuesForm.surname.value, badValuesForm, 'surname')).not.toThrow()
-      expect(() => validate1(badValuesForm.gender.value, badValuesForm, 'gender')).not.toThrow()
+      expect(() => validate1(badValuesForm.name.value, 'name')).not.toThrow()
+      expect(() => validate1(badValuesForm.surname.value, 'surname')).not.toThrow()
+      expect(() => validate1(badValuesForm.gender.value, 'gender')).not.toThrow()
     })
 
     test('should return correct invalid message', () => {
-      expect(validate1(badValuesForm.name.value, badValuesForm, 'name')).toBe(
+      expect(validate1(badValuesForm.name.value, 'name')).toBe(
         'name should be at least 2 characters'
       )
-      expect(validate1(badValuesForm.surname.value, badValuesForm, 'surname')).toBe(
+      expect(validate1(badValuesForm.surname.value, 'surname')).toBe(
         'surname should be at least 2 characters'
       )
-      expect(validate1(badValuesForm.gender.value, badValuesForm, 'gender')).toBe(
+      expect(validate1(badValuesForm.gender.value, 'gender')).toBe(
         'gender should be at least 2 characters'
       )
     })

@@ -3,28 +3,28 @@ import required from './isRequired'
 const formUntouchedInvalid = {
   name: {
     value: '',
-    originalValue: '',
+    initialValue: '',
     defaultValue: '',
     visited: false,
     touched: false
   },
   age: {
     value: 0,
-    originalValue: 0,
+    initialValue: 0,
     defaultValue: 0,
     visited: false,
     touched: false
   },
   surname: {
     value: '',
-    originalValue: '',
+    initialValue: '',
     defaultValue: '',
     visited: false,
     touched: false
   },
   gender: {
     value: '',
-    originalValue: '',
+    initialValue: '',
     defaultValue: '',
     visited: false,
     touched: false
@@ -33,7 +33,7 @@ const formUntouchedInvalid = {
     value: {
       tel: ''
     },
-    originalValue: {
+    initialValue: {
       tel: ''
     },
     defaultValue: {
@@ -44,7 +44,7 @@ const formUntouchedInvalid = {
   },
   favorites: {
     value: [],
-    originalValue: [],
+    initialValue: [],
     defaultValue: [],
     visited: false,
     touched: false
@@ -53,28 +53,28 @@ const formUntouchedInvalid = {
 const formTouchedInvalid = {
   name: {
     value: '',
-    originalValue: '',
+    initialValue: '',
     defaultValue: '',
     visited: true,
     touched: true
   },
   age: {
     value: 0,
-    originalValue: 0,
+    initialValue: 0,
     defaultValue: 0,
     visited: true,
     touched: true
   },
   surname: {
     value: '',
-    originalValue: '',
+    initialValue: '',
     defaultValue: '',
     visited: true,
     touched: true
   },
   gender: {
     value: '',
-    originalValue: '',
+    initialValue: '',
     defaultValue: '',
     visited: true,
     touched: true
@@ -83,7 +83,7 @@ const formTouchedInvalid = {
     value: {
       tel: ''
     },
-    originalValue: {
+    initialValue: {
       tel: ''
     },
     defaultValue: {
@@ -94,7 +94,7 @@ const formTouchedInvalid = {
   },
   favorites: {
     value: [],
-    originalValue: [],
+    initialValue: [],
     defaultValue: [],
     visited: true,
     touched: true
@@ -104,28 +104,28 @@ const formTouchedInvalid = {
 const formTouchedValid = {
   name: {
     value: 'stuart',
-    originalValue: 'stuart',
+    initialValue: 'stuart',
     defaultValue: '',
     visited: true,
     touched: true
   },
   age: {
     value: 30,
-    originalValue: 30,
+    initialValue: 30,
     defaultValue: 0,
     visited: true,
     touched: true
   },
   surname: {
     value: 'Bourhill',
-    originalValue: 'Bourhill',
+    initialValue: 'Bourhill',
     defaultValue: '',
     visited: true,
     touched: true
   },
   gender: {
     value: 'male',
-    originalValue: 'male',
+    initialValue: 'male',
     defaultValue: '',
     visited: true,
     touched: true
@@ -134,7 +134,7 @@ const formTouchedValid = {
     value: {
       tel: '0786656565'
     },
-    originalValue: {
+    initialValue: {
       tel: '0786656565'
     },
     defaultValue: {
@@ -145,7 +145,7 @@ const formTouchedValid = {
   },
   favorites: {
     value: ['books', 'rock n roll'],
-    originalValue: ['books', 'rock n roll'],
+    initialValue: ['books', 'rock n roll'],
     defaultValue: [],
     visited: true,
     touched: true
@@ -158,41 +158,27 @@ describe('required validator correctly validates field', () => {
 
   describe('valid results return undefinded', () => {
     test('invalid because form is invalid', () => {
-      expect(validate1(formUntouchedInvalid.name.value, formUntouchedInvalid, 'name')).toBe(
-        'name is required'
-      )
-      expect(validate1(formUntouchedInvalid.surname.value, formUntouchedInvalid, 'surname')).toBe(
-        'surname is required'
-      )
-      expect(validate1(formUntouchedInvalid.gender.value, formUntouchedInvalid, 'gender')).toBe(
-        'gender is required'
-      )
+      expect(validate1(formUntouchedInvalid.name.value, 'name')).toBe('name is required')
+      expect(validate1(formUntouchedInvalid.surname.value, 'surname')).toBe('surname is required')
+      expect(validate1(formUntouchedInvalid.gender.value, 'gender')).toBe('gender is required')
     })
 
     test('valid because form is touched and valid', () => {
-      expect(validate1(formTouchedValid.name.value, formTouchedValid, 'name')).toBe(undefined)
-      expect(validate1(formTouchedValid.surname.value, formTouchedValid, 'surname')).toBe(undefined)
-      expect(validate1(formTouchedValid.gender.value, formTouchedValid, 'gender')).toBe(undefined)
+      expect(validate1(formTouchedValid.name.value, 'name')).toBe(undefined)
+      expect(validate1(formTouchedValid.surname.value, 'surname')).toBe(undefined)
+      expect(validate1(formTouchedValid.gender.value, 'gender')).toBe(undefined)
     })
   })
 
   test('calling required validator on invalid fields returns default message', () => {
-    expect(validate1(formTouchedInvalid.name.value, formTouchedInvalid, 'name')).toBe(
-      'name is required'
-    )
-    expect(validate1(formTouchedInvalid.surname.value, formTouchedInvalid, 'surname')).toBe(
-      'surname is required'
-    )
-    expect(validate1(formTouchedInvalid.gender.value, formTouchedInvalid, 'gender')).toBe(
-      'gender is required'
-    )
+    expect(validate1(formTouchedInvalid.name.value, 'name')).toBe('name is required')
+    expect(validate1(formTouchedInvalid.surname.value, 'surname')).toBe('surname is required')
+    expect(validate1(formTouchedInvalid.gender.value, 'gender')).toBe('gender is required')
   })
 
   test('calling required validator on invalid fields return custom message', () => {
-    expect(validate2(formTouchedInvalid.name.value, formTouchedInvalid, 'name')).toBe('abcdefg')
-    expect(validate2(formTouchedInvalid.surname.value, formTouchedInvalid, 'surname')).toBe(
-      'abcdefg'
-    )
-    expect(validate2(formTouchedInvalid.gender.value, formTouchedInvalid, 'gender')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.name.value, 'name')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.surname.value, 'surname')).toBe('abcdefg')
+    expect(validate2(formTouchedInvalid.gender.value, 'gender')).toBe('abcdefg')
   })
 })
