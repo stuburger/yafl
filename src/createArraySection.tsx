@@ -47,7 +47,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     }
 
     componentDidUpdate(pp: ForkProviderConfig<F, T>) {
-      this.registerFieldIfNeeded(pp)
+      this.registerFieldIfNeeded()
       this.setErrorsIfNeeded(pp)
     }
 
@@ -60,9 +60,9 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 
     shouldValidate = memoize(shouldValidateSection)
 
-    registerFieldIfNeeded(pp: ForkProviderConfig<F, T>) {
-      const { registeredFields, path, name } = this.props
-      if (pp.name !== name || !registeredFields[toStrPath(path)]) {
+    registerFieldIfNeeded() {
+      const { registeredFields, path } = this.props
+      if (!registeredFields[toStrPath(path)]) {
         this.registerField()
       }
     }
@@ -145,6 +145,7 @@ export default function<F extends object>(
 
       return (
         <InnerComponent<T>
+          key={name}
           {...props}
           name={name}
           validate={validate}

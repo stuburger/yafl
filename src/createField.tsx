@@ -112,8 +112,8 @@ function createField<F extends object>() {
     }
 
     registerFieldIfNeeded(pp: InnerFieldProps<F, T>) {
-      const { registeredFields, path, name } = this.props
-      if (pp.name !== name || !registeredFields[toStrPath(path)]) {
+      const { registeredFields, path } = this.props
+      if (!registeredFields[toStrPath(path)]) {
         this.registerField()
       }
     }
@@ -265,6 +265,7 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
 
       return (
         <FieldConsumer
+          key={name}
           {...props}
           name={name}
           render={render}
