@@ -1,69 +1,32 @@
 import * as React from 'react'
-import { Name, FormMeta, ValidateOn, FormProvider, FieldValidator } from './sharedTypes'
+import {
+  FormMeta,
+  FormProvider,
+  InnerFieldProps,
+  FieldProps,
+  InputProps,
+  FieldConfig,
+  FieldMeta
+} from './sharedTypes'
 import { getErrors, toStrPath, getArgLength, getMaxArgLength, shouldValidate } from './utils'
+import omit from 'lodash.omit'
 import memoize from 'memoize-one'
 import isEqual from 'react-fast-compare'
-
-export interface InputProps<T = any> {
-  name: Name
-  value: any
-  onBlur: (e: React.FocusEvent<any>) => void
-  onFocus: (e: React.FocusEvent<any>) => void
-  onChange: (e: React.ChangeEvent<any>) => void
-}
-
-export interface FieldProps<F extends object, T = any> {
-  input: InputProps<T>
-  field: FieldMeta<T>
-  form: FormMeta<F>
-  [key: string]: any
-}
-
-export interface FieldConfig<F extends object, T = any> {
-  name: Name
-  validate?: FieldValidator<F, T>
-  validateOn?: ValidateOn<F, T>
-  render?: (state: FieldProps<F, T>) => React.ReactNode
-  component?: React.ComponentType<FieldProps<F, T>>
-  [key: string]: any
-}
-
-export interface FieldMeta<T = any> {
-  visited: boolean
-  isDirty: boolean
-  touched: boolean
-  isActive: boolean
-  isValid: boolean
-  errors: string[]
-  initialValue: any
-  defaultValue: any
-  setValue: (value: any) => void
-  setVisited: (value: boolean) => void
-  setTouched: (value: boolean) => void
-}
-
-export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T> {
-  name: Name
-  formValue: F
-  value: T
-  initialValue: T
-  validate?: FieldValidator<F, T>
-  validateOn: ValidateOn<F, T>
-  render?: (state: FieldProps<F, T>) => React.ReactNode
-  component?: React.ComponentType<FieldProps<F, T>>
-  forwardProps: { [key: string]: any }
-}
+import { DefaultComponentTypeKey } from './defaults'
 
 const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
-  'errors',
+  'type',
   'name',
   'value',
   'touched',
   'visited',
   'validate',
   'validateOn',
+  'formErrors',
+  'fieldErrors',
   'submitCount',
-  'forwardProps'
+  'forwardProps',
+  'componentTypes'
 ]
 
 function createField<F extends object>() {
@@ -133,7 +96,7 @@ function createField<F extends object>() {
         )
       ) {
         const errors = this.getErrors(value, formValue, name, validate)
-        if (!isEqual(pp.errors, errors)) {
+        if (!isEqual(pp.fieldErrors, errors)) {
           this.props.setErrors(this.props.path, errors)
         }
       }
@@ -197,7 +160,7 @@ function createField<F extends object>() {
       }
 
       const field: FieldMeta = {
-        errors: (p.errors || []) as any,
+        errors: (p.allErrors || []) as any,
         visited: !!p.visited,
         touched: !!p.touched,
         setValue: this.setValue,
@@ -205,7 +168,7 @@ function createField<F extends object>() {
         setVisited: this.visitField,
         initialValue: p.initialValue,
         defaultValue: p.defaultValue,
-        isValid: ((p.errors || []) as any).length === 0,
+        isValid: ((p.allErrors || []) as any).length === 0,
         isActive: p.activeField === toStrPath(p.path),
         isDirty: p.formIsDirty && p.initialValue === p.value
       }
@@ -222,11 +185,11 @@ function createField<F extends object>() {
         touchField: p.touchField
       }
 
-      return { input, field, form, ...p.forwardProps }
+      return { input, field, form, ...p.commonFieldProps, ...p.forwardProps }
     }
 
     render() {
-      const { render, component: Component } = this.props
+      const { type, render, component: Component, componentTypes } = this.props
 
       const props = this.collectProps()
       if (Component) {
@@ -236,7 +199,9 @@ function createField<F extends object>() {
       if (render) {
         return render(props)
       }
-      return null
+
+      const DefaultComponent = componentTypes[type]
+      return <DefaultComponent {...props} />
     }
   }
 }
@@ -252,33 +217,52 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
 
     _render(ip: FormProvider<F, any>) {
       const {
+        path,
+        value,
+        touched,
+        visited,
+        allErrors,
+        formErrors,
+        fieldErrors,
+        initialValue,
+        defaultValue,
+        commonFieldProps,
+        ...props
+      } = ip
+
+      const common = omit(commonFieldProps, ['validateOn'])
+
+      const {
         name,
         render,
         children,
         validate,
         component,
-        validateOn = ip.validateOn || 'blur',
+        type = DefaultComponentTypeKey,
+        validateOn = commonFieldProps.validateOn || 'blur',
         ...forwardProps
       } = this.props
 
-      const { value, path, errors, touched, visited, initialValue, defaultValue, ...props } = ip
-
       return (
         <FieldConsumer
-          key={name}
           {...props}
+          key={name}
           name={name}
           render={render}
           children={children}
           validate={validate}
           component={component}
           path={path.concat(name)}
-          validateOn={validateOn}
+          commonFieldProps={common}
+          validateOn={this.props.validateOn || validateOn}
           forwardProps={forwardProps}
+          type={type}
           value={Object(value)[name]}
-          errors={Object(errors)[name]}
           touched={Object(touched)[name]}
           visited={Object(visited)[name]}
+          allErrors={Object(allErrors)[name]}
+          formErrors={Object(formErrors)[name]}
+          fieldErrors={Object(fieldErrors)[name]}
           initialValue={Object(initialValue)[name]}
           defaultValue={Object(defaultValue)[name]}
         />

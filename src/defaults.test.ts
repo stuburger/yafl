@@ -18,6 +18,7 @@ const expected = {
   registeredFields: {},
   validateOn: 'blur',
   submit: noop,
+  setErrors: noop,
   resetForm: noop,
   setValue: noop,
   clearForm: noop,
@@ -29,7 +30,8 @@ const expected = {
   setFormValue: noop,
   registerField: noop,
   setActiveField: noop,
-  unregisterField: noop
+  unregisterField: noop,
+  unwrapFormState: noop
 }
 
 describe('default provider props which are present if a Field or Section component are rendered outside the Form Provider', () => {

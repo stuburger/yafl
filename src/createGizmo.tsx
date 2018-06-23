@@ -1,9 +1,18 @@
 import * as React from 'react'
-import { FormProvider, FormMeta, FormErrors, BooleanTree, Path } from './sharedTypes'
+import {
+  FormProvider,
+  FormMeta,
+  FormErrors,
+  BooleanTree,
+  Path,
+  ComponentTypes
+} from './sharedTypes'
 import isEqual from 'react-fast-compare'
 import omit from 'lodash.omit'
+import { DefaultComponentTypeKey } from './defaults'
 
 interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
+  type: string
   formValue: F
   defaultValue: F
   initialValue: F
@@ -20,6 +29,7 @@ interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
+  componentTypes: ComponentTypes<F>
   setActiveField: ((path: string | null) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
@@ -31,14 +41,17 @@ interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
 }
 
 const listenForProps: (keyof GeneralComponentConfig<any>)[] = [
-  'errors',
+  'type',
   'touched',
   'visited',
   'isDirty',
   'formValue',
+  'formErrors',
+  'fieldErrors',
   'submitCount',
   'activeField',
-  'forwardProps'
+  'forwardProps',
+  'componentTypes'
 ]
 
 const propsToOmit: (keyof FormProvider<any>)[] = [
@@ -65,12 +78,19 @@ function createGizmo<F extends object>() {
     }
 
     collectProps(): GizmoProps<F> {
-      const { render, children, forwardProps, component: Component, ...props } = this.props
-      return { ...props, ...forwardProps }
+      const {
+        render,
+        children,
+        forwardProps,
+        component: Component,
+        allErrors,
+        ...props
+      } = this.props
+      return { errors: allErrors, ...props, ...forwardProps }
     }
 
     render() {
-      const { render, component: Component } = this.props
+      const { render, component: Component, componentTypes, type } = this.props
 
       const props = this.collectProps()
 
@@ -82,8 +102,8 @@ function createGizmo<F extends object>() {
         return <Component {...props} />
       }
 
-      console.warn('render, component props not supplied')
-      return null
+      const DefaultComponent = componentTypes[type]
+      return <DefaultComponent {...props} />
     }
   }
 }
@@ -119,10 +139,17 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
     }
 
     _render(incomingProps: FormProvider<F, F>) {
-      const { render, component, children, ...forwardProps } = this.props
+      const {
+        render,
+        component,
+        children,
+        type = DefaultComponentTypeKey,
+        ...forwardProps
+      } = this.props
       return (
         <InnerGizmo
           {...omit(incomingProps, propsToOmit) as GeneralComponentConfig<F>}
+          type={type}
           render={render}
           component={component}
           forwardProps={forwardProps}

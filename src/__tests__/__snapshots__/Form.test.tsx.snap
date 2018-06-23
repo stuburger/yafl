@@ -112,7 +112,11 @@ Array [
   </div>,
   <pre>
     {
+  "activeField": null,
+  "visited": {},
+  "submitCount": 0,
   "errors": {},
+  "touched": {},
   "formValue": {
     "firstName": "John",
     "lastName": "Woodcock",
@@ -120,21 +124,6 @@ Array [
     "contact": {
       "tel": "983838333",
       "email": "asdf@testing.com"
-    },
-    "friends": [
-      "stuart",
-      "oumar"
-    ]
-  },
-  "activeField": null,
-  "touched": {},
-  "visited": {},
-  "initialValue": {
-    "firstName": "John",
-    "lastName": "Woodcock",
-    "age": 30,
-    "contact": {
-      "tel": "983838333"
     },
     "friends": [
       "stuart",
@@ -150,7 +139,18 @@ Array [
       "email": "asdf@testing.com"
     }
   },
-  "submitCount": 0,
+  "initialValue": {
+    "firstName": "John",
+    "lastName": "Woodcock",
+    "age": 30,
+    "contact": {
+      "tel": "983838333"
+    },
+    "friends": [
+      "stuart",
+      "oumar"
+    ]
+  },
   "formIsValid": true,
   "formIsTouched": false,
   "formIsDirty": false

@@ -1,12 +1,8 @@
+import { GizmoProps } from './createGizmo'
+
 export type Name = string | number
 export type Path = Name[]
 export type ValidationType = 'change' | 'blur' | 'submit'
-// export type FormFieldState<T> = { [K in keyof T]: FieldState<T[K]> }
-// export interface FormFieldState<T = any> {
-//   touched: Touched<T>
-//   visited: Visited<T>
-//   initialValue: T
-// }
 
 export type BooleanTree<T> = T extends object ? BooleanLeaf<T> : boolean | undefined
 export type BooleanLeaf<T> = { [K in keyof T]?: T[K] extends object ? BooleanLeaf<T[K]> : boolean }
@@ -19,6 +15,11 @@ export type ValidateOn<F extends object, T = any> =
   | ValidationType
   | ValidationType[]
   | ValidateOnCustom<F, T>
+
+export type FormValidateOn<F extends object, T = any> =
+  | ValidationType
+  | ValidationType[]
+  | FormValidateOnCustom<F>
 
 export type SectionValidateOn<F extends object, T = any> = 'submit' | SectionValidateOnCustom<F, T>
 
@@ -91,6 +92,10 @@ export interface SectionValidateOnCustom<F extends object, T> {
   (field: SectionState<T>, formState: FormState<F>): boolean
 }
 
+export interface FormValidateOnCustom<F extends object> {
+  (formState: FormState<F>): boolean
+}
+
 export interface RegisteredField {
   path: Path
   type: 'section' | 'field'
@@ -101,6 +106,61 @@ export interface ShouldValidateFunc<F extends object> {
 
 export type RegisteredFields = {
   [key: string]: RegisteredField
+}
+
+export type ComponentTypes<F extends object> = {
+  [key: string]: React.ComponentType<FieldProps<F, any> | GizmoProps<F>>
+}
+
+export interface InputProps<T = any> {
+  name: Name
+  value: any
+  onBlur: (e: React.FocusEvent<any>) => void
+  onFocus: (e: React.FocusEvent<any>) => void
+  onChange: (e: React.ChangeEvent<any>) => void
+}
+
+export interface FieldConfig<F extends object, T = any> {
+  name: Name
+  validate?: FieldValidator<F, T>
+  type?: string
+  validateOn?: ValidateOn<F, T>
+  render?: (state: FieldProps<F, T>) => React.ReactNode
+  component?: React.ComponentType<FieldProps<F, T>>
+  [key: string]: any
+}
+export interface FieldProps<F extends object, T = any> {
+  input: InputProps<T>
+  field: FieldMeta<T>
+  form: FormMeta<F>
+  [key: string]: any
+}
+
+export interface FieldMeta<T = any> {
+  visited: boolean
+  isDirty: boolean
+  touched: boolean
+  isActive: boolean
+  isValid: boolean
+  errors: string[]
+  initialValue: any
+  defaultValue: any
+  setValue: (value: any) => void
+  setVisited: (value: boolean) => void
+  setTouched: (value: boolean) => void
+}
+
+export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T> {
+  name: Name
+  formValue: F
+  value: T
+  initialValue: T
+  type: string
+  validate?: FieldValidator<F, T>
+  validateOn: ValidateOn<F, T>
+  render?: (state: FieldProps<F, T>) => React.ReactNode
+  component?: React.ComponentType<FieldProps<F, T>>
+  forwardProps: { [key: string]: any }
 }
 
 export interface FormState<F extends object> {
@@ -127,18 +187,22 @@ export interface FormProvider<F extends object, T = F> {
   visited: BooleanTree<T> // | boolean | undefined
   activeField: string | null
   registeredFields: RegisteredFields
+  componentTypes: ComponentTypes<F>
   submitCount: number
   formIsValid: boolean
   validateOn: any // TODO
   formIsDirty: boolean
   formIsTouched: boolean
   setErrors: any
-  errors: FormErrors<F>
+  allErrors: FormErrors<F>
+  formErrors: FormErrors<F>
+  fieldErrors: FormErrors<F>
   submit: (() => void)
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
   unwrapFormState: (() => FormState<F>)
+  commonFieldProps: { [key: string]: any }
   setActiveField: ((path: string | null) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)

@@ -17,12 +17,13 @@ export interface ForkProviderConfig<F extends object, T> extends FormProvider<F,
 
 const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
   'value',
-  'errors',
   'touched',
   'visited',
   'validate',
   'validateOn',
   'activeField',
+  'fieldErrors',
+  'formErrors',
   'submitCount'
 ]
 
@@ -80,7 +81,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
         )
       ) {
         const errors = this.getErrors(value, formValue, name, validate)
-        if (!isEqual(get(pp.errors, '_errors'), errors)) {
+        if (!isEqual(get(pp.fieldErrors, '_errors'), errors)) {
           this.props.setErrors(path.concat(['_errors']), errors)
         }
       }
@@ -126,7 +127,9 @@ export default function<F extends object>(
         value,
         touched,
         visited,
-        errors,
+        formErrors,
+        fieldErrors,
+        allErrors,
         initialValue,
         defaultValue,
         ...props
@@ -140,9 +143,11 @@ export default function<F extends object>(
           validate={validate}
           validateOn={validateOn}
           path={path.concat(name)}
-          errors={Object(errors)[name]}
           touched={Object(touched)[name]}
           visited={Object(visited)[name]}
+          allErrors={Object(allErrors)[name]}
+          formErrors={Object(formErrors)[name]}
+          fieldErrors={Object(fieldErrors)[name]}
           value={Object(value)[name] || fallback}
           initialValue={Object(initialValue)[name]}
           defaultValue={Object(defaultValue)[name]}

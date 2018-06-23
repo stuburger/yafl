@@ -3,65 +3,44 @@ import get from 'lodash.get'
 import set from 'lodash.set'
 import merge from 'lodash.merge'
 import defaultsDeep from 'lodash.defaultsdeep'
-import { toStrPath, any, isString, noop, isObject } from './utils'
+import { toStrPath, any, isString, noop, isObject, toArray } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
   Path,
   FormState,
-  ValidateOn,
   RegisteredField,
   RegisteredFields,
   FormProvider,
-  BooleanTree
+  BooleanTree,
+  FormValidateOn,
+  FormErrors,
+  ComponentTypes,
+  FieldValidator
 } from './sharedTypes'
 
 const startingPath: Path = []
 const default_validate_on = 'blur'
 
+export interface KeyedValidators<F extends object> {
+  [key: string]: FieldValidator<F, any>
+}
+
 export interface FormConfig<T extends object> {
   initialValue?: T
   defaultValue?: T
-  validate?: any
+  validate?: (state: FormState<T>) => KeyedValidators<T>
   children: React.ReactNode
   allowReinitialize?: boolean
-  validateOn?: ValidateOn<T, any>
+  validateOn?: FormValidateOn<T, any>
   onSubmit?: (formValue: T) => void
   rememberStateOnReinitialize?: boolean
+  commonFieldProps?: { [key: string]: any }
+  componentTypes?: ComponentTypes<T>
 }
 
 export type Error = string | string[]
 export type GetError = (obj: any) => Error
-
-// export function validateForm<F extends object>(
-//   validate: any,
-//   state: FormState<F>,
-// ): FormErrors<F> {
-//   validate = validate || (() => ({}))
-//   const obj: FormErrors<F> = {}
-//   const { formValue, touched, visited, submitCount, registeredFields } = state
-//   const setError = (path: Path, error: Error | GetError, ignoreFieldValidateOn = false) => {
-//     const key = toStrPath(path)
-//     if (!error || !registeredFields[key] || !validators[key]) {
-//       return obj
-//     }
-//     if (ignoreFieldValidateOn || !validators[key].shouldValidate(state)) {
-//       return obj
-//     }
-//     if (typeof error === 'function') {
-//       const fieldTouched: BooleanTree<F> = get(touched, path)
-//       const fieldVisited: BooleanTree<F> = get(visited, path)
-//       const res = toArray(error({ touched: fieldTouched, visited: fieldVisited }))
-//       if (res.length) {
-//         return set(obj, path, res)
-//       }
-//       return obj
-//     }
-//     return set(obj, path, toArray(error))
-//   }
-//   // if a value is returned then that value takes priority
-//   return validate(formValue, { setError, submitCount }) || obj
-// }
 
 function whenEnabled(func: any, defaultFunc = noop) {
   return (...params: any[]) => {
@@ -71,6 +50,8 @@ function whenEnabled(func: any, defaultFunc = noop) {
     return func(...params)
   }
 }
+
+const Sink = () => null
 
 export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
@@ -93,11 +74,13 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setFormValue = disabledGuard(this.setFormValue.bind(this))
       this.setTouched = disabledGuard(this.setTouched.bind(this))
       this.setVisited = disabledGuard(this.setVisited.bind(this))
+      this.validateIfNeeded = this.validateIfNeeded.bind(this)
       this.buildErrors = this.buildErrors.bind(this)
       this.registerField = this.registerField.bind(this)
       this.unwrapFormState = this.unwrapFormState.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
       this.unsetErrorCount = this.unsetErrorCount.bind(this)
+      this.shouldValidate = this.shouldValidate.bind(this)
       this.flush = this.flush.bind(this)
       this.state = {
         initialMount: false,
@@ -172,6 +155,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     buildErrors() {
       if (this.unsetErrorCount() === 0) return
+
       this.setState(({ errors: prev }) => {
         let errors = prev,
           x: any,
@@ -180,6 +164,28 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         while ((x = this.errors.pop())) errors = immutable.set(errors, x.path, x.errors)
         return { errors }
       })
+    }
+
+    shouldValidate() {
+      const { validateOn } = this.props
+      return typeof validateOn === 'function' && validateOn(this.state)
+    }
+
+    validateIfNeeded(): FormErrors<F> {
+      if (!this.shouldValidate()) return {}
+
+      const { validate = () => ({}) } = this.props
+      const { formValue } = this.state
+      const def = validate(this.state)
+      return Object.keys(def).reduce((ret, path) => {
+        const valueToTest = get(formValue, path)
+        const errors: string[] = []
+        toArray(def[path]).forEach(test => {
+          const result = test(valueToTest, path, formValue)
+          typeof result === 'string' && errors.push(result)
+        })
+        return set(ret, path, errors)
+      }, {})
     }
 
     unsetErrorCount() {
@@ -323,7 +329,12 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     render() {
-      const { validateOn = default_validate_on } = this.props
+      const {
+        validateOn = default_validate_on,
+        commonFieldProps = {},
+        componentTypes = {}
+      } = this.props
+
       const {
         errors,
         touched,
@@ -334,17 +345,20 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         ...state
       } = this.state
 
+      const formErrors = this.validateIfNeeded()
+
       return (
         <Provider
           value={{
             ...state,
-            errors,
             touched,
             formValue,
             validateOn,
             defaultValue,
             initialMount,
-            initialValue: initialValue || ({} as F),
+            formErrors,
+            commonFieldProps,
+            fieldErrors: errors,
             path: startingPath,
             submit: this.submit,
             setErrors: this.setErrors,
@@ -362,9 +376,12 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             setActiveField: this.setActiveField,
             unregisterField: this.unregisterField,
             unwrapFormState: this.unwrapFormState,
+            allErrors: merge({}, errors, formErrors),
+            initialValue: initialValue || ({} as F),
             formIsValid: !initialMount || !any(errors, isString),
             formIsTouched: initialMount && any(touched, true),
-            formIsDirty: initialMount && !isEqual(initialValue, formValue)
+            formIsDirty: initialMount && !isEqual(initialValue, formValue),
+            componentTypes: { ...componentTypes, __YAFLDefaultComponentType__: Sink }
           }}
         >
           {this.props.children}

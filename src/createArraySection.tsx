@@ -20,9 +20,10 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
   'value',
   'touched',
   'visited',
-  'errors',
   'validate',
   'validateOn',
+  'formErrors',
+  'fieldErrors',
   'activeField',
   'submitCount'
 ]
@@ -68,10 +69,10 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     }
 
     setErrorsIfNeeded(pp: ForkProviderConfig<F, T>) {
-      const { path, name, formValue, validate, validateOn, unwrapFormState } = this.props
+      const { path, name, formValue, value, validate, validateOn, unwrapFormState } = this.props
       if (
         this.shouldValidate(
-          this.props.value,
+          value,
           this.props.initialValue,
           this.props.touched,
           this.props.visited,
@@ -81,8 +82,8 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
           this.props.validateOn
         )
       ) {
-        const errors = this.getErrors(this.props.value, formValue, name, validate)
-        if (!isEqual(get(pp.errors, '_errors'), errors)) {
+        const errors = this.getErrors(value, formValue, name, validate)
+        if (!isEqual(get(pp.fieldErrors, '_errors'), errors)) {
           this.props.setErrors(path.concat(['_errors']), errors)
         }
       }
@@ -137,7 +138,9 @@ export default function<F extends object>(
         value,
         touched,
         visited,
-        errors,
+        allErrors,
+        formErrors,
+        fieldErrors,
         defaultValue,
         initialValue,
         ...props
@@ -152,11 +155,13 @@ export default function<F extends object>(
           validateOn={validateOn}
           value={get(value, name, fallback)}
           path={path.concat(name)}
-          errors={get(errors, name)}
           touched={get(touched, name)}
           visited={get(visited, name)}
           initialValue={initialValue[name]}
           defaultValue={defaultValue[name]}
+          allErrors={Object(allErrors)[name]}
+          formErrors={Object(formErrors)[name]}
+          fieldErrors={Object(fieldErrors)[name]}
         >
           {children}
         </InnerComponent>

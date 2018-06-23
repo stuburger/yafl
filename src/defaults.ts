@@ -24,10 +24,14 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     formValue: {} as F,
     initialValue: {} as T,
     defaultValue: {} as T,
+    componentTypes: {},
+    commonFieldProps: {},
     activeField: null,
     touched: {} as BooleanTree<T>,
     visited: {} as BooleanTree<T>,
-    errors: {},
+    allErrors: {},
+    formErrors: {},
+    fieldErrors: {},
     registeredFields: {},
     validateOn: 'blur',
     submit: noop,
@@ -47,3 +51,5 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     unwrapFormState: noop
   }
 }
+
+export const DefaultComponentTypeKey = '__YAFLDefaultComponentType__'
