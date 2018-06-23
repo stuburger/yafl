@@ -9,14 +9,15 @@ import immutable from 'object-path-immutable'
 import {
   Path,
   FormState,
-  RegisteredField,
-  RegisteredFields,
   FormProvider,
   BooleanTree,
-  FormValidateOn,
   FormErrors,
   ComponentTypes,
-  FieldValidator
+  FieldValidator,
+  RegisteredField,
+  RegisteredFields,
+  CommonFieldProps,
+  FormValidateOnCustom
 } from './sharedTypes'
 
 const startingPath: Path = []
@@ -32,10 +33,10 @@ export interface FormConfig<T extends object> {
   validate?: (state: FormState<T>) => KeyedValidators<T>
   children: React.ReactNode
   allowReinitialize?: boolean
-  validateOn?: FormValidateOn<T, any>
+  validateOn?: FormValidateOnCustom<T>
   onSubmit?: (formValue: T) => void
   rememberStateOnReinitialize?: boolean
-  commonFieldProps?: { [key: string]: any }
+  commonFieldProps?: CommonFieldProps<T>
   componentTypes?: ComponentTypes<T>
 }
 
@@ -167,7 +168,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     shouldValidate() {
-      const { validateOn } = this.props
+      const { validateOn = () => true } = this.props
       return typeof validateOn === 'function' && validateOn(this.state)
     }
 
@@ -211,7 +212,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     unregisterField(path: Path) {
       const key = toStrPath(path)
-      this.setState(({ registeredFields: prev, formValue, errors, touched, visited }) => {
+      this.setState(({ registeredFields: prev, errors, touched, visited }) => {
         const registeredFields = { ...prev }
         delete registeredFields[key]
         return {
@@ -293,9 +294,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     clearForm() {
       const { defaultValue = {} } = this.props
-      // nb. when resetting validators like this it is vital to also
-      // reset all registered fields. If a Field detects that is is
-      // unregistered on cDU it will re-register itself
       this.setState({
         submitCount: 0,
         registeredFields: {},
@@ -329,11 +327,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     render() {
-      const {
-        validateOn = default_validate_on,
-        commonFieldProps = {},
-        componentTypes = {}
-      } = this.props
+      const { commonFieldProps = {} as CommonFieldProps<F>, componentTypes = {} } = this.props
 
       const {
         errors,
@@ -353,7 +347,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             ...state,
             touched,
             formValue,
-            validateOn,
             defaultValue,
             initialMount,
             formErrors,

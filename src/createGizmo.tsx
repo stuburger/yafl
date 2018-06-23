@@ -60,8 +60,8 @@ const propsToOmit: (keyof FormProvider<any>)[] = [
   'unregisterField',
   'setActiveField',
   'registerField',
+  'componentTypes',
   'initialMount',
-  'validateOn',
   'value',
   'path'
 ]
@@ -79,11 +79,13 @@ function createGizmo<F extends object>() {
 
     collectProps(): GizmoProps<F> {
       const {
+        type,
         render,
         children,
+        allErrors,
         forwardProps,
         component: Component,
-        allErrors,
+        componentTypes,
         ...props
       } = this.props
       return { errors: allErrors, ...props, ...forwardProps }

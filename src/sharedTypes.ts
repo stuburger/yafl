@@ -4,8 +4,10 @@ export type Name = string | number
 export type Path = Name[]
 export type ValidationType = 'change' | 'blur' | 'submit'
 
-export type BooleanTree<T> = T extends object ? BooleanLeaf<T> : boolean | undefined
-export type BooleanLeaf<T> = { [K in keyof T]?: T[K] extends object ? BooleanLeaf<T[K]> : boolean }
+export type BooleanTree<T> =
+  | { [K in keyof T]?: T[K] extends object ? BooleanTree<T[K]> : boolean }
+  | undefined
+  | boolean
 
 export type FormErrors<T extends object> = {
   [P in keyof T]?: T[P] extends object ? FormErrors<T[P]> & { _errors: string[] } : string[]
@@ -15,11 +17,6 @@ export type ValidateOn<F extends object, T = any> =
   | ValidationType
   | ValidationType[]
   | ValidateOnCustom<F, T>
-
-export type FormValidateOn<F extends object, T = any> =
-  | ValidationType
-  | ValidationType[]
-  | FormValidateOnCustom<F>
 
 export type SectionValidateOn<F extends object, T = any> = 'submit' | SectionValidateOnCustom<F, T>
 
@@ -176,6 +173,11 @@ export interface FormState<F extends object> {
   submitCount: number
 }
 
+export interface CommonFieldProps<F extends object> {
+  validateOn: ValidateOn<F, any>
+  [key: string]: any
+}
+
 export interface FormProvider<F extends object, T = F> {
   path: Path
   value: T
@@ -183,14 +185,13 @@ export interface FormProvider<F extends object, T = F> {
   initialValue: T
   formValue: F
   initialMount: boolean
-  touched: BooleanTree<T> // | boolean | undefined
-  visited: BooleanTree<T> // | boolean | undefined
+  touched: BooleanTree<T>
+  visited: BooleanTree<T>
   activeField: string | null
   registeredFields: RegisteredFields
   componentTypes: ComponentTypes<F>
   submitCount: number
   formIsValid: boolean
-  validateOn: any // TODO
   formIsDirty: boolean
   formIsTouched: boolean
   setErrors: any
@@ -202,7 +203,7 @@ export interface FormProvider<F extends object, T = F> {
   clearForm: (() => void)
   forgetState: (() => void)
   unwrapFormState: (() => FormState<F>)
-  commonFieldProps: { [key: string]: any }
+  commonFieldProps: CommonFieldProps<F>
   setActiveField: ((path: string | null) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)

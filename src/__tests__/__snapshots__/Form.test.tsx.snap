@@ -112,10 +112,10 @@ Array [
   </div>,
   <pre>
     {
+  "errors": {},
   "activeField": null,
   "visited": {},
   "submitCount": 0,
-  "errors": {},
   "touched": {},
   "formValue": {
     "firstName": "John",
@@ -139,6 +139,9 @@ Array [
       "email": "asdf@testing.com"
     }
   },
+  "formErrors": {},
+  "commonFieldProps": {},
+  "fieldErrors": {},
   "initialValue": {
     "firstName": "John",
     "lastName": "Woodcock",

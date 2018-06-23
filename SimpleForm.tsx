@@ -11,7 +11,7 @@ interface Guy {
 
 const GuyFields = props => {
   return (
-    <Form initialValue={{} as Person}>
+    <Form initialValue={{} as Person} commonFieldProps={{ validateOn: 'blur' }}>
       <Repeat<Contact> name="contacts">
         {(value, utils) => {
           return value.map((contact, i) => {

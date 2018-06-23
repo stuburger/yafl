@@ -1,4 +1,4 @@
-import { FormProvider, BooleanTree } from './sharedTypes'
+import { FormProvider, BooleanTree, CommonFieldProps } from './sharedTypes'
 
 // const { whyDidYouUpdate } = require('why-did-you-update')
 // whyDidYouUpdate(React)
@@ -25,7 +25,6 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     initialValue: {} as T,
     defaultValue: {} as T,
     componentTypes: {},
-    commonFieldProps: {},
     activeField: null,
     touched: {} as BooleanTree<T>,
     visited: {} as BooleanTree<T>,
@@ -33,7 +32,7 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     formErrors: {},
     fieldErrors: {},
     registeredFields: {},
-    validateOn: 'blur',
+    commonFieldProps: {} as CommonFieldProps<F>,
     submit: noop,
     setErrors: noop,
     resetForm: noop,
