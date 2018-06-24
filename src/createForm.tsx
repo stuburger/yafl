@@ -72,11 +72,13 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         propName: 'componentTypes',
         componentName: string
       ): Error | void {
-        var value = props[propName] || {}
-        const components = Object.values(value)
-        const isValid = components.every(
-          c => c instanceof React.Component || typeof c === 'function'
-        )
+        const value = props[propName]
+        if (value === undefined) return
+        const isValid =
+          isObject(value) &&
+          Object.values(value).every(
+            comp => comp instanceof React.Component || typeof comp === 'function'
+          )
         if (!isValid) {
           return new Error(
             'Invalid prop `' +
@@ -84,7 +86,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
               '` supplied to' +
               ' `' +
               componentName +
-              '`. Validation failed.'
+              '`. Validation failed. Make sure all values are valid React components'
           )
         }
       }

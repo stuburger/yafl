@@ -39,7 +39,7 @@ describe('Form', () => {
   it('should render correctly', () => {
     const tree = renderer
       .create(
-        <Form initialValue={initialValue} defaultValue={defaultValue}>
+        <Form initialValue={initialValue} defaultValue={defaultValue} onSubmit={() => {}}>
           <Field name="firstName" label="First Name" component={TextInput} />
           <Section name="contact">
             <Field
