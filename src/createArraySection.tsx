@@ -15,6 +15,8 @@ import { Name, FormProvider, FieldValidator, SectionValidateOn } from './sharedT
 
 export interface ArrayHelpers<T> {
   push: (value: T) => void
+  insert: (index: number, value: T) => void
+  remove: (index: number) => void
 }
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T[]> {
@@ -41,6 +43,8 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
       this.push = this.push.bind(this)
+      this.insert = this.insert.bind(this)
+      this.remove = this.remove.bind(this)
       this.registerField = this.registerField.bind(this)
       this.setErrorsIfNeeded = this.setErrorsIfNeeded.bind(this)
       this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
@@ -107,12 +111,24 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       setValue(path, [...value, valueToPush], false)
     }
 
+    insert(index: number, valueToInsert: T) {
+      const { setValue, value, path } = this.props
+      setValue(path, value.splice(index, 0, valueToInsert), false)
+    }
+
+    remove(index: number) {
+      const { setValue, value, path } = this.props
+      setValue(path, value.splice(index, 1), false)
+    }
+
     render() {
       const { name, children, ...props } = this.props
 
       return (
         <Provider value={props}>
-          {typeof children === 'function' ? children(props.value, { push: this.push }) : children}
+          {typeof children === 'function'
+            ? children(props.value, { push: this.push, insert: this.insert, remove: this.remove })
+            : children}
         </Provider>
       )
     }
