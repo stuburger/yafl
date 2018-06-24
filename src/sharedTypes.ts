@@ -1,5 +1,3 @@
-import { GizmoProps } from './createGizmo'
-
 export type Name = string | number
 export type Path = Name[]
 export type ValidationType = 'change' | 'blur' | 'submit'
@@ -106,7 +104,7 @@ export type RegisteredFields = {
 }
 
 export type ComponentTypes<F extends object> = {
-  [key: string]: React.ComponentType<FieldProps<F, any> | GizmoProps<F>>
+  [key: string]: React.ComponentType<FieldProps<F, any>> | React.ComponentType<GizmoProps<F>>
 }
 
 export interface InputProps<T = any> {
@@ -134,6 +132,7 @@ export interface FieldProps<F extends object, T = any> {
 }
 
 export interface FieldMeta<T = any> {
+  path: Path
   visited: boolean
   isDirty: boolean
   touched: boolean
@@ -161,7 +160,7 @@ export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T>
 }
 
 export interface FormState<F extends object> {
-  errors: any
+  errors: FormErrors<F>
   initialMount: boolean
   touched: BooleanTree<F>
   visited: BooleanTree<F>
@@ -194,7 +193,6 @@ export interface FormProvider<F extends object, T = F> {
   formIsValid: boolean
   formIsDirty: boolean
   formIsTouched: boolean
-  setErrors: any
   allErrors: FormErrors<F>
   formErrors: FormErrors<F>
   fieldErrors: FormErrors<F>
@@ -205,12 +203,63 @@ export interface FormProvider<F extends object, T = F> {
   unwrapFormState: (() => FormState<F>)
   commonFieldProps: CommonFieldProps<F>
   setActiveField: ((path: string | null) => void)
+  touchField: ((path: Path, touched: boolean) => void)
+  visitField: ((path: Path, visited: boolean) => void)
+  setErrors: ((path: Path, errors: string[] | undefined) => void)
+  setFormValue: ((value: Partial<F>, overwrite?: boolean) => void)
+  setValue: ((path: Path, value: any, setTouched?: boolean) => void)
+  setTouched: ((value: BooleanTree<F>, overwrite?: boolean) => void)
+  setVisited: ((value: BooleanTree<F>, overwrite?: boolean) => void)
+  unregisterField: ((path: Path) => void)
+  registerField: ((path: Path, type: 'section' | 'field') => void)
+}
+
+export interface GizmoProps<F extends object> extends FormMeta<F> {
+  formValue: F
+  defaultValue: F
+  initialValue: F
+  formIsTouched: boolean
+  formIsValid: boolean
+  formIsDirty: boolean
+  submitCount: number
+  activeField: string | null
+  visited: BooleanTree<F>
+  touched: BooleanTree<F>
+  errors: FormErrors<F>
+  [key: string]: any
+}
+
+export interface GizmoConfig<F extends object> {
+  render?: (props: GizmoProps<F>) => React.ReactNode
+  component?: React.ComponentType<GizmoProps<F>>
+  [key: string]: any
+}
+
+export interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
+  type: string
+  formValue: F
+  defaultValue: F
+  initialValue: F
+  initialMount: boolean
+  touched: BooleanTree<F>
+  visited: BooleanTree<F>
+  activeField: string | null
+  submitCount: number
+  formIsValid: boolean
+  formIsDirty: boolean
+  formIsTouched: boolean
+  errors: FormErrors<F>
+  submit: (() => void)
+  resetForm: (() => void)
+  clearForm: (() => void)
+  forgetState: (() => void)
+  componentTypes: ComponentTypes<F>
+  setActiveField: ((path: string | null) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)
   setFormValue: ((value: Partial<F>, overwrite?: boolean) => void)
   setTouched: ((value: BooleanTree<F>, overwrite?: boolean) => void)
   setVisited: ((value: BooleanTree<F>, overwrite?: boolean) => void)
-  unregisterField: ((path: Path) => void)
-  registerField: ((path: Path, type: 'section' | 'field') => void)
+  forwardProps: { [key: string]: any }
 }

@@ -8,6 +8,7 @@ import { Name, FormProvider, FieldValidator, SectionValidateOn } from './sharedT
 export interface ArrayHelpers<T = any> {
   push: (value: T[keyof T]) => void
 }
+
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
   name: Name
   validate?: FieldValidator<F, T>
@@ -94,7 +95,6 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 
     render() {
       const { name, children, ...props } = this.props
-
       return <Provider value={props}>{children}</Provider>
     }
   }

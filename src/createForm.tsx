@@ -19,6 +19,9 @@ import {
   CommonFieldProps,
   FormValidateOnCustom
 } from './sharedTypes'
+import FieldSink from './FieldSink'
+import { DefaultFieldTypeKey, DefaultGizmoTypeKey } from './defaults'
+import GizmoSink from './GizmoSink'
 
 const startingPath: Path = []
 const default_validate_on = 'blur'
@@ -40,9 +43,6 @@ export interface FormConfig<T extends object> {
   componentTypes?: ComponentTypes<T>
 }
 
-export type Error = string | string[]
-export type GetError = (obj: any) => Error
-
 function whenEnabled(func: any, defaultFunc = noop) {
   return (...params: any[]) => {
     if (!this.state.initialMount || this.props.disabled) {
@@ -52,12 +52,12 @@ function whenEnabled(func: any, defaultFunc = noop) {
   }
 }
 
-const Sink = () => null
+export type PathErrors = { path: Path; errors: string[] }
 
 export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
-    errors: any[] = []
-    removeErrors: any[] = []
+    errors: PathErrors[] = []
+    removeErrors: Path[] = []
     fieldsToRegister: RegisteredField[] = []
     constructor(props: FormConfig<F>) {
       super(props)
@@ -87,8 +87,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         initialMount: false,
         formValue: {} as F,
         activeField: null,
-        touched: {} as BooleanTree<F>,
-        visited: {} as BooleanTree<F>,
+        touched: {},
+        visited: {},
         registeredFields: {},
         initialValue: null,
         defaultValue: {} as F,
@@ -130,8 +130,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         state.formValue = defaultsDeep({}, np.initialValue || {}, np.defaultValue || {})
         if (np.rememberStateOnReinitialize) {
           state.submitCount = 0
-          state.touched = {} as BooleanTree<F>
-          state.visited = {} as BooleanTree<F>
+          state.touched = {}
+          state.visited = {}
         }
         return state
       }
@@ -159,10 +159,10 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
       this.setState(({ errors: prev }) => {
         let errors = prev,
-          x: any,
-          path: string[]
-        while ((path = this.removeErrors.pop())) errors = immutable.del(errors, path)
-        while ((x = this.errors.pop())) errors = immutable.set(errors, x.path, x.errors)
+          x: PathErrors | undefined,
+          path: Path | undefined
+        while ((path = this.removeErrors.pop())) errors = immutable.del(errors, path as string[])
+        while ((x = this.errors.pop())) errors = immutable.set(errors, x.path as string[], x.errors)
         return { errors }
       })
     }
@@ -298,8 +298,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         submitCount: 0,
         registeredFields: {},
         errors: {},
-        touched: {} as BooleanTree<F>,
-        visited: {} as BooleanTree<F>,
+        touched: {},
+        visited: {},
         formValue: defaultValue as F
       })
     }
@@ -315,9 +315,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     forgetState() {
       this.setState({
-        errors: {} as BooleanTree<F>,
-        touched: {} as BooleanTree<F>,
-        visited: {} as BooleanTree<F>,
+        errors: {},
+        touched: {},
+        visited: {},
         submitCount: 0
       })
     }
@@ -374,7 +374,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             formIsValid: !initialMount || !any(errors, isString),
             formIsTouched: initialMount && any(touched, true),
             formIsDirty: initialMount && !isEqual(initialValue, formValue),
-            componentTypes: { ...componentTypes, __YAFLDefaultComponentType__: Sink }
+            componentTypes: {
+              ...componentTypes,
+              [DefaultFieldTypeKey]: FieldSink,
+              [DefaultGizmoTypeKey]: GizmoSink
+            }
           }}
         >
           {this.props.children}

@@ -12,7 +12,7 @@ import { getErrors, toStrPath, getArgLength, getMaxArgLength, shouldValidate } f
 import omit from 'lodash.omit'
 import memoize from 'memoize-one'
 import isEqual from 'react-fast-compare'
-import { DefaultComponentTypeKey } from './defaults'
+import { DefaultFieldTypeKey } from './defaults'
 
 const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'type',
@@ -160,6 +160,7 @@ function createField<F extends object>() {
       }
 
       const field: FieldMeta = {
+        path: p.path,
         errors: (p.allErrors || []) as any,
         visited: !!p.visited,
         touched: !!p.touched,
@@ -238,7 +239,7 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
         children,
         validate,
         component,
-        type = DefaultComponentTypeKey,
+        type = DefaultFieldTypeKey,
         validateOn = commonFieldProps.validateOn || 'blur',
         ...forwardProps
       } = this.props
