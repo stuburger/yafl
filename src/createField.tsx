@@ -40,18 +40,18 @@ function createField<F extends object>() {
   return class FieldConsumer<T> extends React.Component<InnerFieldProps<F, T>> {
     constructor(props: InnerFieldProps<F, T>) {
       super(props)
-      this.registerField = this.registerField.bind(this)
-      this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
-      this.setErrorsIfNeeded = this.setErrorsIfNeeded.bind(this)
-      this.unregisterField = this.unregisterField.bind(this)
+      this.onBlur = this.onBlur.bind(this)
+      this.onFocus = this.onFocus.bind(this)
+      this.onChange = this.onChange.bind(this)
       this.setValue = this.setValue.bind(this)
       this.touchField = this.touchField.bind(this)
       this.visitField = this.visitField.bind(this)
-      this.shouldValidate = this.shouldValidate.bind(this)
-      this.onBlur = this.onBlur.bind(this)
-      this.onChange = this.onChange.bind(this)
-      this.onFocus = this.onFocus.bind(this)
       this.collectProps = this.collectProps.bind(this)
+      this.registerField = this.registerField.bind(this)
+      this.shouldValidate = this.shouldValidate.bind(this)
+      this.unregisterField = this.unregisterField.bind(this)
+      this.setErrorsIfNeeded = this.setErrorsIfNeeded.bind(this)
+      this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
       this.registerField()
     }
 
@@ -256,15 +256,14 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
           {...props}
           key={name}
           name={name}
+          type={type}
           render={render}
           children={children}
           validate={validate}
           component={component}
           path={path.concat(name)}
           commonFieldProps={common}
-          validateOn={this.props.validateOn || validateOn}
           forwardProps={forwardProps}
-          type={type}
           value={Object(value)[name]}
           touched={Object(touched)[name]}
           visited={Object(visited)[name]}
@@ -273,6 +272,7 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
           fieldErrors={Object(fieldErrors)[name]}
           initialValue={Object(initialValue)[name]}
           defaultValue={Object(defaultValue)[name]}
+          validateOn={this.props.validateOn || validateOn}
         />
       )
     }

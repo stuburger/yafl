@@ -41,8 +41,8 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       super(props)
       this.push = this.push.bind(this)
       this.registerField = this.registerField.bind(this)
-      this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
       this.setErrorsIfNeeded = this.setErrorsIfNeeded.bind(this)
+      this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
       this.registerField()
     }
 
