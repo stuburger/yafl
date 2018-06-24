@@ -1,4 +1,5 @@
 import * as React from 'react'
+import PropTypes from 'prop-types'
 import get from 'lodash.get'
 import set from 'lodash.set'
 import merge from 'lodash.merge'
@@ -56,6 +57,39 @@ export type PathErrors = { path: Path; errors: string[] }
 
 export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
+    static propTypes = {
+      onSubmit: PropTypes.func.isRequired,
+      children: PropTypes.node.isRequired,
+      validate: PropTypes.func,
+      validateOn: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+      initialValue: PropTypes.object,
+      defaultValue: PropTypes.object,
+      allowReinitialize: PropTypes.bool,
+      rememberStateOnReinitialize: PropTypes.bool,
+      commonFieldProps: PropTypes.object,
+      componentTypes(
+        props: FormConfig<F>,
+        propName: 'componentTypes',
+        componentName: string
+      ): Error | void {
+        var value = props[propName] || {}
+        const components = Object.values(value)
+        const isValid = components.every(
+          c => c instanceof React.Component || typeof c === 'function'
+        )
+        if (!isValid) {
+          return new Error(
+            'Invalid prop `' +
+              propName +
+              '` supplied to' +
+              ' `' +
+              componentName +
+              '`. Validation failed.'
+          )
+        }
+      }
+    }
+
     errors: PathErrors[] = []
     removeErrors: Path[] = []
     fieldsToRegister: RegisteredField[] = []

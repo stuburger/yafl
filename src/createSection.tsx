@@ -1,4 +1,5 @@
 import * as React from 'react'
+import PropTypes from 'prop-types'
 import {
   toStrPath,
   getErrors,
@@ -122,6 +123,13 @@ export default function<F extends object>(
   const InnerComponent = createForkProvider<F>(Provider)
 
   return class Section<T extends object> extends React.PureComponent<SectionConfig<F, T>> {
+    static propTypes = {
+      name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      validate: PropTypes.func,
+      validateOn: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+      children: PropTypes.node.isRequired
+    }
+
     constructor(props: SectionConfig<F, T>) {
       super(props)
       this._render = this._render.bind(this)

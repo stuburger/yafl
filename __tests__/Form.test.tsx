@@ -1,6 +1,6 @@
 import * as React from 'react'
 // import { Form, Section, Field, Repeat, Gizmo } from '../index'
-import { createFormContext } from '../index'
+import { createFormContext } from '../src/index'
 const { Form, Section, Field, Repeat, Gizmo } = createFormContext()
 import renderer from 'react-test-renderer'
 const initialValue = {

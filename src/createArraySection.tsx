@@ -1,4 +1,5 @@
 import * as React from 'react'
+import PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
 import get from 'lodash.get'
 import memoize from 'memoize-one'
@@ -133,6 +134,14 @@ export default function<F extends object>(
   const InnerComponent = createForkProvider<F>(Provider)
 
   return class Section<T extends object> extends React.PureComponent<ArraySectionConfig<F, T>> {
+    static propTypes = {
+      name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      validate: PropTypes.func,
+      fallback: PropTypes.array,
+      validateOn: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+      children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
+    }
+
     constructor(props: ArraySectionConfig<F, T>) {
       super(props)
       this._render = this._render.bind(this)

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import PropTypes from 'prop-types'
 import {
   FormMeta,
   FormProvider,
@@ -218,6 +219,15 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
   const FieldConsumer = createField<F>()
 
   return class Field<T> extends React.PureComponent<FieldConfig<F, T>> {
+    static propTypes = {
+      name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      type: PropTypes.string,
+      validate: PropTypes.func,
+      validateOn: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+      render: PropTypes.func,
+      component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node])
+    }
+
     constructor(props: FieldConfig<F, T>) {
       super(props)
       this._render = this._render.bind(this)
