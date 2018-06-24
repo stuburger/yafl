@@ -8,7 +8,14 @@ import {
   FieldConfig,
   FieldMeta
 } from './sharedTypes'
-import { getErrors, toStrPath, getArgLength, getMaxArgLength, shouldValidate } from './utils'
+import {
+  getErrors,
+  toStrPath,
+  getArgLength,
+  getMaxArgLength,
+  shouldValidate,
+  validateName
+} from './utils'
 import omit from 'lodash.omit'
 import memoize from 'memoize-one'
 import isEqual from 'react-fast-compare'
@@ -271,6 +278,7 @@ export default function<F extends object>(Consumer: React.Consumer<FormProvider<
     }
 
     render() {
+      validateName(this.props.name)
       return <Consumer>{this._render}</Consumer>
     }
   }

@@ -1,5 +1,12 @@
 import * as React from 'react'
-import { toStrPath, getErrors, getMaxArgLength, getArgLength, shouldValidateSection } from './utils'
+import {
+  toStrPath,
+  getErrors,
+  getMaxArgLength,
+  getArgLength,
+  shouldValidateSection,
+  validateName
+} from './utils'
 import isEqual from 'react-fast-compare'
 import memoize from 'memoize-one'
 import get from 'lodash.get'
@@ -158,6 +165,7 @@ export default function<F extends object>(
     }
 
     render() {
+      validateName(this.props.name)
       return <Consumer>{this._render}</Consumer>
     }
   }
