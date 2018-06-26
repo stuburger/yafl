@@ -1,8 +1,9 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
-import { toStrPath, validateName } from './utils'
+import { toStrPath, validateName, forkByName } from './utils'
 import { Name, FormProvider } from './sharedTypes'
+import { forkableProps } from './defaults'
 
 export interface ArrayHelpers<T> {
   push: (value: T) => void
@@ -117,30 +118,8 @@ export default function<F extends object>(
 
     _render(incomingProps: FormProvider<F, any>) {
       const { children, name, fallback } = this.props
-      const {
-        path,
-        value,
-        errors,
-        touched,
-        visited,
-        defaultValue,
-        initialValue,
-        ...props
-      } = incomingProps
-
       return (
-        <InnerComponent<T>
-          key={name}
-          {...props}
-          name={name}
-          path={path.concat(name)}
-          errors={Object(errors)[name]}
-          touched={Object(touched)[name]}
-          visited={Object(visited)[name]}
-          initialValue={initialValue[name]}
-          defaultValue={defaultValue[name]}
-          value={Object(value)[name] || fallback}
-        >
+        <InnerComponent<T> key={name} {...forkByName(name, incomingProps, forkableProps, fallback)}>
           {children}
         </InnerComponent>
       )

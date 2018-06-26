@@ -9,9 +9,9 @@ import {
   FieldConfig,
   FieldMeta
 } from './sharedTypes'
-import { toStrPath, validateName } from './utils'
+import { toStrPath, validateName, forkByName } from './utils'
 import isEqual from 'react-fast-compare'
-import { DefaultFieldTypeKey } from './defaults'
+import { DefaultFieldTypeKey, forkableProps } from './defaults'
 
 const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'type',
@@ -20,7 +20,6 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'errors',
   'touched',
   'visited',
-  'errorCount',
   'submitCount',
   'forwardProps',
   'componentTypes'
@@ -207,18 +206,6 @@ export default function<F extends object>(
 
     _render(ip: FormProvider<F, any>) {
       const {
-        path,
-        value,
-        touched,
-        visited,
-        errors,
-        initialValue,
-        defaultValue,
-        commonFieldProps,
-        ...props
-      } = ip
-
-      const {
         name,
         render,
         children,
@@ -229,22 +216,14 @@ export default function<F extends object>(
 
       return (
         <FieldConsumer
-          {...props}
           key={name}
-          name={name}
           type={type}
           render={render}
           children={children}
           component={component}
-          path={path.concat(name)}
           forwardProps={forwardProps}
-          value={Object(value)[name]}
-          errors={Object(errors)[name]}
-          touched={Object(touched)[name]}
-          visited={Object(visited)[name]}
-          commonFieldProps={commonFieldProps}
-          initialValue={Object(initialValue)[name]}
-          defaultValue={Object(defaultValue)[name]}
+          commonFieldProps={ip.commonFieldProps}
+          {...forkByName(name, ip, forkableProps)}
         />
       )
     }

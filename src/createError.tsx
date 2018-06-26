@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { Path, FormProvider } from './sharedTypes'
 
-export type InnerErrorProps = FormProvider<any> & ErrorProps
+export type InnerFaultProps = FormProvider<any> & ErrorProps
 
-export class InnerError extends React.Component<InnerErrorProps> {
+export class InnerError extends React.Component<InnerFaultProps> {
   componentDidMount() {
     const { registerError, path, msg } = this.props
     registerError(path, msg)
@@ -25,8 +25,8 @@ export interface ErrorProps {
   preventSubmit?: boolean
 }
 
-export function createError(Consumer: React.Consumer<FormProvider<any, any>>) {
-  return class Error extends React.Component<ErrorProps> {
+export function createFault(Consumer: React.Consumer<FormProvider<any, any>>) {
+  return class Fault extends React.Component<ErrorProps> {
     render() {
       const { preventSubmit, msg, path } = this.props
       return (

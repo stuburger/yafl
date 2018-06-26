@@ -12,6 +12,15 @@ export function noop(): never {
   throw new Error('A <Field /> component can only appear inside a <Form /> component')
 }
 
+export const forkableProps: (keyof FormProvider<any>)[] = [
+  'touched',
+  'visited',
+  'errors',
+  'value',
+  'initialValue',
+  'defaultValue'
+]
+
 export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, T> {
   return {
     path: [],
