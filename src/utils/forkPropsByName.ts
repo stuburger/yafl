@@ -16,7 +16,7 @@ export default <F extends object, T, R>(
 ): R => {
   const result: any = baseForkProps(name, props, keysToSplit)
   result.name = name
-  result.value = typeof result.value !== undefined ? result.value : valueFallback
+  result.value = result.value === undefined ? valueFallback : result.value
   result.path = props.path.concat(name)
   return { ...props, ...result }
 }
