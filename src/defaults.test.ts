@@ -4,6 +4,7 @@ const expected = {
   path: [],
   value: {},
   submitCount: 0,
+  touchCount: 0,
   formIsValid: true,
   formIsDirty: false,
   initialMount: false,

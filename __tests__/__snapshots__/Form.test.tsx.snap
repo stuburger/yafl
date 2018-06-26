@@ -114,6 +114,7 @@ Array [
     {
   "errors": {},
   "activeField": null,
+  "touched": {},
   "visited": {},
   "defaultValue": {
     "firstName": "",
@@ -125,7 +126,6 @@ Array [
     }
   },
   "submitCount": 0,
-  "touched": {},
   "formValue": {
     "firstName": "John",
     "lastName": "Woodcock",
@@ -140,6 +140,7 @@ Array [
     ]
   },
   "errorCount": 0,
+  "touchCount": 0,
   "commonFieldProps": {},
   "initialValue": {
     "firstName": "John",
