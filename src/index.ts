@@ -8,7 +8,6 @@ import createField from './createField'
 import createGizmo from './createGizmo'
 import createArraySection from './createArraySection'
 import { createError } from './createError'
-export { required, maxLength, minLength } from './validators'
 
 export function createFormContext<F extends object>() {
   const context = React.createContext<FormProvider<F>>(getDefaultProviderValue())
@@ -19,7 +18,7 @@ export function createFormContext<F extends object>() {
     Repeat: createArraySection<F>(Provider, Consumer),
     Field: createField<F>(Provider, Consumer),
     Gizmo: createGizmo<F>(Consumer),
-    Error: createError<F>(Consumer)
+    Error: createError(Consumer)
   }
 }
 

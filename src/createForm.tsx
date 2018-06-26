@@ -4,7 +4,7 @@ import get from 'lodash.get'
 import set from 'lodash.set'
 import merge from 'lodash.merge'
 import defaultsDeep from 'lodash.defaultsdeep'
-import { toStrPath, any, isString, noop, isObject, toArray } from './utils'
+import { toStrPath, any, noop, isObject } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -12,35 +12,25 @@ import {
   FormState,
   FormProvider,
   BooleanTree,
-  FormErrors,
   ComponentTypes,
-  FieldValidator,
   RegisteredField,
   RegisteredFields,
-  CommonFieldProps,
-  FormValidateOnCustom
+  CommonFieldProps
 } from './sharedTypes'
 import FieldSink from './FieldSink'
 import { DefaultFieldTypeKey, DefaultGizmoTypeKey } from './defaults'
 import GizmoSink from './GizmoSink'
 
 const startingPath: Path = []
-const default_validate_on = 'blur'
-
-export interface KeyedValidators<F extends object> {
-  [key: string]: FieldValidator<F, any>
-}
 
 export interface FormConfig<T extends object> {
   initialValue?: T
   defaultValue?: T
-  validate?: (state: FormState<T>) => KeyedValidators<T>
   children: React.ReactNode
   allowReinitialize?: boolean
-  validateOn?: FormValidateOnCustom<T>
   onSubmit?: (formValue: T) => void
   rememberStateOnReinitialize?: boolean
-  commonFieldProps?: CommonFieldProps<T>
+  commonFieldProps?: CommonFieldProps
   componentTypes?: ComponentTypes<T>
 }
 
@@ -53,15 +43,11 @@ function whenEnabled(func: any, defaultFunc = noop) {
   }
 }
 
-export type PathErrors = { path: Path; errors: string[] }
-
 export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
     static propTypes = {
       onSubmit: PropTypes.func.isRequired,
       children: PropTypes.node.isRequired,
-      validate: PropTypes.func,
-      validateOn: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
       initialValue: PropTypes.object,
       defaultValue: PropTypes.object,
       allowReinitialize: PropTypes.bool,
@@ -92,8 +78,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       }
     }
 
-    errors: PathErrors[] = []
-    removeErrors: Path[] = []
     fieldsToRegister: RegisteredField[] = []
     constructor(props: FormConfig<F>) {
       super(props)
@@ -111,16 +95,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setFormValue = disabledGuard(this.setFormValue.bind(this))
       this.setTouched = disabledGuard(this.setTouched.bind(this))
       this.setVisited = disabledGuard(this.setVisited.bind(this))
-      this.validateIfNeeded = this.validateIfNeeded.bind(this)
-      this.buildErrors = this.buildErrors.bind(this)
       this.registerField = this.registerField.bind(this)
       this.unwrapFormState = this.unwrapFormState.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
-      this.unsetErrorCount = this.unsetErrorCount.bind(this)
-      this.shouldValidate = this.shouldValidate.bind(this)
       this.registerError = this.registerError.bind(this)
       this.unregisterError = this.unregisterError.bind(this)
-      this.setErrors = this.setErrors.bind(this)
       this.flush = this.flush.bind(this)
       this.state = {
         initialMount: false,
@@ -132,6 +111,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         initialValue: null,
         defaultValue: {} as F,
         submitCount: 0,
+        errorCount: 0,
         errors: {}
       }
     }
@@ -180,7 +160,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     static defaultProps = {
       allowReinitialize: false,
-      validateOn: default_validate_on,
       rememberStateOnReinitialize: false
     }
 
@@ -190,46 +169,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     componentDidUpdate(pp: FormConfig<F>) {
       this.flush()
-      this.buildErrors()
-    }
-
-    buildErrors() {
-      if (this.unsetErrorCount() === 0) return
-
-      this.setState(({ errors: prev }) => {
-        let errors = prev,
-          x: PathErrors | undefined,
-          path: Path | undefined
-        while ((path = this.removeErrors.pop())) errors = immutable.del(errors, path as string[])
-        while ((x = this.errors.pop())) errors = immutable.set(errors, x.path as string[], x.errors)
-        return { errors }
-      })
-    }
-
-    shouldValidate() {
-      const { validateOn = () => true } = this.props
-      return typeof validateOn === 'function' && validateOn(this.state)
-    }
-
-    validateIfNeeded(): FormErrors<F> {
-      if (!this.shouldValidate()) return {}
-
-      const { validate = () => ({}) } = this.props
-      const { formValue } = this.state
-      const def = validate(this.state)
-      return Object.keys(def).reduce((ret, path) => {
-        const valueToTest = get(formValue, path)
-        const errors: string[] = []
-        toArray(def[path]).forEach(test => {
-          const result = test(valueToTest, path, formValue)
-          typeof result === 'string' && errors.push(result)
-        })
-        return set(ret, path, errors)
-      }, {})
-    }
-
-    unsetErrorCount() {
-      return this.removeErrors.length + this.errors.length
     }
 
     flush() {
@@ -264,26 +203,21 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     registerError(path: Path, error: string) {
-      this.setState(({ errors: prev }) => {
+      this.setState(({ errors: prev, errorCount }) => {
         const curr = get(prev, path as string[], [])
         const errs = Array.isArray(curr) ? [...curr, error] : [error]
-        return { errors: immutable.set(prev, path as string[], errs) }
+        return { errors: immutable.set(prev, path as string[], errs), errorCount: errorCount + 1 }
       })
     }
 
     unregisterError(path: Path, error: string) {
-      this.setState(({ errors: prev }) => {
+      this.setState(({ errors: prev, errorCount }) => {
         const curr: string[] = get(prev, path as string[], [])
-        return { errors: immutable.set(prev, path as string[], curr.filter(x => x !== error)) }
+        return {
+          errors: immutable.set(prev, path as string[], curr.filter(x => x !== error)),
+          errorCount: errorCount - 1
+        }
       })
-    }
-
-    setErrors(path: Path, errors: string[] | undefined) {
-      if (errors && errors.length) {
-        this.errors.push({ path, errors })
-      } else {
-        this.removeErrors.push(path)
-      }
     }
 
     submit(includeUnregisteredFields = false) {
@@ -381,19 +315,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     render() {
-      const { commonFieldProps = {} as CommonFieldProps<F>, componentTypes = {} } = this.props
+      const { commonFieldProps = {}, componentTypes = {} } = this.props
 
-      const {
-        errors,
-        touched,
-        formValue,
-        defaultValue,
-        initialValue,
-        initialMount,
-        ...state
-      } = this.state
-
-      const formErrors = this.validateIfNeeded()
+      const { touched, errorCount, formValue, initialValue, initialMount, ...state } = this.state
 
       return (
         <Provider
@@ -401,14 +325,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             ...state,
             touched,
             formValue,
-            defaultValue,
+            errorCount,
             initialMount,
-            formErrors,
             commonFieldProps,
-            fieldErrors: errors,
             path: startingPath,
             submit: this.submit,
-            setErrors: this.setErrors,
             setValue: this.setValue,
             clearForm: this.clearForm,
             resetForm: this.resetForm,
@@ -425,9 +346,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             setActiveField: this.setActiveField,
             unregisterField: this.unregisterField,
             unwrapFormState: this.unwrapFormState,
-            allErrors: merge({}, errors, formErrors),
             initialValue: initialValue || ({} as F),
-            formIsValid: !initialMount || !any(errors, isString),
+            formIsValid: !initialMount || errorCount === 0,
             formIsTouched: initialMount && any(touched, true),
             formIsDirty: initialMount && !isEqual(initialValue, formValue),
             componentTypes: {

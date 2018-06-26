@@ -6,12 +6,11 @@ import { DefaultFieldTypeKey } from './defaults'
 
 const listenForProps: (keyof GeneralComponentConfig<any>)[] = [
   'type',
+  'errors',
   'touched',
   'visited',
   'isDirty',
   'formValue',
-  'formErrors',
-  'fieldErrors',
   'submitCount',
   'activeField',
   'forwardProps',
@@ -27,7 +26,6 @@ const propsToOmit: (keyof FormProvider<any>)[] = [
   'registerField',
   'componentTypes',
   'initialMount',
-  'setErrors',
   'value',
   'path'
 ]
@@ -48,13 +46,13 @@ function createGizmo<F extends object>() {
         type,
         render,
         children,
-        allErrors,
+        errors,
         forwardProps,
         component: Component,
         componentTypes,
         ...props
       } = this.props
-      return { errors: allErrors, ...props, ...forwardProps }
+      return { errors: errors, ...props, ...forwardProps }
     }
 
     render() {

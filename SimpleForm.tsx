@@ -11,7 +11,7 @@ interface Guy {
 
 const Error: any = ''
 const Required = ({ value, touched, children }) => {
-  return touched && !value && <Error msg="Required">{children}</Error>
+  return touched && !value && <Error msg="Required" />
 }
 
 const MinLength = ({ value, touched }) => {
@@ -20,7 +20,7 @@ const MinLength = ({ value, touched }) => {
 
 const GuyFields = props => {
   return (
-    <Form initialValue={{} as Person} commonFieldProps={{ validateOn: 'blur' }}>
+    <Form initialValue={{} as Person}>
       <Repeat<Contact> name="contacts">
         {(value, utils) => {
           return value.map((contact, i) => {
@@ -34,8 +34,8 @@ const GuyFields = props => {
                     return (
                       <>
                         <TextInput {...input} />
-                        <Required {...input} {...props}>
-                          <MinLength {...input} {...props} />
+                        <Required {...input} {...props.field}>
+                          <MinLength {...input} {...props.field} />
                         </Required>
                       </>
                     )

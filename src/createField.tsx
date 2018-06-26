@@ -9,16 +9,7 @@ import {
   FieldConfig,
   FieldMeta
 } from './sharedTypes'
-import {
-  getErrors,
-  toStrPath,
-  getArgLength,
-  getMaxArgLength,
-  shouldValidate,
-  validateName
-} from './utils'
-import omit from 'lodash.omit'
-import memoize from 'memoize-one'
+import { toStrPath, validateName } from './utils'
 import isEqual from 'react-fast-compare'
 import { DefaultFieldTypeKey } from './defaults'
 
@@ -26,12 +17,10 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'type',
   'name',
   'value',
+  'errors',
   'touched',
   'visited',
-  'validate',
-  'validateOn',
-  'formErrors',
-  'fieldErrors',
+  'errorCount',
   'submitCount',
   'forwardProps',
   'componentTypes'
@@ -49,33 +38,23 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
       this.visitField = this.visitField.bind(this)
       this.collectProps = this.collectProps.bind(this)
       this.registerField = this.registerField.bind(this)
-      this.shouldValidate = this.shouldValidate.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
-      this.setErrorsIfNeeded = this.setErrorsIfNeeded.bind(this)
+
       this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
       this.registerField()
     }
 
     shouldComponentUpdate(np: InnerFieldProps<F, T>) {
-      return (
-        getMaxArgLength(np.validate) === 3 ||
-        getArgLength(np.validateOn) === 2 ||
-        listenForProps.some(key => !isEqual(np[key], this.props[key]))
-      )
+      return listenForProps.some(key => !isEqual(np[key], this.props[key]))
     }
 
     componentDidUpdate(pp: InnerFieldProps<F, T>) {
       this.registerFieldIfNeeded(pp)
-      this.setErrorsIfNeeded(pp)
     }
 
     componentWillUnmount() {
       this.unregisterField()
     }
-
-    getErrors = memoize(getErrors)
-
-    shouldValidate = memoize(shouldValidate)
 
     registerField(): void {
       const { registerField, path } = this.props
@@ -86,27 +65,6 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
       const { registeredFields, path } = this.props
       if (!registeredFields[toStrPath(path)]) {
         this.registerField()
-      }
-    }
-
-    setErrorsIfNeeded(pp: InnerFieldProps<F, T>) {
-      const { name, value, validateOn, formValue, validate, unwrapFormState } = this.props
-      if (
-        this.shouldValidate(
-          value,
-          this.props.initialValue,
-          this.props.touched as any,
-          this.props.visited as any,
-          this.props.submitCount,
-          getArgLength(validateOn) === 2 && unwrapFormState(),
-          validate,
-          this.props.validateOn
-        )
-      ) {
-        const errors = this.getErrors(value, formValue, name, validate)
-        if (!isEqual(pp.fieldErrors, errors)) {
-          this.props.setErrors(this.props.path, errors)
-        }
       }
     }
 
@@ -169,7 +127,7 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
 
       const field: FieldMeta = {
         path: p.path,
-        errors: (p.allErrors || []) as any,
+        errors: (p.errors || []) as any,
         visited: !!p.visited,
         touched: !!p.touched,
         setValue: this.setValue,
@@ -177,7 +135,7 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
         setVisited: this.visitField,
         initialValue: p.initialValue,
         defaultValue: p.defaultValue,
-        isValid: ((p.allErrors || []) as any).length === 0,
+        isValid: ((p.errors || []) as any).length === 0,
         isActive: p.activeField === toStrPath(p.path),
         isDirty: p.formIsDirty && p.initialValue === p.value
       }
@@ -204,10 +162,8 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
         name,
         render,
         component: Component,
-        children,
-        validate,
-        validateOn,
         forwardProps,
+        children,
         ...rest
       } = this.props
 
@@ -240,8 +196,6 @@ export default function<F extends object>(
     static propTypes = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       type: PropTypes.string,
-      validate: PropTypes.func,
-      validateOn: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
       render: PropTypes.func,
       component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node])
     }
@@ -257,25 +211,19 @@ export default function<F extends object>(
         value,
         touched,
         visited,
-        allErrors,
-        formErrors,
-        fieldErrors,
+        errors,
         initialValue,
         defaultValue,
         commonFieldProps,
         ...props
       } = ip
 
-      const common = omit(commonFieldProps, ['validateOn'])
-
       const {
         name,
         render,
         children,
-        validate,
         component,
         type = DefaultFieldTypeKey,
-        validateOn = commonFieldProps.validateOn || 'blur',
         ...forwardProps
       } = this.props
 
@@ -287,20 +235,16 @@ export default function<F extends object>(
           type={type}
           render={render}
           children={children}
-          validate={validate}
           component={component}
           path={path.concat(name)}
-          commonFieldProps={common}
           forwardProps={forwardProps}
           value={Object(value)[name]}
+          errors={Object(errors)[name]}
           touched={Object(touched)[name]}
           visited={Object(visited)[name]}
-          allErrors={Object(allErrors)[name]}
-          formErrors={Object(formErrors)[name]}
-          fieldErrors={Object(fieldErrors)[name]}
+          commonFieldProps={commonFieldProps}
           initialValue={Object(initialValue)[name]}
           defaultValue={Object(defaultValue)[name]}
-          validateOn={this.props.validateOn || validateOn}
         />
       )
     }

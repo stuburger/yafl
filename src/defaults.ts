@@ -1,4 +1,4 @@
-import { FormProvider, CommonFieldProps } from './sharedTypes'
+import { FormProvider } from './sharedTypes'
 
 // const { whyDidYouUpdate } = require('why-did-you-update')
 // whyDidYouUpdate(React)
@@ -28,13 +28,11 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     activeField: null,
     touched: {},
     visited: {},
-    allErrors: {},
-    formErrors: {},
-    fieldErrors: {},
+    errors: {},
+    errorCount: 0,
     registeredFields: {},
-    commonFieldProps: {} as CommonFieldProps<F>,
+    commonFieldProps: {},
     submit: noop,
-    setErrors: noop,
     resetForm: noop,
     setValue: noop,
     clearForm: noop,

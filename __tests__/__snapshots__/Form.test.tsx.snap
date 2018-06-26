@@ -115,6 +115,15 @@ Array [
   "errors": {},
   "activeField": null,
   "visited": {},
+  "defaultValue": {
+    "firstName": "",
+    "lastName": "",
+    "age": 0,
+    "contact": {
+      "tel": "",
+      "email": "asdf@testing.com"
+    }
+  },
   "submitCount": 0,
   "touched": {},
   "formValue": {
@@ -130,18 +139,8 @@ Array [
       "oumar"
     ]
   },
-  "defaultValue": {
-    "firstName": "",
-    "lastName": "",
-    "age": 0,
-    "contact": {
-      "tel": "",
-      "email": "asdf@testing.com"
-    }
-  },
-  "formErrors": {},
+  "errorCount": 0,
   "commonFieldProps": {},
-  "fieldErrors": {},
   "initialValue": {
     "firstName": "John",
     "lastName": "Woodcock",

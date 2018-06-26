@@ -1,6 +1,5 @@
 export type Name = string | number
 export type Path = Name[]
-export type ValidationType = 'change' | 'blur' | 'submit'
 
 export type BooleanTree<T> =
   | { [K in keyof T]?: T[K] extends object ? BooleanTree<T[K]> : boolean }
@@ -10,13 +9,6 @@ export type BooleanTree<T> =
 export type FormErrors<T extends object> = {
   [P in keyof T]?: T[P] extends object ? FormErrors<T[P]> & { _errors: string[] } : string[]
 }
-
-export type ValidateOn<F extends object, T = any> =
-  | ValidationType
-  | ValidationType[]
-  | ValidateOnCustom<F, T>
-
-export type SectionValidateOn<F extends object, T = any> = 'submit' | SectionValidateOnCustom<F, T>
 
 /* @internal */
 export interface Person {
@@ -70,34 +62,9 @@ export interface SectionState<T> {
   initialValue: T
 }
 
-export interface AggregateValidator<F extends object> {
-  (formState: FormState<F>, ret: FormErrors<F>): string[]
-}
-
-export type FieldValidator<F extends object, T> = Validator<F, T> | Validator<F, T>[]
-
-export interface Validator<F extends object, T> {
-  (value: T, fieldName: Name, formValue: F): string | undefined
-}
-
-export interface ValidateOnCustom<F extends object, T> {
-  (field: FieldState<T>, formState: FormState<F>): boolean
-}
-
-export interface SectionValidateOnCustom<F extends object, T> {
-  (field: SectionState<T>, formState: FormState<F>): boolean
-}
-
-export interface FormValidateOnCustom<F extends object> {
-  (formState: FormState<F>): boolean
-}
-
 export interface RegisteredField {
   path: Path
   type: 'section' | 'field'
-}
-export interface ShouldValidateFunc<F extends object> {
-  (state: FormState<F>): boolean
 }
 
 export type RegisteredFields = {
@@ -118,9 +85,7 @@ export interface InputProps<T = any> {
 
 export interface FieldConfig<F extends object, T = any> {
   name: Name
-  validate?: FieldValidator<F, T>
   type?: string
-  validateOn?: ValidateOn<F, T>
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>>
   [key: string]: any
@@ -153,14 +118,13 @@ export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T>
   value: T
   initialValue: T
   type: string
-  validate?: FieldValidator<F, T>
-  validateOn: ValidateOn<F, T>
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>>
   forwardProps: { [key: string]: any }
 }
 
 export interface FormState<F extends object> {
+  errorCount: number
   errors: FormErrors<F>
   initialMount: boolean
   touched: BooleanTree<F>
@@ -173,8 +137,7 @@ export interface FormState<F extends object> {
   submitCount: number
 }
 
-export interface CommonFieldProps<F extends object> {
-  validateOn: ValidateOn<F, any>
+export interface CommonFieldProps {
   [key: string]: any
 }
 
@@ -183,6 +146,7 @@ export interface FormProvider<F extends object, T = F> {
   value: T
   defaultValue: T
   initialValue: T
+  errorCount: number
   formValue: F
   initialMount: boolean
   touched: BooleanTree<T>
@@ -194,21 +158,18 @@ export interface FormProvider<F extends object, T = F> {
   formIsValid: boolean
   formIsDirty: boolean
   formIsTouched: boolean
-  allErrors: FormErrors<F>
-  formErrors: FormErrors<F>
-  fieldErrors: FormErrors<F>
+  errors: FormErrors<F>
   submit: (() => void)
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
   unwrapFormState: (() => FormState<F>)
-  commonFieldProps: CommonFieldProps<F>
+  commonFieldProps: CommonFieldProps
   setActiveField: ((path: string | null) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)
   registerError: ((path: Path, error: string) => void)
   unregisterError: ((path: Path, error: string) => void)
-  setErrors: ((path: Path, errors: string[] | undefined) => void)
   setFormValue: ((value: Partial<F>, overwrite?: boolean) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   setTouched: ((value: BooleanTree<F>, overwrite?: boolean) => void)
