@@ -125,6 +125,7 @@ export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T>
 
 export interface FormState<F extends object> {
   errorCount: number
+  touchCount: number
   errors: FormErrors<F>
   initialMount: boolean
   touched: BooleanTree<F>
@@ -147,6 +148,7 @@ export interface FormProvider<F extends object, T = F> {
   defaultValue: T
   initialValue: T
   errorCount: number
+  touchCount: number
   formValue: F
   initialMount: boolean
   touched: BooleanTree<T>

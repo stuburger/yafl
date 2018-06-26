@@ -4,7 +4,7 @@ import get from 'lodash.get'
 import set from 'lodash.set'
 import merge from 'lodash.merge'
 import defaultsDeep from 'lodash.defaultsdeep'
-import { toStrPath, any, noop, isObject } from './utils'
+import { toStrPath, noop, isObject } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -112,6 +112,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         defaultValue: {} as F,
         submitCount: 0,
         errorCount: 0,
+        touchCount: 0,
         errors: {}
       }
     }
@@ -240,7 +241,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     setValue(path: Path, val: any, setTouched = true) {
-      this.setState(({ formValue: prev, touched }) => ({
+      this.setState(({ formValue: prev, touched, touchCount }) => ({
+        touchCount: touchCount + 1,
         formValue: immutable.set(prev, path as string[], val),
         touched: setTouched ? immutable.set(touched, path as string[], true) : touched
       }))
@@ -253,13 +255,15 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     touchField(path: Path, touched: boolean) {
-      this.setState(({ touched: prev }) => ({
+      this.setState(({ touched: prev, touchCount }) => ({
+        touchCount: touchCount + 1,
         touched: immutable.set(prev, path as string[], touched)
       }))
     }
 
     setTouched(touched: BooleanTree<F>, overwrite = false) {
-      this.setState(({ touched: prev }) => ({
+      this.setState(({ touched: prev, touchCount }) => ({
+        touchCount: touchCount + 1,
         touched: overwrite ? touched : merge({}, prev, touched)
       }))
     }
@@ -316,16 +320,15 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     render() {
       const { commonFieldProps = {}, componentTypes = {} } = this.props
-
-      const { touched, errorCount, formValue, initialValue, initialMount, ...state } = this.state
+      const { errorCount, formValue, initialValue, initialMount, touchCount, ...state } = this.state
 
       return (
         <Provider
           value={{
             ...state,
-            touched,
             formValue,
             errorCount,
+            touchCount,
             initialMount,
             commonFieldProps,
             path: startingPath,
@@ -348,7 +351,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             unwrapFormState: this.unwrapFormState,
             initialValue: initialValue || ({} as F),
             formIsValid: !initialMount || errorCount === 0,
-            formIsTouched: initialMount && any(touched, true),
+            formIsTouched: initialMount && touchCount > 0,
             formIsDirty: initialMount && !isEqual(initialValue, formValue),
             componentTypes: {
               ...componentTypes,

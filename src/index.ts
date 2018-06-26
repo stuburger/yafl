@@ -1,5 +1,4 @@
 import * as React from 'react'
-export { any } from './utils'
 import { FormProvider } from './sharedTypes'
 import { getDefaultProviderValue } from './defaults'
 import createForm from './createForm'

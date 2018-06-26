@@ -16,6 +16,7 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
   return {
     path: [],
     value: {} as T,
+    touchCount: 0,
     submitCount: 0,
     formIsValid: true,
     formIsDirty: false,

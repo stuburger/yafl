@@ -29,7 +29,6 @@ export function createError(Consumer: React.Consumer<FormProvider<any, any>>) {
   return class Error extends React.Component<ErrorProps> {
     render() {
       const { preventSubmit, msg, path } = this.props
-      console.log(msg, path)
       return (
         <Consumer>
           {props => (
