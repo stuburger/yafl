@@ -9,6 +9,15 @@ interface Guy {
   friends: Array<Guy>
 }
 
+const Error: any = ''
+const Required = ({ value, touched, children }) => {
+  return touched && !value && <Error msg="Required">{children}</Error>
+}
+
+const MinLength = ({ value, touched }) => {
+  return touched && value.length < 4 && <Error msg="Must be at least 4 characters" />
+}
+
 const GuyFields = props => {
   return (
     <Form initialValue={{} as Person} commonFieldProps={{ validateOn: 'blur' }}>
@@ -22,7 +31,14 @@ const GuyFields = props => {
                   parent={props.parent}
                   render={({ input, ...props }) => {
                     props.form.setFormValue({ age: 4 })
-                    return <TextInput {...input} />
+                    return (
+                      <>
+                        <TextInput {...input} />
+                        <Required {...input} {...props}>
+                          <MinLength {...input} {...props} />
+                        </Required>
+                      </>
+                    )
                   }}
                 />
               </Section>

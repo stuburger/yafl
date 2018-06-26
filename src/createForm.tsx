@@ -118,6 +118,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.unregisterField = this.unregisterField.bind(this)
       this.unsetErrorCount = this.unsetErrorCount.bind(this)
       this.shouldValidate = this.shouldValidate.bind(this)
+      this.registerError = this.registerError.bind(this)
+      this.unregisterError = this.unregisterError.bind(this)
+      this.setErrors = this.setErrors.bind(this)
       this.flush = this.flush.bind(this)
       this.state = {
         initialMount: false,
@@ -260,7 +263,22 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       })
     }
 
-    setErrors = (path: Path, errors: string[] | undefined) => {
+    registerError(path: Path, error: string) {
+      this.setState(({ errors: prev }) => {
+        const curr = get(prev, path as string[], [])
+        const errs = Array.isArray(curr) ? [...curr, error] : [error]
+        return { errors: immutable.set(prev, path as string[], errs) }
+      })
+    }
+
+    unregisterError(path: Path, error: string) {
+      this.setState(({ errors: prev }) => {
+        const curr: string[] = get(prev, path as string[], [])
+        return { errors: immutable.set(prev, path as string[], curr.filter(x => x !== error)) }
+      })
+    }
+
+    setErrors(path: Path, errors: string[] | undefined) {
       if (errors && errors.length) {
         this.errors.push({ path, errors })
       } else {
@@ -401,6 +419,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             setVisited: this.setVisited,
             forgetState: this.forgetState,
             setFormValue: this.setFormValue,
+            registerError: this.registerError,
+            unregisterError: this.unregisterError,
             registerField: this.registerField,
             setActiveField: this.setActiveField,
             unregisterField: this.unregisterField,

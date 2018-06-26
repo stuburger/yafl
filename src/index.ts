@@ -7,6 +7,7 @@ import createSection from './createSection'
 import createField from './createField'
 import createGizmo from './createGizmo'
 import createArraySection from './createArraySection'
+import { createError } from './createError'
 export { required, maxLength, minLength } from './validators'
 
 export function createFormContext<F extends object>() {
@@ -16,9 +17,10 @@ export function createFormContext<F extends object>() {
     Form: createForm<F>(Provider),
     Section: createSection<F>(Provider, Consumer),
     Repeat: createArraySection<F>(Provider, Consumer),
-    Field: createField<F>(Consumer),
-    Gizmo: createGizmo<F>(Consumer)
+    Field: createField<F>(Provider, Consumer),
+    Gizmo: createGizmo<F>(Consumer),
+    Error: createError<F>(Consumer)
   }
 }
 
-export const { Form, Section, Field, Gizmo, Repeat } = createFormContext<any>()
+export const { Form, Section, Field, Gizmo, Repeat, Error } = createFormContext<any>()

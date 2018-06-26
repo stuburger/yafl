@@ -31,6 +31,8 @@ const expected = {
   forgetState: noop,
   visitField: noop,
   setFormValue: noop,
+  registerError: noop,
+  unregisterError: noop,
   registerField: noop,
   setActiveField: noop,
   unregisterField: noop,

@@ -42,6 +42,7 @@ export interface Address {
 }
 
 export interface FormMeta<T extends object> {
+  submitCount: number
   resetForm: () => void
   submit: () => void
   forgetState: () => void
@@ -205,6 +206,8 @@ export interface FormProvider<F extends object, T = F> {
   setActiveField: ((path: string | null) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)
+  registerError: ((path: Path, error: string) => void)
+  unregisterError: ((path: Path, error: string) => void)
   setErrors: ((path: Path, errors: string[] | undefined) => void)
   setFormValue: ((value: Partial<F>, overwrite?: boolean) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)

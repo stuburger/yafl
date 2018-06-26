@@ -37,7 +37,7 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'componentTypes'
 ]
 
-function createField<F extends object>() {
+function createField<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
   return class FieldConsumer<T> extends React.Component<InnerFieldProps<F, T>> {
     constructor(props: InnerFieldProps<F, T>) {
       super(props)
@@ -186,6 +186,7 @@ function createField<F extends object>() {
         resetForm: p.resetForm,
         submit: p.submit,
         setFormValue: p.setFormValue,
+        submitCount: p.submitCount,
         forgetState: p.forgetState,
         setVisited: p.setVisited,
         setTouched: p.setTouched,
@@ -198,25 +199,42 @@ function createField<F extends object>() {
     }
 
     render() {
-      const { type, render, component: Component, componentTypes } = this.props
+      const {
+        type,
+        name,
+        render,
+        component: Component,
+        children,
+        validate,
+        validateOn,
+        forwardProps,
+        ...rest
+      } = this.props
 
       const props = this.collectProps()
-      if (Component) {
-        return <Component {...props} />
-      }
 
-      if (render) {
-        return render(props)
-      }
+      const DefaultComponent = this.props.componentTypes[type]
 
-      const DefaultComponent = componentTypes[type]
-      return <DefaultComponent {...props} />
+      return (
+        <Provider value={rest}>
+          {Component ? (
+            <Component {...props} />
+          ) : render ? (
+            render(props)
+          ) : (
+            <DefaultComponent {...props} />
+          )}
+        </Provider>
+      )
     }
   }
 }
 
-export default function<F extends object>(Consumer: React.Consumer<FormProvider<F, F>>) {
-  const FieldConsumer = createField<F>()
+export default function<F extends object>(
+  Provider: React.Provider<FormProvider<F, F>>,
+  Consumer: React.Consumer<FormProvider<F, F>>
+) {
+  const FieldConsumer = createField<F>(Provider)
 
   return class Field<T> extends React.PureComponent<FieldConfig<F, T>> {
     static propTypes = {

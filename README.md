@@ -18,7 +18,7 @@ yafl's philosophy is to "keep it super simple". While it provides a lot of funct
 - Structure your Components to match the shape of your data. This means no more accessing field values using string paths!
 - Opt in features and functionality.
 - Pluggable validation
-- Fully featured and only weighing in at 7KB! Thats almost half the size of libraries offering similar functionality!
+- Fully featured and only weighing in at 8KB! Thats almost half the size of libraries offering similar functionality!
 
 ## Installation
 
@@ -29,9 +29,7 @@ _Not available on npm yet._
 ```js
 // SimpleForm.js
 
-import { createFormContext } from 'yafl'
-
-const { Form, Field, Section, Gizmo, Repeat } = createFormContext({ firstName: '', latName: '' })
+import { Form, Field, Section, Gizmo, Repeat } from 'yafl'
 
 function TextInput(props) {
   return (
@@ -53,14 +51,26 @@ class SimpleForm extends React.Component {
 
   render() {
     return (
-      <Form onSubmit={this.handleSubmit} initialValue={{ firstName: 'John', lastName: 'Smith' }}>
-        <Field name="firstName" label="First Name" component={TextInput} />
-				<Field name="lastName" label="Last Name" component={TextInput} />
-				<Gizmo buttonText="Save" component={SubmitButton} />
+      <Form
+        onSubmit={this.handleSubmit}
+        initialValue={{ firstName: 'John', lastName: 'Smith' }}
+      >
+        <Field
+          name="firstName"
+          label="First Name"
+          component={TextInput}
+        />
+        <Field
+          name="lastName"
+          label="Last Name"
+          component={TextInput}
+        />
+        <Gizmo buttonText="Save" component={SubmitButton} />
       </Form>
     )
   }
 }
+
 ```
 
 ## Top Level API

@@ -45,6 +45,8 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     visitField: noop,
     setFormValue: noop,
     registerField: noop,
+    registerError: noop,
+    unregisterError: noop,
     setActiveField: noop,
     unregisterField: noop,
     unwrapFormState: noop
