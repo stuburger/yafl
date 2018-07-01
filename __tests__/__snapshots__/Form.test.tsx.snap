@@ -113,6 +113,19 @@ Array [
   <pre>
     {
   "errors": {},
+  "value": {
+    "firstName": "John",
+    "lastName": "Woodcock",
+    "age": 30,
+    "contact": {
+      "tel": "983838333",
+      "email": "asdf@testing.com"
+    },
+    "friends": [
+      "stuart",
+      "oumar"
+    ]
+  },
   "activeField": null,
   "touched": {},
   "visited": {},
@@ -126,19 +139,6 @@ Array [
     }
   },
   "submitCount": 0,
-  "formValue": {
-    "firstName": "John",
-    "lastName": "Woodcock",
-    "age": 30,
-    "contact": {
-      "tel": "983838333",
-      "email": "asdf@testing.com"
-    },
-    "friends": [
-      "stuart",
-      "oumar"
-    ]
-  },
   "errorCount": 0,
   "touchCount": 0,
   "commonFieldProps": {},

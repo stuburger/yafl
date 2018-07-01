@@ -1,6 +1,10 @@
 import invariant from 'invariant'
 
 export default (name: any) => {
-  const isValid = (typeof name === 'string' && name.length > 0) || Number.isInteger(name)
-  invariant(isValid, "Expected string | number for the 'name' prop")
+  const isString = typeof name === 'string' && name.length > 0
+  const isValidA = isString || Number.isInteger(name)
+  invariant(isValidA, "Expected string | number for the 'name' prop")
+  if (isString) {
+    invariant(!name.includes('.'), "'name' prop cannot be a path string. " + name + ' is invalid')
+  }
 }

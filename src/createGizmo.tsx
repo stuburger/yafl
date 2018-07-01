@@ -50,9 +50,10 @@ function createGizmo<F extends object>() {
         forwardProps,
         component: Component,
         componentTypes,
+        formValue,
         ...props
       } = this.props
-      return { errors: errors, ...props, ...forwardProps }
+      return { errors, value: formValue, ...props, ...forwardProps }
     }
 
     render() {

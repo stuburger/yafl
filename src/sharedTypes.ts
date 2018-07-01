@@ -34,6 +34,7 @@ export interface Address {
 }
 
 export interface FormMeta<T extends object> {
+  value: T
   submitCount: number
   resetForm: () => void
   submit: () => void
@@ -181,7 +182,7 @@ export interface FormProvider<F extends object, T = F> {
 }
 
 export interface GizmoProps<F extends object> extends FormMeta<F> {
-  formValue: F
+  value: F
   defaultValue: F
   initialValue: F
   formIsTouched: boolean

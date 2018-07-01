@@ -20,6 +20,7 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'errors',
   'touched',
   'visited',
+  'formValue',
   'submitCount',
   'forwardProps',
   'componentTypes'
@@ -140,8 +141,9 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
       }
 
       const form: FormMeta<F> = {
-        resetForm: p.resetForm,
         submit: p.submit,
+        value: p.formValue,
+        resetForm: p.resetForm,
         setFormValue: p.setFormValue,
         submitCount: p.submitCount,
         forgetState: p.forgetState,

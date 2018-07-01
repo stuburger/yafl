@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Path, FormProvider } from './sharedTypes'
 import invariant from 'invariant'
 
-export type InnerFaultProps = FormProvider<any> & ErrorProps
+export type InnerFaultProps = FormProvider<any> & FaultProps
 
 export class InnerError extends React.Component<InnerFaultProps> {
   componentDidMount() {
@@ -28,25 +28,22 @@ export class InnerError extends React.Component<InnerFaultProps> {
   }
 }
 
-export interface ErrorProps {
+export interface FaultProps {
   msg: string
   path?: Path
-  preventSubmit?: boolean
 }
 
 export function createFault(Consumer: React.Consumer<FormProvider<any, any>>) {
-  return class Fault extends React.Component<ErrorProps> {
+  return class Fault extends React.Component<FaultProps> {
     static propTypes = {
       msg: PropTypes.string,
       preventSubmit: PropTypes.bool,
       path: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])
     }
     render() {
-      const { preventSubmit, msg, path } = this.props
+      const { msg, path } = this.props
       return (
-        <Consumer>
-          {props => <InnerError key={msg + preventSubmit + path} {...props} {...this.props} />}
-        </Consumer>
+        <Consumer>{props => <InnerError key={msg + path} {...props} {...this.props} />}</Consumer>
       )
     }
   }

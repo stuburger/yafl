@@ -92,7 +92,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
   }
 }
 
-export interface ArraySectionConfig<F extends object, T> {
+export interface RepeatConfig<T> {
   name: Name
   fallback?: T[]
   children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)
@@ -104,14 +104,14 @@ export default function<F extends object>(
 ) {
   const InnerComponent = createForkProvider<F>(Provider)
 
-  return class Section<T extends object> extends React.PureComponent<ArraySectionConfig<F, T>> {
+  return class Section<T extends object> extends React.PureComponent<RepeatConfig<T>> {
     static propTypes = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       fallback: PropTypes.array,
       children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
     }
 
-    constructor(props: ArraySectionConfig<F, T>) {
+    constructor(props: RepeatConfig<T>) {
       super(props)
       this._render = this._render.bind(this)
     }

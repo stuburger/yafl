@@ -65,7 +65,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
   }
 }
 
-export interface SectionConfig<F extends object, T> {
+export interface SectionConfig<T> {
   name: Name
   fallback?: T
   children: React.ReactNode
@@ -77,13 +77,13 @@ export default function<F extends object>(
 ) {
   const InnerComponent = createForkProvider<F>(Provider)
 
-  return class Section<T extends object> extends React.PureComponent<SectionConfig<F, T>> {
+  return class Section<T extends object> extends React.PureComponent<SectionConfig<T>> {
     static propTypes = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       children: PropTypes.node.isRequired
     }
 
-    constructor(props: SectionConfig<F, T>) {
+    constructor(props: SectionConfig<T>) {
       super(props)
       this._render = this._render.bind(this)
     }
