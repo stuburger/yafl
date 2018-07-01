@@ -24,53 +24,52 @@ yafl's philosophy is to "keep it super simple". While it provides a lot of funct
 
 _Not available on npm yet._
 
-## Basic Usage
+# API
 
-```js
-// SimpleForm.js
+##The **Form** Component
 
-import { Form, Field, Section, Gizmo, Repeat } from 'yafl'
+The `<Form />` component contains all the state that makes yafl work and is pretty important. All other yafl components *have* to be rendered as a child of a Form. Trying to render a Field outside of a Form will throw an error.
 
-function TextInput(props) {
-  return (
-    <div>
-      <label>{props.label}</label>
-      <input {...props.input} />
-    </div>
-  )
+Note: if you are nesting forms this may cause some pretty strange behaviour. If you have a use case for nested forms you'll have to use yafl's only non-component export `createFormContext`. To learn more about this "strange behaviour" see the "*how it works section*" at the end of this read me.
+
+### Configuration Props
+
+```ts
+interface FormConfig<T extends object> {
+  // The initial value of your form. Once this value becomes truthy you form will initialize.
+  initialValue?: T
+  // The defaultValue is merged with initialValue on initialization to replace any missing values.
+  defaultValue?: T
+  // When true, any time initialValue changes, your form value will update the value of your form.
+  allowReinitialize?: boolean
+  // Should your form remember what fields have been touched and/or visited and if the submitCount should be reset to 0.
+  rememberStateOnReinitialize?: boolean
+  // For convenience. These props will become available to all Field components.
+  commonFieldProps?: { [key: string]: any }
+  // For convenience. Allows you so use the type prop on Field components instead of the render prope or the component prop.
+  componentTypes?: ComponentTypes<T>
+  // The function to call on form submission
+  onSubmit?: (formValue: T) => void
 }
+```
 
-function SubmitButton({ submit, buttonText }) {
-  return <button onClick={submit}>{buttonText}</button>
+## The **Field** Component
+
+Field components are the bread and butter of any form library and yafl's Field's are no exception! The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. The most important thing to note is about the Field component is that you should never name your Field using a 'path' string. Yafl uses the components location in the a Form's component hierarchy to determine where.
+
+```ts
+interface FieldConfig<F extends object, T = any> {
+  // Name your field! Providing a number usually indicates that this field appears in an array.
+  name: string | number
+  // Similar to the type attribute of an HTML input, however this prop is used as a key to match against the object supplied to the componentTypes prop on a Form component.
+  type?: string
+  // A render prop that accepts an object containing all the good stuff you'll need to render a your Field.
+  render?: (props: FieldProps<F, T>) => React.ReactNode
+  // Specify a component to render
+  component?: React.ComponentType<FieldProps<F, T>>
+  // Any other props will be forwarded (along with any props specified by commonFieldProps on the Form component) to your component or render prop.
+  [key: string]: any
 }
-
-class SimpleForm extends React.Component {
-  handleSubmit = formValue => {
-    console.log(formValue) // { firstName: 'John', lastName: 'Smith' }
-  }
-
-  render() {
-    return (
-      <Form
-        onSubmit={this.handleSubmit}
-        initialValue={{ firstName: 'John', lastName: 'Smith' }}
-      >
-        <Field
-          name="firstName"
-          label="First Name"
-          component={TextInput}
-        />
-        <Field
-          name="lastName"
-          label="Last Name"
-          component={TextInput}
-        />
-        <Gizmo buttonText="Save" component={SubmitButton} />
-      </Form>
-    )
-  }
-}
-
 ```
 
 ## Top Level API
@@ -84,14 +83,14 @@ const { Form, Field, Section, Repeat, Gizmo } = createFormContext(defaultValue)
 ```
 
 
-| Name                  | Type     | Description                                                                                                                                                                               |
+| Name      | Type     | Description                                                                                                                                                        |
 | --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Form`                | Component | The `Form` component is used to wrap all Consumer components                                                                                                                              |
 | `Field`               | Component | A Field Component is always associated with a paticular field on your form. A `Field` must be rendered _inside_ (be a child of) a Form component. Every Field is treated as a property of the nearest Provider. (`Form` or `Section`)                                  |
 | `Gizmo`       | Component | A general purpose component which can be used to render elements of a form that do not necessarily correspond to a field. For example displaying validation or rendering a submit button. |
 | `Section`         | Component | The Section component is used to create nested Fields. Use a Section component to give your form depth.                                                                                     |
 | `Repeat` | Component | Identical to the Section component except uses children as a function to which array helper functions are passed to make so called FieldArrays possible.                                                                                                                                                   |
-
+|
 *Note* that while `createFormContext()` has the same signature as React's `createContext()` there are some differences to be aware of:
 
 1.  `createFormContext` returns 5 components.
