@@ -110,9 +110,12 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
       if (forwardProps.onBlur) {
         forwardProps.onBlur(e)
       }
-      setActiveField(null)
-      if (visited || e.isDefaultPrevented()) return
-      this.visitField(true)
+      if (e.isDefaultPrevented()) return
+      if (visited) {
+        setActiveField(null)
+      } else {
+        this.visitField(true)
+      }
     }
 
     collectProps(): FieldProps<F, T> {

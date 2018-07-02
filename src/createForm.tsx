@@ -270,6 +270,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     visitField(path: Path, visited: boolean) {
       this.setState(({ visited: prev }) => ({
+        activeField: null,
         visited: immutable.set(prev, path as string[], visited)
       }))
     }
