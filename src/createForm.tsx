@@ -290,7 +290,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setState({
         submitCount: 0,
         registeredFields: {},
-        errors: {},
         touched: {},
         visited: {},
         formValue: defaultValue as F
@@ -299,7 +298,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     resetForm() {
       this.setState(({ initialValue }) => ({
-        errors: {},
         formValue: initialValue || ({} as F),
         registeredFields: {},
         submitCount: 0
@@ -308,7 +306,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     forgetState() {
       this.setState({
-        errors: {},
         touched: {},
         visited: {},
         submitCount: 0

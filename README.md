@@ -36,30 +36,30 @@ Note: if you are nesting forms this may cause some pretty strange behaviour. If 
 
 ```ts
 interface FormConfig<T extends object> {
-  // The initial value of your form. Once this value becomes 
+  // The initial value of your form. Once this value becomes
   // truthy you form will initialize.
   initialValue?: T
-  
-  // The defaultValue is merged with initialValue on initialization 
+
+  // The defaultValue is merged with initialValue on initialization
   // to replace any missing values.
   defaultValue?: T
-  
-  // When true, any time initialValue changes, your form value 
+
+  // When true, any time initialValue changes, your form value
   // will update the value of your form.
   allowReinitialize?: boolean
-  
-  // Should your form remember what fields have been touched and/or 
+
+  // Should your form remember what fields have been touched and/or
   // visited and if the submitCount should be reset to 0.
   rememberStateOnReinitialize?: boolean
-  
-  // For convenience. These props will become available to all 
+
+  // For convenience. These props will become available to all
   // Field components.
   commonFieldProps?: { [key: string]: any }
-  
-  // For convenience. Allows you so use the type prop on Field 
+
+  // For convenience. Allows you so use the type prop on Field
   // components instead of the render prope or the component prop.
   componentTypes?: ComponentTypes<T>
-  
+
   // The function to call on form submission
   onSubmit?: (formValue: T) => void
 }
@@ -71,22 +71,22 @@ Field components are the bread and butter of any form library and yafl's Field's
 
 ```ts
 interface FieldConfig<F extends object, T = any> {
-  // Name your field! Providing a number usually indicates that 
+  // Name your field! Providing a number usually indicates that
   // this field appears in an array.
   name: string | number
-  
-  // Similar to the type attribute of an HTML input, however this prop 
-  // is used as a key to match against the object supplied to the 
+
+  // Similar to the type attribute of an HTML input, however this prop
+  // is used as a key to match against the object supplied to the
   // componentTypes prop on a Form component.
   type?: string
-  
-  // A render prop that accepts an object containing all the good stuff 
+
+  // A render prop that accepts an object containing all the good stuff
   // you'll need to render a your Field.
   render?: (props: FieldProps<F, T>) => React.ReactNode
   // Specify a component to render
-  
+
   component?: React.ComponentType<FieldProps<F, T>>
-  // Any other props will be forwarded (along with any props specified by 
+  // Any other props will be forwarded (along with any props specified by
   // commonFieldProps on the Form component) to your component or render prop.
   [key: string]: any
 }
@@ -135,7 +135,7 @@ Cool, huh!
 interface SectionConfig<T> {
   // Like a Field, a Section also requires a name prop!
   name: Name
-  
+
   // The fallback prop is similar to the default value prop on the Form component,
   // except the difference is that it never gets merged with the form value.
   // Useful if the value for the Section is ever null or undefined. A fallback becomes especially handy
@@ -143,7 +143,7 @@ interface SectionConfig<T> {
   // anything but an empty array[] as the default value for a list of objects, we can specify a fallback value
   // to prevent warnings about uncontrolled inputs become controlled inputs.
   fallback?: T
-  
+
   children: React.ReactNode
 }
 ```
@@ -203,11 +203,11 @@ Will produce...
 ```ts
 interface RepeatConfig<T> {
   name: Name
-  
+
   // Serves the same purpose as a Section's fallback prop. This is usually more useful when dealing with arrays
   // since is allows you to call value.map() without worrying about value null or undefined
   fallback?: T[]
-  
+
   children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)
 }
 ```
@@ -220,12 +220,12 @@ Gizmos are general purpose components that can be used to render anything that i
 // withForm.js
 import { Gizmo, Form } from 'react-yafl'
 
-export default (Child) => ({ initialValue, onSubmit, /* other form props */ children, ...props }) => (
+export default (Comp) => ({ initialValue, onSubmit, /* other Form props */ children, ...props }) => (
   <Form
     onSubmit={onSubmit}
     initialValue={initialValue}
   >
-    <Gizmo render={utils => <Child {...utils} {...props}>{children}</Gizmo>} />
+    <Gizmo render={utils => <Comp {...utils} {...props}>{children}</Comp>} />
   </Form>
 )
 ```
@@ -249,9 +249,9 @@ export default withForm(MyForm)
 ```tsx
 interface GizmoConfig<F extends object> {
 	render?: (props: GizmoProps<F>) => React.ReactNode
-	
+
 	component?: React.ComponentType<GizmoProps<F>>
-	
+
   // Any other props will be forwarded to your component
   [key: string]: any
 }
@@ -330,13 +330,13 @@ Nice and declaritive.
 
 ```ts
 interface FaultProps {
-  // The error message. If this Fault component is rendered 
+  // The error message. If this Fault component is rendered
   // with the same path as another Fault component
   // the msg string will the pushed onto an array of error messages for the same path.
   msg: string
-  
-  // Override the path for a Fault. By default the path is determined by what 
-  // appears above this component in the Form component heirachy. Useful for errors 
+
+  // Override the path for a Fault. By default the path is determined by what
+  // appears above this component in the Form component heirachy. Useful for errors
   // that belong in the domain of a Section, Repeat, at the Form level
   // or for general errors.
   path?: Path
