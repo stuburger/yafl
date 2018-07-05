@@ -2,7 +2,6 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import get from 'lodash.get'
 import set from 'lodash.set'
-import merge from 'lodash.merge'
 import defaultsDeep from 'lodash.defaultsdeep'
 import { toStrPath, noop, isObject } from './utils'
 import isEqual from 'react-fast-compare'
@@ -11,11 +10,13 @@ import {
   Path,
   FormState,
   FormProvider,
-  BooleanTree,
   ComponentTypes,
   RegisteredField,
   RegisteredFields,
-  CommonFieldProps
+  CommonFieldProps,
+  SetFormValueFunc,
+  SetFormVisitedFunc,
+  SetFormTouchedFunc
 } from './sharedTypes'
 import FieldSink from './FieldSink'
 import { DefaultFieldTypeKey, DefaultGizmoTypeKey } from './defaults'
@@ -112,7 +113,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         defaultValue: {} as F,
         submitCount: 0,
         errorCount: 0,
-        touchCount: 0,
         errors: {}
       }
     }
@@ -191,12 +191,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     unregisterField(path: Path) {
       const key = toStrPath(path)
-      this.setState(({ registeredFields: prev, errors, touched, visited }) => {
+      this.setState(({ registeredFields: prev, touched, visited }) => {
         const registeredFields = { ...prev }
         delete registeredFields[key]
         return {
           registeredFields,
-          errors: immutable.del(errors, path as string[]),
           touched: immutable.del(touched, path as string[]),
           visited: immutable.del(visited, path as string[])
         }
@@ -214,8 +213,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     unregisterError(path: Path, error: string) {
       this.setState(({ errors: prev, errorCount }) => {
         const curr: string[] = get(prev, path as string[], [])
+        const next = curr.filter(x => x !== error)
         return {
-          errors: immutable.set(prev, path as string[], curr.filter(x => x !== error)),
+          errors: next.length
+            ? immutable.set(prev, path as string[], next)
+            : immutable.del(prev, path as string[]),
           errorCount: errorCount - 1
         }
       })
@@ -241,30 +243,27 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     setValue(path: Path, val: any, setTouched = true) {
-      this.setState(({ formValue: prev, touched, touchCount }) => ({
-        touchCount: touchCount + 1,
-        formValue: immutable.set(prev, path as string[], val),
+      this.setState(({ formValue, touched }) => ({
+        formValue: immutable.set(formValue, path as string[], val),
         touched: setTouched ? immutable.set(touched, path as string[], true) : touched
       }))
     }
 
-    setFormValue(val: any, overwrite = false) {
+    setFormValue(setFunc: SetFormValueFunc<F>) {
       this.setState(({ formValue }) => ({
-        formValue: overwrite ? val : merge({}, formValue, val)
+        formValue: setFunc(formValue)
       }))
     }
 
     touchField(path: Path, touched: boolean) {
-      this.setState(({ touched: prev, touchCount }) => ({
-        touchCount: touchCount + 1,
+      this.setState(({ touched: prev }) => ({
         touched: immutable.set(prev, path as string[], touched)
       }))
     }
 
-    setTouched(touched: BooleanTree<F>, overwrite = false) {
-      this.setState(({ touched: prev, touchCount }) => ({
-        touchCount: touchCount + 1,
-        touched: overwrite ? touched : merge({}, prev, touched)
+    setTouched(setFunc: SetFormTouchedFunc<F>) {
+      this.setState(({ touched }) => ({
+        touched: setFunc(touched)
       }))
     }
 
@@ -275,9 +274,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       }))
     }
 
-    setVisited(visited: BooleanTree<F>, overwrite = false) {
-      this.setState(({ visited: prev }) => ({
-        visited: overwrite ? visited : merge({}, prev, visited)
+    setVisited(setFunc: SetFormVisitedFunc<F>) {
+      this.setState(({ visited }) => ({
+        visited: setFunc(visited)
       }))
     }
 
@@ -286,21 +285,21 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     clearForm() {
-      const { defaultValue = {} } = this.props
-      this.setState({
+      const { defaultValue = {} as F } = this.props
+      this.setState(() => ({
         submitCount: 0,
-        registeredFields: {},
         touched: {},
         visited: {},
-        formValue: defaultValue as F
-      })
+        formValue: defaultValue
+      }))
     }
 
     resetForm() {
       this.setState(({ initialValue }) => ({
         formValue: initialValue || ({} as F),
-        registeredFields: {},
-        submitCount: 0
+        submitCount: 0,
+        touched: {},
+        visited: {}
       }))
     }
 
@@ -318,7 +317,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     render() {
       const { commonFieldProps = {}, componentTypes = {} } = this.props
-      const { errorCount, formValue, initialValue, initialMount, touchCount, ...state } = this.state
+      const { errorCount, formValue, initialValue, initialMount, ...state } = this.state
 
       return (
         <Provider
@@ -326,7 +325,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             ...state,
             formValue,
             errorCount,
-            touchCount,
             initialMount,
             commonFieldProps,
             path: startingPath,
@@ -349,7 +347,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             unwrapFormState: this.unwrapFormState,
             initialValue: initialValue || ({} as F),
             formIsValid: !initialMount || errorCount === 0,
-            formIsTouched: initialMount && touchCount > 0,
             formIsDirty: initialMount && !isEqual(initialValue, formValue),
             componentTypes: {
               ...componentTypes,

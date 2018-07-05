@@ -39,17 +39,11 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
       this.collectProps = this.collectProps.bind(this)
       this.registerField = this.registerField.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
-
-      this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
       this.registerField()
     }
 
     shouldComponentUpdate(np: InnerFieldProps<F, T>) {
       return listenForProps.some(key => !isEqual(np[key], this.props[key]))
-    }
-
-    componentDidUpdate(pp: InnerFieldProps<F, T>) {
-      this.registerFieldIfNeeded(pp)
     }
 
     componentWillUnmount() {
@@ -61,21 +55,14 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
       registerField(path, 'field')
     }
 
-    registerFieldIfNeeded(pp: InnerFieldProps<F, T>) {
-      const { registeredFields, path } = this.props
-      if (!registeredFields[toStrPath(path)]) {
-        this.registerField()
-      }
-    }
-
     unregisterField(): void {
       const { path, unregisterField } = this.props
       unregisterField(path)
     }
 
-    setValue(value: any): void {
+    setValue(value: T, touchField = true): void {
       const { path, setValue } = this.props
-      setValue(path, value)
+      setValue(path, value, touchField)
     }
 
     touchField(touched: boolean): void {
@@ -220,7 +207,7 @@ export default function<F extends object>(
       } = this.props
 
       return (
-        <FieldConsumer
+        <FieldConsumer<T>
           key={name}
           type={type}
           render={render}

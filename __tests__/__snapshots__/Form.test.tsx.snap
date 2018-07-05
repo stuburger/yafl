@@ -140,7 +140,6 @@ Array [
   },
   "submitCount": 0,
   "errorCount": 0,
-  "touchCount": 0,
   "commonFieldProps": {},
   "initialValue": {
     "firstName": "John",
@@ -155,7 +154,6 @@ Array [
     ]
   },
   "formIsValid": true,
-  "formIsTouched": false,
   "formIsDirty": false
 }
   </pre>,

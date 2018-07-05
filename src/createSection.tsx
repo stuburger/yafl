@@ -1,6 +1,6 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
-import { toStrPath, validateName, forkByName } from './utils'
+import { validateName, forkByName } from './utils'
 import isEqual from 'react-fast-compare'
 import { Name, FormProvider } from './sharedTypes'
 import { forkableProps } from './defaults'
@@ -29,7 +29,6 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
       this.registerField = this.registerField.bind(this)
-      this.registerFieldIfNeeded = this.registerFieldIfNeeded.bind(this)
       this.registerField()
     }
 
@@ -37,20 +36,9 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       return listenForProps.some(key => !isEqual(np[key], this.props[key]))
     }
 
-    componentDidUpdate(pp: ForkProviderConfig<F, T>) {
-      this.registerFieldIfNeeded()
-    }
-
     componentWillUnmount() {
       const { unregisterField, path } = this.props
       unregisterField(path)
-    }
-
-    registerFieldIfNeeded() {
-      const { registeredFields, path } = this.props
-      if (!registeredFields[toStrPath(path)]) {
-        this.registerField()
-      }
     }
 
     registerField() {
