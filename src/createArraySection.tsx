@@ -2,15 +2,8 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
 import { validateName, forkByName } from './utils'
-import { Name, FormProvider } from './sharedTypes'
+import { Name, FormProvider, ArrayHelpers } from './sharedTypes'
 import { forkableProps } from './defaults'
-
-export interface ArrayHelpers<T> {
-  push: (value: T) => void
-  shift: (index: number) => void
-  insert: (index: number, value: T) => void
-  remove: (index: number) => void
-}
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T[]> {
   name: Name
@@ -32,6 +25,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
       this.push = this.push.bind(this)
+      this.pop = this.pop.bind(this)
       this.insert = this.insert.bind(this)
       this.shift = this.shift.bind(this)
       this.remove = this.remove.bind(this)
@@ -58,14 +52,27 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       setValue(path, [...value, valueToPush], false)
     }
 
+    pop() {
+      const { setValue, path, value } = this.props
+      const nextValue = [...value]
+      const popped = nextValue.pop()
+      setValue(path, nextValue, false)
+      return popped
+    }
+
     insert(index: number, valueToInsert: T) {
       const { setValue, value, path } = this.props
-      setValue(path, value.splice(index, 0, valueToInsert), false)
+      const nextValue = [...value]
+      nextValue.splice(index, 0, valueToInsert)
+      setValue(path, nextValue, false)
     }
 
     remove(index: number) {
       const { setValue, value, path } = this.props
-      setValue(path, value.splice(index, 1), false)
+      const nextValue = [...value]
+      const ret = value.splice(index, 1)
+      setValue(path, nextValue, false)
+      return ret[0]
     }
 
     shift() {
@@ -83,6 +90,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
           {typeof children === 'function'
             ? children(props.value, {
                 push: this.push,
+                pop: this.pop,
                 insert: this.insert,
                 shift: this.shift,
                 remove: this.remove

@@ -22,3 +22,4 @@ export function createFormContext<F extends object>() {
 }
 
 export const { Form, Section, Field, Gizmo, Repeat, Fault } = createFormContext<any>()
+export { FieldProps, ArrayHelpers } from './sharedTypes'

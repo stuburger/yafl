@@ -16,9 +16,8 @@ yafl's philosophy is to "keep it super simple". While it provides a lot of funct
 - Create multi-page forms without needing to use specialized components or a state management library like flux or redux.
 - Create deeply nested forms or forms within forms.
 - Structure your Components to match the shape of your data. This means no more accessing field values using string paths!
-- Opt in features and functionality.
-- Pluggable validation
-- Fully featured and only weighing in at 8KB! Thats almost half the size of libraries offering similar functionality!
+- Validators? What validators?
+- Fully featured and weighing in at less than 8KB! Thats almost half the size of libraries offering similar functionality!
 
 ## Installation
 
@@ -91,6 +90,44 @@ interface FieldConfig<F extends object, T = any> {
   [key: string]: any
 }
 ```
+
+### Field Props
+
+The following is a list of props that are passed to the render prop or component prop for every Field where `T` and `F` correspond to the generic types for the Field and Form respectively.
+
+| Prop | Type | Description |
+| - | - | - |
+| `input` | [`InputProps<T>`](#field-inputprops) | An object containing the core handlers and props for an input. Allows for easy use of the spread operator. |
+| `path` | `string` | The path for this field. |
+| `visited` | `boolean` | Indicates whether this Field has been visited. Automatically set to true on when field.onBlur() is called. |
+| `touched` | `boolean` | Indicates whether this Field has been touched. Automatically set to true the first time a Field's value is changed. |
+| `isDirty` | `boolean` | Indicates whether the initialValue for this Field is different from its current value. |
+| `isActive` | `boolean` | Indicates whether this Field is currently in Focus. |
+| `isValid` | `boolean` | Indicates whether this Field is valid based on whether there are any Faults rendered that match the path of this Field. |
+| `errors` | `string[]` |  An array containing any errors for this Field based on whether there are any Faults rendered that match the path of this Field. |
+| `initialValue` | `T` | The value this Field was initialized with. |
+| `defaultValue` | `T` | The default value that this Field was initialized with. |
+| `setValue` |  `(value: T, touch?: boolean) => void` | Sets the value for this Field. Optionally specify if this Field should be touched when this function is called. Default is true. |
+| `formValue` | `F` | The current value of the Form |
+| `submitCount` | `number` | The number of times the form has been submitted.  |
+| `resetForm` | `() => void` |  Clears all form state. Form value is reset to its initialValue. |
+| `submit` | `() => void` |  Calls the onSubmit function supplied to the Form component  |
+| `forgetState` | `() => void` |  Resets submitCount, touched and visited. The form value is not reset. |
+| `clearForm` | `() => void` |  Clears all form state. Form value is reset to its defaultValue. |
+| `setFormValue` | `(set: SetFormValueFunc<F>) => void` |  Sets the form value imperatively. |
+| `setFormVisited` | `(set: SetFormVisitedFunc<F>) => void` |  Sets the form's visited state imperatively. Accepts a callback with the Form's previous value. |
+| `setFormTouched` | `(set: SetFormTouchedFunc<F>) => void` | Sets the form's touched state imperatively. Accepts a callback with the Form's previous visited state. |
+
+### Field InputProps
+
+| Prop | Type | Description |
+| - | - | - |
+| `name` | `string` | Forwarded from the name prop of this Field. |
+| `value` | `T` | The current value of this Field. |
+| `onBlur` | `(e: React.FocusEvent<any>) => void` | The onBlur handler for your input (DOM only). Useful if you need to keep track of which Fields have been visited. |
+| `onFocus` | `(e: React.FocusEvent<any>) => void` | The onFocus handler for your input (DOM only). Useful if you need to keep track of which field is currently active. |
+| `onChange` | `(e: React.ChangeEvent<any>) => void` | The onChange handler for your input (DOM only). Sets the value of this Field. |
+
 
 ## The **Section** Component
 
@@ -211,6 +248,16 @@ interface RepeatConfig<T> {
   children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)
 }
 ```
+
+### Repeat Props
+
+| Prop | Type | Description |
+| - | - | - |
+| `push` | `(value: T) => void` | Pushes an element onto the end of the array. |
+| `pop` | `() => T | undefined` | Removed the last element from the array and returns it. |
+| `shift` | `() => T` | Removes the first element from the array and returns it. |
+| `insert` | `(index: number, value: T) => void` | Inserts an element into the array at the specified index. |
+| `remove` | `(index: number) => T | undefined` | Removes an element from the array at the specified index. |
 
 ## The **Gizmo** Component
 

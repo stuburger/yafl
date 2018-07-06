@@ -5,10 +5,6 @@ import isEqual from 'react-fast-compare'
 import { Name, FormProvider } from './sharedTypes'
 import { forkableProps } from './defaults'
 
-export interface ArrayHelpers<T = any> {
-  push: (value: T[keyof T]) => void
-}
-
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
   name: Name
   children: React.ReactNode

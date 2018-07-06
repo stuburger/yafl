@@ -18,8 +18,10 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'componentTypes'
 ]
 
-function createField<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
-  return class FieldConsumer<T> extends React.Component<InnerFieldProps<F, T>> {
+// React.Provider<FormProvider<F, any>>
+// TODO provider types
+function createField(Provider: React.Provider<any>) {
+  return class FieldConsumer<T, F extends object> extends React.Component<InnerFieldProps<F, T>> {
     constructor(props: InnerFieldProps<F, T>) {
       super(props)
       this.onBlur = this.onBlur.bind(this)
@@ -110,7 +112,7 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
 
       return {
         input,
-        path: p.path,
+        path: toStrPath(p.path),
         errors: (p.errors || []) as any,
         visited: !!p.visited,
         touched: !!p.touched,
@@ -167,12 +169,12 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
 }
 
 export default function<F extends object>(
-  Provider: React.Provider<FormProvider<F, F>>,
-  Consumer: React.Consumer<FormProvider<F, F>>
+  Provider: React.Provider<FormProvider<any, any>>,
+  Consumer: React.Consumer<FormProvider<any, any>>
 ) {
-  const FieldConsumer = createField<F>(Provider)
+  const FieldConsumer = createField(Provider)
 
-  return class Field<T> extends React.PureComponent<FieldConfig<F, T>> {
+  return class Field<T, F1 extends F = F> extends React.PureComponent<FieldConfig<F1, T>> {
     static propTypes = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       type: PropTypes.string,
@@ -180,12 +182,12 @@ export default function<F extends object>(
       component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node])
     }
 
-    constructor(props: FieldConfig<F, T>) {
+    constructor(props: FieldConfig<F1, T>) {
       super(props)
       this._render = this._render.bind(this)
     }
 
-    _render(ip: FormProvider<F, any>) {
+    _render(ip: FormProvider<F1, any>) {
       const {
         name,
         render,
@@ -196,7 +198,7 @@ export default function<F extends object>(
       } = this.props
 
       return (
-        <FieldConsumer<T>
+        <FieldConsumer<T, F1>
           key={name}
           type={type}
           render={render}

@@ -104,7 +104,10 @@ export interface FieldProps<F extends object, T = any> extends FieldMeta<F, T> {
 }
 
 export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
-  path: Path
+  /**
+   * The path for this Field.
+   */
+  path: string
   /**
    * Indicates whether this Field has been visited. Automatically set to true on when field.onBlur() is called.
    */
@@ -155,6 +158,7 @@ export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
   setTouched: (value: boolean) => void
 }
 
+/* @internal */
 export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T> {
   name: Name
   formValue: F
@@ -166,6 +170,7 @@ export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T>
   forwardProps: { [key: string]: any }
 }
 
+/* @internal */
 export interface FormState<F extends object> {
   errorCount: number
   errors: FormErrors<F>
@@ -180,10 +185,41 @@ export interface FormState<F extends object> {
   submitCount: number
 }
 
+export interface ArrayHelpers<T> {
+  /**
+   * Pushes a value onto the end of the array.
+   * @param value The value to push onto the array.
+   */
+  push: (value: T) => void
+  /**
+   * Removed the last element from the array and returns it.
+   * @returns The last element in the array.
+   */
+  pop: () => T | undefined
+  /**
+   * Removes the first element from the array and returns it.
+   * @returns The first element in the array.
+   */
+  shift: () => T
+  /**
+   * Inserts an element into the array at the specified index.
+   * @param index The index at which to insert the value.
+   * @param value The value to insert into the array.
+   */
+  insert: (index: number, value: T) => void
+  /**
+   * Removes an element from the array at the specified index.
+   * @param index The index of the element to remove.
+   * @returns The value that was removed.
+   */
+  remove: (index: number) => T | undefined
+}
+
 export interface CommonFieldProps {
   [key: string]: any
 }
 
+/* @internal */
 export interface FormProvider<F extends object, T = F> {
   path: Path
   value: T
@@ -263,6 +299,7 @@ export interface GizmoConfig<F extends object> {
   [key: string]: any
 }
 
+/* @internal */
 export interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
   type: string
   formValue: F
