@@ -2,7 +2,7 @@ import * as React from 'react'
 import { createFormContext } from './src/index'
 import { Person, Contact } from './src/sharedTypes'
 
-const { Form, Section, Repeat, Field } = createFormContext()
+const { Form, Section, Repeat, Field } = createFormContext<Person>()
 
 interface Guy {
   name: string
@@ -26,7 +26,7 @@ const GuyFields = props => {
           return value.map((contact, i) => {
             return (
               <Section<Contact> name={i}>
-                <Field<string, Person>
+                <Field<string>
                   name="name"
                   parent={props.parent}
                   render={({ input, ...props }) => {

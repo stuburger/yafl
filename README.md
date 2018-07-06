@@ -6,7 +6,7 @@ YAFL - Yet Another Form Library
 
 ## Motivation
 
-Development on yafl only started after the release of React 16.3 and uses the React Context API behind the scenes to pass props between components. It has drawn a lot of inspiration from redux-form and formik (both awesome projects!)
+Development on yafl only started after the release of React 16.3 and uses the React Context API behind the scenes to pass props between components. It has drawn a lot of inspiration from Redux-Form and Formik (both awesome projects!)
 
 yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use.
 
@@ -35,28 +35,27 @@ Note: if you are nesting forms this may cause some pretty strange behaviour. If 
 
 ```ts
 interface FormConfig<T extends object> {
-  // The initial value of your form. Once this value becomes
-  // truthy you form will initialize.
+  // The initial value of your Form. Once this value becomes
+  // truthy your Form will initialize.
   initialValue?: T
 
   // The defaultValue is merged with initialValue on initialization
   // to replace any missing values.
   defaultValue?: T
 
-  // When true, any time initialValue changes, your form value
-  // will update the value of your form.
+  // When true, any time the initialValue prop changes your Form will be reinitialized
   allowReinitialize?: boolean
 
-  // Should your form remember what fields have been touched and/or
-  // visited and if the submitCount should be reset to 0.
+  // Specify whether your Form should remember what fields have been touched and/or
+  // visited and if the submitCount should be reset to 0 when the initialValue prop changes.
   rememberStateOnReinitialize?: boolean
 
-  // For convenience. These props will become available to all
+  // For convenience. Uses React's context API to make these values available to all
   // Field components.
   commonFieldProps?: { [key: string]: any }
 
-  // For convenience. Allows you so use the type prop on Field
-  // components instead of the render prope or the component prop.
+  // For convenience. Allows you so use the "type" prop on Field
+  // components instead of the render prop or the component prop.
   componentTypes?: ComponentTypes<T>
 
   // The function to call on form submission
@@ -109,14 +108,14 @@ The following is a list of props that are passed to the render prop or component
 | `defaultValue` | `T` | The default value that this Field was initialized with. |
 | `setValue` |  `(value: T, touch?: boolean) => void` | Sets the value for this Field. Optionally specify if this Field should be touched when this function is called. Default is true. |
 | `formValue` | `F` | The current value of the Form |
-| `submitCount` | `number` | The number of times the form has been submitted.  |
-| `resetForm` | `() => void` |  Clears all form state. Form value is reset to its initialValue. |
+| `submitCount` | `number` | The number of times the Form has been submitted.  |
+| `resetForm` | `() => void` |  Clears all Form state. Form value is reset to its initialValue. |
 | `submit` | `() => void` |  Calls the onSubmit function supplied to the Form component  |
-| `forgetState` | `() => void` |  Resets submitCount, touched and visited. The form value is not reset. |
-| `clearForm` | `() => void` |  Clears all form state. Form value is reset to its defaultValue. |
-| `setFormValue` | `(set: SetFormValueFunc<F>) => void` |  Sets the form value imperatively. |
-| `setFormVisited` | `(set: SetFormVisitedFunc<F>) => void` |  Sets the form's visited state imperatively. Accepts a callback with the Form's previous value. |
-| `setFormTouched` | `(set: SetFormTouchedFunc<F>) => void` | Sets the form's touched state imperatively. Accepts a callback with the Form's previous visited state. |
+| `forgetState` | `() => void` |  Resets submitCount, touched and visited. The Form value is not reset. |
+| `clearForm` | `() => void` |  Clears all Form state. Form value is reset to its defaultValue. |
+| `setFormValue` | `(set: SetFormValueFunc<F>) => void` |  Sets the Form value imperatively. |
+| `setFormVisited` | `(set: SetFormVisitedFunc<F>) => void` |  Sets the Form's visited state imperatively. Accepts a callback with the Form's previous value. |
+| `setFormTouched` | `(set: SetFormTouchedFunc<F>) => void` | Sets the Form's touched state imperatively. Accepts a callback with the Form's previous visited state. |
 
 ### Field InputProps
 
@@ -131,7 +130,7 @@ The following is a list of props that are passed to the render prop or component
 
 ## The **Section** Component
 
-Section components give your forms depth. The `name` prop of a `<Section />` will become the key of an object value in your form. If a `<Field />` appears anywhere in a sections children it will be a property of that section. So, for example, the following piece of JSX
+Section components give your forms depth. The `name` prop of a `<Section />` will become the key of an object value in your Form. If a `<Field />` appears anywhere in a sections children it will be a property of that section. So, for example, the following piece of JSX
 
 ```jsx
 // Leaving out some required props for the sake of brevity
@@ -148,7 +147,7 @@ Section components give your forms depth. The `name` prop of a `<Section />` wil
 </Form>
 
 ```
-will produce a form value object with the following shape
+will produce a Form value object with the following shape
 
 ```js
   {
@@ -174,7 +173,7 @@ interface SectionConfig<T> {
   name: Name
 
   // The fallback prop is similar to the default value prop on the Form component,
-  // except the difference is that it never gets merged with the form value.
+  // except the difference is that it never gets merged with the formValue.
   // Useful if the value for the Section is ever null or undefined. A fallback becomes especially handy
   // if your Section component is rendered within a Repeat. Since it usually doesn't make much sense to assign
   // anything but an empty array[] as the default value for a list of objects, we can specify a fallback value
@@ -251,6 +250,12 @@ interface RepeatConfig<T> {
 
 ### Repeat Props
 
+The Repeat Component uses the function as a child pattern. The first argument is the value of this Repeat section. The second argument is an object of array helper functions which provide some simple array manipulation functionality.
+
+`children: (value: T[], utils: ArrayHelpers<T>) => React.ReactNode`
+
+### Array Helpers
+
 | Prop | Type | Description |
 | - | - | - |
 | `push` | `(value: T) => void` | Pushes an element onto the end of the array. |
@@ -306,7 +311,7 @@ interface GizmoConfig<F extends object> {
 
 ## The **Fault** Component
 
-A Fault is a basic component, but that doesn't make them any less useful! In fact you might find yourself rendering quite a few of them! Faults are how yafl does validation and they require a small shift in the way you think about form validation. While other form libraries do validation using a `validate` prop, yafl doesn't have validators. Yup, you read that correctly! So, you might be wondering where you provide your validation function. Field level validation? Async blur/change validation? What about a synchronous validate prop on the form? Nope, nope and definitely nope. Check it out:
+A Fault is a basic component, but that doesn't make them any less useful! In fact you might find yourself rendering quite a few of them! Faults are how yafl does validation and they require a small shift in the way you think about form validation. While other form libraries do validation using a `validate` prop, yafl doesn't have validators. So, you might be wondering where you provide your validation function. Field level validation? Async blur/change validation? What about a synchronous validate prop on the form? Nope, nope and definitely nope. Yafl does things a bit differently. Check it out:
 
 ```jsx
 // FaultExample.js

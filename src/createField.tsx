@@ -15,7 +15,8 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'formValue',
   'submitCount',
   'forwardProps',
-  'componentTypes'
+  'componentTypes',
+  'commonFieldProps'
 ]
 
 // React.Provider<FormProvider<F, any>>
