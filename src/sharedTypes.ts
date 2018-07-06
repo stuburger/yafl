@@ -14,7 +14,7 @@ export interface FormMeta<T extends object> {
   /**
    * The current value of the form.
    */
-  value: T
+  formValue: T
   /**
    * The number of times the form has been submitted.
    */
@@ -44,24 +44,12 @@ export interface FormMeta<T extends object> {
    * Sets the form's visited state imperatively.
    * @param set A function that accepts the previous visited state and returns the next visited state.
    */
-  setVisited: (set: SetFormVisitedFunc<T>) => void
+  setFormVisited: (set: SetFormVisitedFunc<T>) => void
   /**
    * Sets the form's touched state imperatively.
    * @param set A function that accepts the previous touched state and returns the next touched state.
    */
-  setTouched: (set: SetFormTouchedFunc<T>) => void
-  /**
-   * Sets a Field's visited state imperatively.
-   * @param path The string or array path of the Field to visit or unvisit.
-   * @param value A boolean value to which this Field's visited state should be set.
-   */
-  visitField: (path: Path, visited: boolean) => void
-  /**
-   * Sets a Field's touched state imperatively.
-   * @param path The string or array path of the Field to touch or untouch
-   * @param value A boolean value to which this Field's touched state should be set.
-   */
-  touchField: ((path: Path, touched: boolean) => void)
+  setFormTouched: (set: SetFormTouchedFunc<T>) => void
 }
 
 export interface SetFormValueFunc<T extends object> {
@@ -110,14 +98,12 @@ export interface FieldConfig<F extends object, T = any> {
   component?: React.ComponentType<FieldProps<F, T>>
   [key: string]: any
 }
-export interface FieldProps<F extends object, T = any> {
+export interface FieldProps<F extends object, T = any> extends FieldMeta<F, T> {
   input: InputProps<T>
-  field: FieldMeta<T>
-  form: FormMeta<F>
   [key: string]: any
 }
 
-export interface FieldMeta<T = any> {
+export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
   path: Path
   /**
    * Indicates whether this Field has been visited. Automatically set to true on when field.onBlur() is called.
@@ -228,8 +214,8 @@ export interface FormProvider<F extends object, T = F> {
   unregisterError: ((path: Path, error: string) => void)
   setFormValue: (setFunc: SetFormValueFunc<F>) => void
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
-  setTouched: (setFunc: SetFormTouchedFunc<F>) => void
-  setVisited: (setFunc: SetFormVisitedFunc<F>) => void
+  setFormTouched: (setFunc: SetFormTouchedFunc<F>) => void
+  setFormVisited: (setFunc: SetFormVisitedFunc<F>) => void
   unregisterField: ((path: Path) => void)
   registerField: ((path: Path, type: 'section' | 'field') => void)
 }
@@ -297,11 +283,9 @@ export interface GeneralComponentConfig<F extends object> extends GizmoConfig<F>
   componentTypes: ComponentTypes<F>
   setActiveField: ((path: string | null) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
-  touchField: ((path: Path, touched: boolean) => void)
-  visitField: ((path: Path, visited: boolean) => void)
   setFormValue: (set: SetFormValueFunc<F>) => void
-  setTouched: (set: SetFormTouchedFunc<F>) => void
-  setVisited: (set: SetFormVisitedFunc<F>) => void
+  setFormTouched: (set: SetFormTouchedFunc<F>) => void
+  setFormVisited: (set: SetFormVisitedFunc<F>) => void
   forwardProps: { [key: string]: any }
 }
 

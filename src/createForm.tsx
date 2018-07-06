@@ -27,6 +27,7 @@ const startingPath: Path = []
 export interface FormConfig<T extends object> {
   initialValue?: T
   defaultValue?: T
+  disabled?: boolean
   children: React.ReactNode
   allowReinitialize?: boolean
   onSubmit?: (formValue: T) => void
@@ -335,14 +336,14 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             value: this.state.formValue,
             visitField: this.visitField,
             touchField: this.touchField,
-            setTouched: this.setTouched,
-            setVisited: this.setVisited,
             forgetState: this.forgetState,
+            setFormTouched: this.setTouched,
+            setFormVisited: this.setVisited,
             setFormValue: this.setFormValue,
             registerError: this.registerError,
-            unregisterError: this.unregisterError,
             registerField: this.registerField,
             setActiveField: this.setActiveField,
+            unregisterError: this.unregisterError,
             unregisterField: this.unregisterField,
             unwrapFormState: this.unwrapFormState,
             initialValue: initialValue || ({} as F),

@@ -1,14 +1,6 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
-import {
-  FormMeta,
-  FormProvider,
-  InnerFieldProps,
-  FieldProps,
-  InputProps,
-  FieldConfig,
-  FieldMeta
-} from './sharedTypes'
+import { FormProvider, InnerFieldProps, FieldProps, InputProps, FieldConfig } from './sharedTypes'
 import { toStrPath, validateName, forkByName } from './utils'
 import isEqual from 'react-fast-compare'
 import { DefaultFieldTypeKey, forkableProps } from './defaults'
@@ -107,6 +99,7 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
 
     collectProps(): FieldProps<F, T> {
       const p = this.props
+
       const input: InputProps = {
         name: p.name,
         value: p.value,
@@ -115,7 +108,8 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
         onChange: this.onChange
       }
 
-      const field: FieldMeta = {
+      return {
+        input,
         path: p.path,
         errors: (p.errors || []) as any,
         visited: !!p.visited,
@@ -127,24 +121,19 @@ function createField<F extends object>(Provider: React.Provider<FormProvider<F, 
         defaultValue: p.defaultValue,
         isValid: ((p.errors || []) as any).length === 0,
         isActive: p.activeField === toStrPath(p.path),
-        isDirty: p.formIsDirty && p.initialValue === p.value
-      }
-
-      const form: FormMeta<F> = {
+        isDirty: p.formIsDirty && p.initialValue === p.value,
         submit: p.submit,
-        value: p.formValue,
+        formValue: p.formValue,
         resetForm: p.resetForm,
         setFormValue: p.setFormValue,
         submitCount: p.submitCount,
         forgetState: p.forgetState,
-        setVisited: p.setVisited,
-        setTouched: p.setTouched,
+        setFormVisited: p.setFormVisited,
+        setFormTouched: p.setFormTouched,
         clearForm: p.clearForm,
-        visitField: p.visitField,
-        touchField: p.touchField
+        ...p.commonFieldProps,
+        ...p.forwardProps
       }
-
-      return { input, field, form, ...p.commonFieldProps, ...p.forwardProps }
     }
 
     render() {

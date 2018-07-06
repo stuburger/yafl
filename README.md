@@ -246,14 +246,14 @@ export default withForm(MyForm)
 ```
 
 ### Gizmo Configuration Props
-```tsx
+```ts
 interface GizmoConfig<F extends object> {
-	render?: (props: GizmoProps<F>) => React.ReactNode
+ render?: (props: GizmoProps<F>) => React.ReactNode
 
-	component?: React.ComponentType<GizmoProps<F>>
+ component?: React.ComponentType<GizmoProps<F>>
 
-  // Any other props will be forwarded to your component
-  [key: string]: any
+// Any other props will be forwarded to your component
+ [key: string]: any
 }
 ```
 
@@ -283,7 +283,7 @@ import { Form, Field, Fault } from 'react-yafl'
     component={TextInput}
   />
   <Gizmo
-    render={({ value }) => value.password !== value.confirmPassword && (
+    render={({ formValue }) => formValue.password !== formValue.confirmPassword && (
       <Fault path="issues" msg="Oops, passwords do not match!" />
     )}
   />

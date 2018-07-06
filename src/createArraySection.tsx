@@ -7,6 +7,7 @@ import { forkableProps } from './defaults'
 
 export interface ArrayHelpers<T> {
   push: (value: T) => void
+  shift: (index: number) => void
   insert: (index: number, value: T) => void
   remove: (index: number) => void
 }
@@ -32,6 +33,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       super(props)
       this.push = this.push.bind(this)
       this.insert = this.insert.bind(this)
+      this.shift = this.shift.bind(this)
       this.remove = this.remove.bind(this)
       this.registerField = this.registerField.bind(this)
       this.registerField()
@@ -66,13 +68,25 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       setValue(path, value.splice(index, 1), false)
     }
 
+    shift() {
+      const { setValue, value, path } = this.props
+      const temp = value[0]
+      setValue(path, value.splice(1), false)
+      return temp
+    }
+
     render() {
       const { name, children, ...props } = this.props
 
       return (
         <Provider value={props}>
           {typeof children === 'function'
-            ? children(props.value, { push: this.push, insert: this.insert, remove: this.remove })
+            ? children(props.value, {
+                push: this.push,
+                insert: this.insert,
+                shift: this.shift,
+                remove: this.remove
+              })
             : children}
         </Provider>
       )
