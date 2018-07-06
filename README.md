@@ -311,7 +311,7 @@ interface GizmoConfig<F extends object> {
 
 ## The **Fault** Component
 
-A Fault is a basic component, but that doesn't make them any less useful! In fact you might find yourself rendering quite a few of them! Faults are how yafl does validation and they require a small shift in the way you think about form validation. While other form libraries do validation using a `validate` prop, yafl doesn't have validators. So, you might be wondering where you provide your validation function. Field level validation? Async blur/change validation? What about a synchronous validate prop on the form? Nope, nope and definitely nope. Yafl does things a bit differently. Check it out:
+A Fault is a basic component, but that doesn't make them any less useful! In fact you might find yourself rendering quite a few of them! Faults are how yafl does validation and they require a small shift in the way you think about form validation. While other form libraries usually do validation using a `validate` prop, yafl doesn't have the concept of validators. Instead in order to validate your Form you can conditionally render an error component. This has the benefit of solving many of the edge cases around validation - the most obvious example being async change or blur validation. Since validation is done in this declaritive style there is no need for specialized props of any kind and reduces yafl's API surface area significantly. Here's an example:
 
 ```jsx
 // FaultExample.js
