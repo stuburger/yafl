@@ -109,11 +109,11 @@ The following is a list of props that are passed to the render prop or component
 | `setValue` |  `(value: T, touch?: boolean) => void` | Sets the value for this Field. Optionally specify if this Field should be touched when this function is called. Default is true. |
 | `formValue` | `F` | The current value of the Form |
 | `submitCount` | `number` | The number of times the Form has been submitted.  |
-| `resetForm` | `() => void` |  Clears all Form state. Form value is reset to its initialValue. |
+| `resetForm` | `() => void` |  Clears all Form state. `formValue` is reset to its initialValue. |
 | `submit` | `() => void` |  Calls the onSubmit function supplied to the Form component  |
-| `forgetState` | `() => void` |  Resets submitCount, touched and visited. The Form value is not reset. |
-| `clearForm` | `() => void` |  Clears all Form state. Form value is reset to its defaultValue. |
-| `setFormValue` | `(set: SetFormValueFunc<F>) => void` |  Sets the Form value imperatively. |
+| `forgetState` | `() => void` |  Resets submitCount, touched and visited. The `formValue` is not reset. |
+| `clearForm` | `() => void` |  Clears all Form state. `formValue` is reset to its defaultValue. |
+| `setFormValue` | `(set: SetFormValueFunc<F>) => void` |  Sets the `formValue` imperatively. |
 | `setFormVisited` | `(set: SetFormVisitedFunc<F>) => void` |  Sets the Form's visited state imperatively. Accepts a callback with the Form's previous value. |
 | `setFormTouched` | `(set: SetFormTouchedFunc<F>) => void` | Sets the Form's touched state imperatively. Accepts a callback with the Form's previous visited state. |
 
@@ -147,7 +147,7 @@ Section components give your forms depth. The `name` prop of a `<Section />` wil
 </Form>
 
 ```
-will produce a Form value object with the following shape
+will produce a `formValue` object with the following shape
 
 ```js
   {

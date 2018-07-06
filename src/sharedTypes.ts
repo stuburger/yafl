@@ -20,7 +20,7 @@ export interface FormMeta<T extends object> {
    */
   submitCount: number
   /**
-   * Clears all form state. Form value is reset to its initialValue.
+   * Clears all form state. formValue is reset to initialValue.
    */
   resetForm: () => void
   /**
@@ -32,7 +32,7 @@ export interface FormMeta<T extends object> {
    */
   forgetState: () => void
   /**
-   * Clears all form state. Form value is reset to its defaultValue.
+   * Clears all form state. formValue is reset to its defaultValue.
    */
   clearForm: () => void
   /**
@@ -270,7 +270,7 @@ export interface GizmoProps<F extends object> extends FormMeta<F> {
    */
   formIsValid: boolean
   /**
-   * Indicates whether the Form is dirty based on whether the current Form value is equal to the Form's initialValue.
+   * Indicates whether the Form is dirty based on whether formValue is equal to initialValue.
    */
   formIsDirty: boolean
   /**
