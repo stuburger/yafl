@@ -147,7 +147,7 @@ Section components give your forms depth. The `name` prop of a `<Section />` wil
 </Form>
 
 ```
-will produce a `formValue` object with the following shape
+will produce a `formValue` object that looks like
 
 ```js
   {
