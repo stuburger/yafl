@@ -200,7 +200,7 @@ export interface ArrayHelpers<T> {
    * Removes the first element from the array and returns it.
    * @returns The first element in the array.
    */
-  shift: () => T
+  shift: () => T | undefined
   /**
    * Inserts an element into the array at the specified index.
    * @param index The index at which to insert the value.

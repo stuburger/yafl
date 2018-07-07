@@ -259,10 +259,10 @@ The Repeat Component uses the function as a child pattern. The first argument is
 | Prop | Description |
 | - | - |
 | `push: (value: T) => void` | Pushes an element onto the end of the array. |
-| `pop: () => T | undefined` | Removed the last element from the array and returns it. |
-| `shift: () => T | undefined` | Removes the first element from the array and returns it. |
+| `pop: () => T \| undefined` | Removed the last element from the array and returns it. |
+| `shift: () => T \| undefined` | Removes the first element from the array and returns it. |
 | `insert: (index: number, value: T) => void` | Inserts an element into the array at the specified index. |
-| `remove: (index: number) => T | undefined` | Removes an element from the array at the specified index. |
+| `remove: (index: number) => T \| undefined` | Removes an element from the array at the specified index. |
 
 ## The **Gizmo** Component
 
