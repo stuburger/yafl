@@ -1,10 +1,7 @@
 export type Name = string | number
 export type Path = Name[]
 
-export type BooleanTree<T> =
-  | { [K in keyof T]?: T[K] extends object ? BooleanTree<T[K]> : boolean }
-  | undefined
-  | boolean
+export type BooleanTree<T> = { [K in keyof T]?: T[K] extends object ? BooleanTree<T[K]> : boolean }
 
 export type FormErrors<T extends object> = {
   [P in keyof T]?: T[P] extends object ? FormErrors<T[P]> : string[]
@@ -172,17 +169,17 @@ export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T>
 
 /* @internal */
 export interface FormState<F extends object> {
+  formValue: F
+  defaultValue: F
   errorCount: number
+  submitCount: number
   errors: FormErrors<F>
   initialMount: boolean
   touched: BooleanTree<F>
   visited: BooleanTree<F>
-  activeField: string | null
   initialValue: F | null
-  defaultValue: F
-  formValue: F
-  registeredFields: RegisteredFields
-  submitCount: number
+  activeField: string | null
+  registeredFields: BooleanTree<F>
 }
 
 export interface ArrayHelpers<T> {
@@ -231,7 +228,6 @@ export interface FormProvider<F extends object, T = F> {
   touched: BooleanTree<T>
   visited: BooleanTree<T>
   activeField: string | null
-  registeredFields: RegisteredFields
   componentTypes: ComponentTypes<F>
   submitCount: number
   formIsValid: boolean

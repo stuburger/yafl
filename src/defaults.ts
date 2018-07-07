@@ -1,8 +1,5 @@
 import { FormProvider } from './sharedTypes'
 
-// const { whyDidYouUpdate } = require('why-did-you-update')
-// whyDidYouUpdate(React)
-
 /* @internal */
 export interface Noop {
   (): never
@@ -38,7 +35,6 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     visited: {},
     errors: {},
     errorCount: 0,
-    registeredFields: {},
     commonFieldProps: {},
     submit: noop,
     setValue: noop,

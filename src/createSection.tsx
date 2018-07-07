@@ -2,7 +2,7 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import { validateName, forkByName } from './utils'
 import isEqual from 'react-fast-compare'
-import { Name, FormProvider } from './sharedTypes'
+import { Name, FormProvider, Path } from './sharedTypes'
 import { forkableProps } from './defaults'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
@@ -15,6 +15,7 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
   'errors',
   'touched',
   'visited',
+  'children',
   'errorCount',
   'submitCount',
   'activeField'
@@ -22,29 +23,32 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
 
 function createForkProvider<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
   return class ForkProvider<T> extends React.Component<ForkProviderConfig<F, T>> {
+    unmounted = false
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
-      this.registerField = this.registerField.bind(this)
-      this.registerField()
+      this.unregisterField = this.unregisterField.bind(this)
     }
 
     shouldComponentUpdate(np: ForkProviderConfig<F, T>) {
       return listenForProps.some(key => !isEqual(np[key], this.props[key]))
     }
 
-    componentWillUnmount() {
-      const { unregisterField, path } = this.props
+    unregisterField(path: Path) {
+      if (this.unmounted) return
+      const { unregisterField } = this.props
       unregisterField(path)
     }
 
-    registerField() {
-      const { path, registerField } = this.props
-      registerField(path, 'section')
+    componentWillUnmount() {
+      this.unregisterField(this.props.path)
+      this.unmounted = true
     }
 
     render() {
-      const { name, children, ...props } = this.props
-      return <Provider value={props}>{children}</Provider>
+      const { name, children, unregisterField, ...props } = this.props
+      return (
+        <Provider value={{ ...props, unregisterField: this.unregisterField }}>{children}</Provider>
+      )
     }
   }
 }

@@ -16,7 +16,6 @@ const expected = {
   visited: {},
   errors: {},
   errorCount: 0,
-  registeredFields: {},
   commonFieldProps: {},
   submit: noop,
   resetForm: noop,

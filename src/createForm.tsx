@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import get from 'lodash.get'
 import set from 'lodash.set'
 import defaultsDeep from 'lodash.defaultsdeep'
-import { toStrPath, noop, isObject } from './utils'
+import { noop, isObject } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -12,7 +12,6 @@ import {
   FormProvider,
   ComponentTypes,
   RegisteredField,
-  RegisteredFields,
   CommonFieldProps,
   SetFormValueFunc,
   SetFormVisitedFunc,
@@ -21,6 +20,9 @@ import {
 import FieldSink from './FieldSink'
 import { DefaultFieldTypeKey, DefaultGizmoTypeKey } from './defaults'
 import GizmoSink from './GizmoSink'
+
+// const { whyDidYouUpdate } = require('why-did-you-update')
+// whyDidYouUpdate(React)
 
 const startingPath: Path = []
 
@@ -80,7 +82,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       }
     }
 
-    fieldsToRegister: RegisteredField[] = []
+    registerCache: RegisteredField[] = []
     constructor(props: FormConfig<F>) {
       super(props)
 
@@ -102,7 +104,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.unregisterField = this.unregisterField.bind(this)
       this.registerError = this.registerError.bind(this)
       this.unregisterError = this.unregisterError.bind(this)
-      this.flush = this.flush.bind(this)
+      this.flushCache = this.flushCache.bind(this)
       this.state = {
         initialMount: false,
         formValue: {} as F,
@@ -170,55 +172,55 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     componentDidUpdate(pp: FormConfig<F>) {
-      this.flush()
+      this.flushCache()
     }
 
-    flush() {
-      if (this.fieldsToRegister.length > 0) {
-        let fields: RegisteredFields = {}
-        let field: RegisteredField | undefined
-        while ((field = this.fieldsToRegister.pop())) {
-          fields[toStrPath(field.path)] = field
-        }
-        this.setState(({ registeredFields }) => ({
-          registeredFields: { ...registeredFields, ...fields }
-        }))
+    flushCache() {
+      if (this.registerCache.length > 0) {
+        this.setState(({ registeredFields: fields }) => {
+          const registeredFields = { ...(fields as object) }
+          let field: RegisteredField | undefined
+          while ((field = this.registerCache.pop())) {
+            set(registeredFields, field.path, true)
+          }
+          return { registeredFields }
+        })
       }
     }
 
     registerField(path: Path, type: 'section' | 'field') {
-      this.fieldsToRegister.push({ path, type })
+      this.registerCache.push({ path, type })
     }
 
     unregisterField(path: Path) {
-      const key = toStrPath(path)
-      this.setState(({ registeredFields: prev, touched, visited }) => {
-        const registeredFields = { ...prev }
-        delete registeredFields[key]
+      this.setState(({ registeredFields, touched, visited }) => {
         return {
-          registeredFields,
           touched: immutable.del(touched, path as string[]),
-          visited: immutable.del(visited, path as string[])
+          visited: immutable.del(visited, path as string[]),
+          registeredFields: immutable.del(registeredFields, path as string[])
         }
       })
     }
 
     registerError(path: Path, error: string) {
-      this.setState(({ errors: prev, errorCount }) => {
-        const curr = get(prev, path as string[], [])
+      this.setState(({ errors, errorCount }) => {
+        const curr = get(errors, path as string[], [])
         const errs = Array.isArray(curr) ? [...curr, error] : [error]
-        return { errors: immutable.set(prev, path as string[], errs), errorCount: errorCount + 1 }
+        return {
+          errorCount: errorCount + 1,
+          errors: immutable.set(errors, path as string[], errs)
+        }
       })
     }
 
     unregisterError(path: Path, error: string) {
-      this.setState(({ errors: prev, errorCount }) => {
-        const curr: string[] = get(prev, path as string[], [])
+      this.setState(({ errors, errorCount }) => {
+        const curr: string[] = get(errors, path as string[], [])
         const next = curr.filter(x => x !== error)
         return {
           errors: next.length
-            ? immutable.set(prev, path as string[], next)
-            : immutable.del(prev, path as string[]),
+            ? immutable.set(errors, path as string[], next)
+            : immutable.del(errors, path as string[]),
           errorCount: errorCount - 1
         }
       })
@@ -230,17 +232,18 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setState(({ submitCount }) => ({
         submitCount: submitCount + 1
       }))
-
-      if (includeUnregisteredFields) {
-        onSubmit(formValue)
-      } else {
-        const retval: F = {} as F
-        Object.keys(registeredFields).forEach(key => {
-          const path = registeredFields[key].path
-          set(retval, path, get(formValue, path))
-        })
-        onSubmit(retval)
-      }
+      console.log(registeredFields)
+      // if (includeUnregisteredFields) {
+      onSubmit(formValue)
+      // }
+      // else {
+      //   const retval: F = {} as F
+      //   Object.keys(registeredFields).forEach(key => {
+      //     const path = registeredFields[key].path
+      //     set(retval, path, get(formValue, path))
+      //   })
+      //   onSubmit(retval)
+      // }
     }
 
     setValue(path: Path, val: any, setTouched = true) {
@@ -318,7 +321,14 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     render() {
       const { commonFieldProps = {}, componentTypes = {} } = this.props
-      const { errorCount, formValue, initialValue, initialMount, ...state } = this.state
+      const {
+        errorCount,
+        formValue,
+        initialValue,
+        initialMount,
+        registeredFields,
+        ...state
+      } = this.state
 
       return (
         <Provider

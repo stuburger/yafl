@@ -12,7 +12,6 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'errors',
   'touched',
   'visited',
-  'formValue',
   'submitCount',
   'forwardProps',
   'componentTypes',

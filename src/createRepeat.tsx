@@ -2,7 +2,7 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
 import { validateName, forkByName } from './utils'
-import { Name, FormProvider, ArrayHelpers } from './sharedTypes'
+import { Name, FormProvider, ArrayHelpers, Path } from './sharedTypes'
 import { forkableProps } from './defaults'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T[]> {
@@ -15,6 +15,7 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
   'errors',
   'touched',
   'visited',
+  'children',
   'errorCount',
   'activeField',
   'submitCount'
@@ -22,6 +23,7 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
 
 function createForkProvider<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
   return class ForkProvider<T> extends React.Component<ForkProviderConfig<F, T>> {
+    unmounted = false
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
       this.push = this.push.bind(this)
@@ -29,22 +31,24 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       this.insert = this.insert.bind(this)
       this.shift = this.shift.bind(this)
       this.remove = this.remove.bind(this)
-      this.registerField = this.registerField.bind(this)
-      this.registerField()
+      this.unregisterField = this.unregisterField.bind(this)
     }
 
     shouldComponentUpdate(np: ForkProviderConfig<F, T>) {
       return listenForProps.some(key => !isEqual(np[key], this.props[key]))
     }
 
-    componentWillUnmount() {
-      const { unregisterField, path } = this.props
+    unregisterField(path: Path) {
+      if (this.unmounted) return
+      const { unregisterField } = this.props
       unregisterField(path)
     }
 
-    registerField() {
-      const { path, registerField } = this.props
-      registerField(path, 'section')
+    componentWillUnmount() {
+      // no need to unregister child Fields since calling unregister on the section
+      // will also unregister all of its children
+      this.unregisterField(this.props.path)
+      this.unmounted = true
     }
 
     push(valueToPush: T) {
@@ -70,23 +74,24 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     remove(index: number) {
       const { setValue, value, path } = this.props
       const nextValue = [...value]
-      const ret = value.splice(index, 1)
+      const ret = nextValue.splice(index, 1)
       setValue(path, nextValue, false)
       return ret[0]
     }
 
     shift() {
       const { setValue, value, path } = this.props
-      const temp = value[0]
-      setValue(path, value.splice(1), false)
+      const nextValue = [...value]
+      const temp = nextValue[0]
+      setValue(path, nextValue.splice(1), false)
       return temp
     }
 
     render() {
-      const { name, children, ...props } = this.props
+      const { name, children, unregisterField, ...props } = this.props
 
       return (
-        <Provider value={props}>
+        <Provider value={{ ...props, unregisterField: this.unregisterField }}>
           {typeof children === 'function'
             ? children(props.value, {
                 push: this.push,

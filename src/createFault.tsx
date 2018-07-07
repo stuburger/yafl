@@ -31,19 +31,23 @@ export class InnerError extends React.Component<InnerFaultProps> {
 export interface FaultProps {
   msg: string
   path?: Path
+  isValid?: boolean
 }
 
 export default function createFault(Consumer: React.Consumer<FormProvider<any, any>>) {
-  return class Fault extends React.Component<FaultProps> {
+  return class Fault extends React.PureComponent<FaultProps> {
     static propTypes = {
       msg: PropTypes.string,
-      preventSubmit: PropTypes.bool,
+      isValid: PropTypes.bool,
       path: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])
     }
+
     render() {
-      const { msg, path } = this.props
+      const { msg, path, isValid = false } = this.props
       return (
-        <Consumer>{props => <InnerError key={msg + path} {...props} {...this.props} />}</Consumer>
+        !isValid && (
+          <Consumer>{props => <InnerError key={msg + path} {...props} {...this.props} />}</Consumer>
+        )
       )
     }
   }
