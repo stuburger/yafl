@@ -31,22 +31,26 @@ export class InnerError extends React.Component<InnerValidatorProps> {
 export interface ValidatorProps {
   msg: string
   path?: Path
-  isValid?: boolean
+  invalid?: boolean
 }
 
 export default function createValidator(Consumer: React.Consumer<FormProvider<any, any>>) {
   return class Validator extends React.PureComponent<ValidatorProps> {
     static propTypes = {
       msg: PropTypes.string,
-      isValid: PropTypes.bool,
+      invalid: PropTypes.bool,
       path: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])
     }
 
     render() {
-      const { msg, path, isValid = false } = this.props
+      const { msg, path, invalid = true } = this.props
       return (
-        !isValid && (
-          <Consumer>{props => <InnerError key={msg + path} {...props} {...this.props} />}</Consumer>
+        invalid && (
+          <Consumer>
+            {props => (
+              <InnerError key={msg + path} {...props} msg={msg} path={path || props.path} />
+            )}
+          </Consumer>
         )
       )
     }
