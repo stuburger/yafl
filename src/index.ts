@@ -6,7 +6,7 @@ import createSection from './createSection'
 import createField from './createField'
 import createGizmo from './createGizmo'
 import createRepeat from './createRepeat'
-import createFault from './createError'
+import createFault from './createFault'
 
 export function createFormContext<F extends object>() {
   const context = React.createContext<FormProvider<F>>(getDefaultProviderValue())
