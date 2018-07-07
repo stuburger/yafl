@@ -3,17 +3,17 @@ import PropTypes from 'prop-types'
 import { Path, FormProvider } from './sharedTypes'
 import invariant from 'invariant'
 
-export type InnerFaultProps = FormProvider<any> & FaultProps
+export type InnerValidatorProps = FormProvider<any> & ValidatorProps
 
-export class InnerError extends React.Component<InnerFaultProps> {
+export class InnerError extends React.Component<InnerValidatorProps> {
   componentDidMount() {
     const { registerError, path, msg } = this.props
     invariant(
       path && path.length > 0,
-      "Invalid path. The 'path' prop on the Fault component is required when rendering a Fault " +
+      "Invalid path. The 'path' prop on the Validator component is required when rendering a Validator " +
         'outside of the component hierarchy of any Field, Section or Repeat components. ' +
         'It is likely that you are seeing this message because you are ' +
-        'rendering a Fault as a direct child of your Form component.'
+        'rendering a Validator as a direct child of your Form component.'
     )
     registerError(path, msg)
   }
@@ -28,14 +28,14 @@ export class InnerError extends React.Component<InnerFaultProps> {
   }
 }
 
-export interface FaultProps {
+export interface ValidatorProps {
   msg: string
   path?: Path
   isValid?: boolean
 }
 
-export default function createFault(Consumer: React.Consumer<FormProvider<any, any>>) {
-  return class Fault extends React.PureComponent<FaultProps> {
+export default function createValidator(Consumer: React.Consumer<FormProvider<any, any>>) {
+  return class Validator extends React.PureComponent<ValidatorProps> {
     static propTypes = {
       msg: PropTypes.string,
       isValid: PropTypes.bool,
