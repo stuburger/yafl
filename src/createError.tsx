@@ -33,7 +33,7 @@ export interface FaultProps {
   path?: Path
 }
 
-export function createFault(Consumer: React.Consumer<FormProvider<any, any>>) {
+export default function createFault(Consumer: React.Consumer<FormProvider<any, any>>) {
   return class Fault extends React.Component<FaultProps> {
     static propTypes = {
       msg: PropTypes.string,

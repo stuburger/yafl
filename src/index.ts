@@ -5,8 +5,8 @@ import createForm from './createForm'
 import createSection from './createSection'
 import createField from './createField'
 import createGizmo from './createGizmo'
-import createArraySection from './createArraySection'
-import { createFault } from './createError'
+import createRepeat from './createRepeat'
+import createFault from './createError'
 
 export function createFormContext<F extends object>() {
   const context = React.createContext<FormProvider<F>>(getDefaultProviderValue())
@@ -14,7 +14,7 @@ export function createFormContext<F extends object>() {
   return {
     Form: createForm<F>(Provider),
     Section: createSection<F>(Provider, Consumer),
-    Repeat: createArraySection<F>(Provider, Consumer),
+    Repeat: createRepeat<F>(Provider, Consumer),
     Field: createField<F>(Provider, Consumer),
     Gizmo: createGizmo<F>(Consumer),
     Fault: createFault(Consumer)
