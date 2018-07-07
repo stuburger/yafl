@@ -309,9 +309,11 @@ interface GizmoConfig<F extends object> {
 }
 ```
 
-## The **Fault** Component
+## The **Validator** Component
 
-A Fault is a basic component, but that doesn't make them any less useful! In fact you might find yourself rendering quite a few of them! Faults are how yafl does validation and they require a small shift in the way you think about form validation. While other form libraries usually do validation using a `validate` prop, yafl doesn't have the concept of validators. Instead in order to validate your Form you can simply render an error component when a specific condition has been met. This has the benefit of solving many of the edge cases around validation - the most obvious example being async change or blur validation. Since validation is done in this declaritive style there is no need for specialized props of any kind and reduces yafl's API surface area significantly. Here's an example:
+The `<Validator />` component can be 'rendered' to create errors on your Form. The concept of "rendering a validator" might require a small shift in the way you think about form validation since other form libraries usually do validation through the use of a `validate` prop. With yafl however, you validate your form by simply rendering a Validator. This has some interesting benefits, one of which is that a "rendered" validator solves some of the edge cases around form validation - the most obvious example being that of async validation. 
+
+Here's an example:
 
 ```jsx
 // FaultExample.js
