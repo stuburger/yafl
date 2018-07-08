@@ -16,7 +16,7 @@ yafl's philosophy is to "keep it super simple". While it provides a lot of funct
 - Create multi-page forms without needing to use specialized components or a state management library like flux or redux.
 - Create deeply nested forms or forms within forms.
 - Structure your Components to match the shape of your data. This means no more accessing field values using string paths!
-- Validators? What validators?
+- Render a Validator!
 - Fully featured and weighing in at less than 8KB! Thats almost half the size of libraries offering similar functionality!
 
 ## Installation
