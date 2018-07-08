@@ -9,6 +9,7 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'type',
   'name',
   'value',
+  'parse',
   'errors',
   'touched',
   'visited',
@@ -34,6 +35,10 @@ function createField(Provider: React.Provider<any>) {
       this.registerField = this.registerField.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
       this.registerField()
+    }
+
+    get value(): any {
+      return this.props.value
     }
 
     shouldComponentUpdate(np: InnerFieldProps<F, T>) {
@@ -70,12 +75,13 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onChange(e: React.ChangeEvent<any>) {
-      const { forwardProps } = this.props
+      const { forwardProps, parse } = this.props
       if (forwardProps.onChange) {
         forwardProps.onChange(e)
       }
       if (e.isDefaultPrevented()) return
-      this.setValue(e.target.value)
+      const { value } = e.target
+      this.setValue(parse ? parse(value) : value)
     }
 
     onFocus(e: React.FocusEvent<any>): void {
@@ -190,6 +196,7 @@ export default function<F extends object>(
     _render(ip: FormProvider<F1, any>) {
       const {
         name,
+        parse,
         render,
         children,
         component,
@@ -201,6 +208,7 @@ export default function<F extends object>(
         <FieldConsumer<T, F1>
           key={name}
           type={type}
+          parse={parse}
           render={render}
           children={children}
           component={component}

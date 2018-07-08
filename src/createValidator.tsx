@@ -44,15 +44,11 @@ export default function createValidator(Consumer: React.Consumer<FormProvider<an
 
     render() {
       const { msg, path, invalid = true } = this.props
-      return (
-        invalid && (
-          <Consumer>
-            {props => (
-              <InnerError key={msg + path} {...props} msg={msg} path={path || props.path} />
-            )}
-          </Consumer>
-        )
-      )
+      return invalid ? (
+        <Consumer>
+          {props => <InnerError key={msg + path} {...props} msg={msg} path={path || props.path} />}
+        </Consumer>
+      ) : null
     }
   }
 }
