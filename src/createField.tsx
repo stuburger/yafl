@@ -144,7 +144,7 @@ function createField(Provider: React.Provider<any>) {
         initialValue: p.initialValue,
         defaultValue: p.defaultValue,
         isValid: ((p.errors || []) as any).length === 0,
-        isActive: p.activeField === toStrPath(p.path),
+        isActive: p.activeField !== null && p.activeField === toStrPath(p.path),
         isDirty: p.formIsDirty && p.initialValue === p.value,
         submit: p.submit,
         formValue: p.formValue,
