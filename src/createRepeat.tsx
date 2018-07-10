@@ -1,8 +1,8 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
-import { validateName, forkByName } from './utils'
-import { Name, FormProvider, ArrayHelpers, Path } from './sharedTypes'
+import { validateName, forkByName, toStrPath } from './utils'
+import { Name, FormProvider, ArrayHelpers, Path, BooleanTree } from './sharedTypes'
 import { forkableProps } from './defaults'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T[]> {
@@ -26,12 +26,34 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     unmounted = false
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
-      this.push = this.push.bind(this)
       this.pop = this.pop.bind(this)
-      this.insert = this.insert.bind(this)
+      this.push = this.push.bind(this)
+      this.swap = this.swap.bind(this)
       this.shift = this.shift.bind(this)
+      this.insert = this.insert.bind(this)
       this.remove = this.remove.bind(this)
+      this.unshift = this.unshift.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
+    }
+
+    get value(): T[] {
+      return this.props.value
+    }
+
+    get isDirty(): boolean {
+      return isEqual(this.props.value, this.props.initialValue)
+    }
+
+    get touched(): BooleanTree<T[]> {
+      return this.props.touched
+    }
+
+    get visited(): BooleanTree<T[]> {
+      return this.props.visited
+    }
+
+    get path(): string {
+      return toStrPath(this.props.path)
     }
 
     shouldComponentUpdate(np: ForkProviderConfig<F, T>) {
@@ -51,9 +73,12 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       this.unmounted = true
     }
 
-    push(valueToPush: T) {
+    push(...items: T[]) {
       const { setValue, value, path } = this.props
-      setValue(path, [...value, valueToPush], false)
+      const arr = [...value]
+      const ret = arr.push(...items)
+      setValue(path, arr, false)
+      return ret
     }
 
     pop() {
@@ -64,11 +89,12 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       return popped
     }
 
-    insert(index: number, valueToInsert: T) {
+    insert(index: number, ...items: T[]) {
       const { setValue, value, path } = this.props
       const nextValue = [...value]
-      nextValue.splice(index, 0, valueToInsert)
+      nextValue.splice(index, 0, ...items)
       setValue(path, nextValue, false)
+      return nextValue.length
     }
 
     remove(index: number) {
@@ -87,6 +113,21 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       return temp
     }
 
+    swap(index1: number, index2: number) {
+      const { setValue, value, path } = this.props
+      const arr = [...value]
+      arr[index1] = [arr[index2], (arr[index2] = arr[index1])][0]
+      setValue(path, arr, false)
+    }
+
+    unshift(...items: T[]) {
+      const { setValue, value, path } = this.props
+      const arr = [...value]
+      const ret = arr.unshift(...items)
+      setValue(path, arr, false)
+      return ret
+    }
+
     render() {
       const { name, children, unregisterField, ...props } = this.props
 
@@ -97,7 +138,9 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
                 push: this.push,
                 pop: this.pop,
                 insert: this.insert,
+                swap: this.swap,
                 shift: this.shift,
+                unshift: this.unshift,
                 remove: this.remove
               })
             : children}

@@ -29,7 +29,7 @@ _Not available on npm yet._
 
 The Form component contains all the state that makes yafl work. All other yafl components *have* to be rendered as a child of a `<Form>`. Trying to render a Field outside of a Form will cause an error to be thrown.
 
-Note: if you are nesting forms this may cause some pretty strange behaviour. If you have a use case for nested forms you'll have to use yafl's only non-component export: `createFormContext`. To learn more about this "strange behaviour" see the "*how it works section*" at the end of this read me.
+Note: if you are nesting forms this may cause some pretty strange behaviour. If you have a use case for nested forms you'll have to use yafl's only non-component export: `createFormContext`.
 
 ### Form Configuration Props
 
@@ -258,10 +258,12 @@ The Repeat Component uses the function as a child pattern. The first argument is
 
 | Prop | Description |
 | - | - |
-| `push: (value: T) => void` | Pushes an element onto the end of the array. |
-| `pop: () => T \| undefined` | Removed the last element from the array and returns it. |
+| `push: (...items: T[]) => number` | Appends new elements to the array, and returns the new length of the array. |
+| `pop: () => T \| undefined` | Removes the last element from the array and returns it. |
 | `shift: () => T \| undefined` | Removes the first element from the array and returns it. |
-| `insert: (index: number, value: T) => void` | Inserts an element into the array at the specified index. |
+| `unshift: (...items: T[]) => number` | Inserts new elements at the start of the array and returns the new length of the array. |
+| `insert: (index: number, ...items: T[]) => number` | Inserts new elements into the array at the specified index and returns the new length of the array. |
+| `swap: (index1: number, index2: number) => void` | Swaps two elements at the specified indices. |
 | `remove: (index: number) => T \| undefined` | Removes an element from the array at the specified index. |
 
 ## The **Gizmo** Component
@@ -390,12 +392,24 @@ interface FaultProps {
   msg: string
 
   // Override the path for a Fault. By default the path is determined by what
-  // appears above this component in the Form component heirachy. Useful for errors
+  // appears above this component in the Form component hierarchy. Useful for errors
   // that belong in the domain of a Section, Repeat, at the Form level
   // or for general errors.
   path?: Path
 }
 ```
+
+## Instance API
+
+The following properties are available on the Field, Section and Repeat components.
+
+| Property | Description | 
+| - | - |
+| `value: T` | The current value of the component. |
+| `isDirty: boolean` | Indicates whether this form component's value is different from its `initialValue` |
+| `touched: boolean \| BooleanTree<T>` | The visited state of the Section / Repeat or Field. |
+| `visited: boolean \| BooleanTree<T>` | The touched state of the Section / Repeat or Field. |
+| `path: string ` | The path of the component in the form's component hierarchy. |
 
 
 ## Top Level API

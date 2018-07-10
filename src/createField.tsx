@@ -37,8 +37,24 @@ function createField(Provider: React.Provider<any>) {
       this.registerField()
     }
 
-    get value(): any {
+    get value(): T {
       return this.props.value
+    }
+
+    get isDirty(): boolean {
+      return isEqual(this.props.value, this.props.initialValue)
+    }
+
+    get touched(): boolean {
+      return !!this.props.touched
+    }
+
+    get visited(): boolean {
+      return !!this.props.visited
+    }
+
+    get path(): string {
+      return toStrPath(this.props.path)
     }
 
     shouldComponentUpdate(np: InnerFieldProps<F, T>) {

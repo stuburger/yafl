@@ -186,12 +186,12 @@ export interface FormState<F extends object> {
 
 export interface ArrayHelpers<T> {
   /**
-   * Pushes a value onto the end of the array.
-   * @param value The value to push onto the array.
+   * Appends new elements to an array, and returns the new length of the array.
+   * @param items The items to push onto the array.
    */
-  push: (value: T) => void
+  push: (...items: T[]) => number
   /**
-   * Removed the last element from the array and returns it.
+   * Removes the last element from the array and returns it.
    * @returns The last element in the array.
    */
   pop: () => T | undefined
@@ -201,11 +201,24 @@ export interface ArrayHelpers<T> {
    */
   shift: () => T | undefined
   /**
+   * Inserts new elements at the start of an array.
+   * @param items Elements to insert at the start of the Array.
+   * @returns The new length of the array.
+   */
+  unshift: (...items: T[]) => number
+  /**
    * Inserts an element into the array at the specified index.
+   * @param index The index at which to insert the value.
+   * @param items Elements to insert at the specified index.
+   * @returns The new length of the array.
+   */
+  insert: (index: number, ...items: T[]) => number
+  /**
+   * Swaps two elements at the specified indices.
    * @param index The index at which to insert the value.
    * @param value The value to insert into the array.
    */
-  insert: (index: number, value: T) => void
+  swap: (index1: number, index2: number) => void
   /**
    * Removes an element from the array at the specified index.
    * @param index The index of the element to remove.
