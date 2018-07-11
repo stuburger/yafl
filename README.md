@@ -1,6 +1,6 @@
-# react-yafl
+# Yet Another Form Library
 
-[![Build Status](https://travis-ci.org/stuburger/react-yafl.svg?branch=master)](https://travis-ci.org/stuburger/react-yafl)
+[![Build Status](https://travis-ci.org/stuburger/yafl.svg?branch=master)](https://travis-ci.org/stuburger/yafl)
 
 YAFL - Yet Another Form Library
 
@@ -272,7 +272,7 @@ Gizmos are general purpose components that can be used to render anything that i
 
 ```jsx
 // withForm.js
-import { Gizmo, Form } from 'react-yafl'
+import { Gizmo, Form } from 'yafl'
 
 export default (Comp) => ({ initialValue, onSubmit, /* other Form props */ children, ...props }) => (
   <Form
@@ -319,7 +319,7 @@ Here's an example:
 
 ```jsx
 // ValidatorExample.js
-import { Form, Field, Validator } from 'react-yafl'
+import { Form, Field, Validator } from 'yafl'
 
 <Form>
   <Field
@@ -398,7 +398,7 @@ interface ValidatorProps {
 
 ## Top Level API
 
-`react-yafl` only exports a single function:
+**yafl** only exports a single function:
 
 `createFormContext` returns all of the same components as those exported by yafl.
 
@@ -409,7 +409,7 @@ const { Form, Field, Section, Repeat, Gizmo, Validator } = createFormContext()
 There are a few cases where one might want to nest one Form within another. However, since yafl uses React's context API to pass props from Provider to Consumer, rendering a Form inside another Form will make it impossible to access the outter Form values within a Field, Section or Repeat that are rendered within the inner Form. The following example serves to illustrate the problem:
 
 ```js
-import { Form, Field, Section } from 'react-yafl'
+import { Form, Field, Section } from 'yafl'
 
 const ProblemForm = (props) => {
   return (
@@ -449,7 +449,7 @@ const ProblemForm = (props) => {
 So how do we solve this?
 
 ```js
-import { Form as FormA, Field as FieldA, Section as SectionA, createFormContext } from 'react-yafl'
+import { Form as FormA, Field as FieldA, Section as SectionA, createFormContext } from 'yafl'
 
 const context = createFormContext()
 

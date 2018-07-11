@@ -13,11 +13,11 @@ const rollupUmd = ({ env }) => ({
   input,
   external,
   output: {
-    name: 'react-yafl',
+    name: 'yafl',
     format: 'umd',
     sourcemap: true,
     file:
-      env === 'production' ? `./lib/react-yafl.umd.${env}.js` : `./lib/react-yafl.umd.${env}.js`,
+      env === 'production' ? `./lib/yafl.umd.${env}.js` : `./lib/yafl.umd.${env}.js`,
     exports: 'named',
     globals: {
       react: 'React',

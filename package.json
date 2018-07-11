@@ -1,9 +1,9 @@
 {
-  "name": "react-yafl",
+  "name": "yafl",
   "version": "1.0.0",
   "description": "A library for creating forms in react using react's new context api",
-  "main": "lib/react-yafl.js",
-  "module": "lib/react-yafl.es6.js",
+  "main": "lib/yafl.js",
+  "module": "lib/yafl.es6.js",
   "typings": "lib/index.d.ts",
   "files": [
     "lib"
