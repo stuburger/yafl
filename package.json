@@ -12,8 +12,8 @@
     "prebuild": "rimraf lib",
     "build": "cross-env NODE_ENV=production tsc -p tsconfig.base.json  && rollup -c && rimraf compiled && cp ./index.js ./lib/index.js",
     "watch": "tsc --watch",
-		"test": "jest",
-		"prepublish": "yarn build",
+    "test": "jest",
+    "prepublish": "yarn build",
     "jest:updatesnapshot": "jest --updateSnapshot",
     "precommit": "lint-staged"
   },
@@ -25,7 +25,7 @@
   },
   "author": "Stuart Bourhill",
   "license": "MIT",
-  "dependencies": {    
+  "dependencies": {
     "invariant": "^2.2.4",
     "lodash.clonedeep": "^4.5.0",
     "lodash.defaultsdeep": "^4.6.0",
@@ -37,22 +37,22 @@
     "react-fast-compare": "^2.0.1"
   },
   "keywords": [
-		"yafl",
+    "yafl",
     "react",
     "form",
-		"context",
-		"validation"
+    "context",
+    "validation"
   ],
   "peerDependencies": {
     "react": ">=16.3.2"
   },
   "devDependencies": {
-		"@types/invariant": "^2.2.29",
-		"@types/jest": "^23.1.5",
+    "@types/invariant": "^2.2.29",
+    "@types/jest": "^23.1.5",
     "@types/lodash.clonedeep": "^4.5.3",
     "@types/lodash.defaultsdeep": "^4.6.3",
-		"@types/lodash.get": "^4.4.3",
-		"@types/lodash.omit": "^4.5.3",
+    "@types/lodash.get": "^4.4.3",
+    "@types/lodash.omit": "^4.5.3",
     "@types/lodash.set": "^4.3.3",
     "@types/node": "10.5.2",
     "@types/prop-types": "^15.5.3",
