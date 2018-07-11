@@ -181,7 +181,7 @@ export interface FormState<F extends object> {
   visited: BooleanTree<F>
   initialValue: F | null
   activeField: string | null
-  registeredFields: BooleanTree<F>
+  registeredFields: { [key: string]: boolean }
 }
 
 export interface ArrayHelpers<T> {

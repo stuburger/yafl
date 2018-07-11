@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import get from 'lodash.get'
 import set from 'lodash.set'
 import defaultsDeep from 'lodash.defaultsdeep'
-import { noop, isObject } from './utils'
+import { noop, isObject, toStrPath } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -31,6 +31,7 @@ export interface FormConfig<T extends object> {
   defaultValue?: T
   disabled?: boolean
   children: React.ReactNode
+  submitUnregisteredValues?: boolean
   allowReinitialize?: boolean
   onSubmit?: (formValue: T) => void
   rememberStateOnReinitialize?: boolean
@@ -164,7 +165,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     static defaultProps = {
       allowReinitialize: false,
-      rememberStateOnReinitialize: false
+      rememberStateOnReinitialize: false,
+      submitUnregisteredValues: false
     }
 
     componentDidMount() {
@@ -178,10 +180,10 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     flushCache() {
       if (this.registerCache.length > 0) {
         this.setState(({ registeredFields: fields }) => {
-          const registeredFields = { ...(fields as object) }
+          const registeredFields = { ...fields }
           let field: RegisteredField | undefined
           while ((field = this.registerCache.pop())) {
-            set(registeredFields, field.path, true)
+            registeredFields[toStrPath(field.path)] = true
           }
           return { registeredFields }
         })
@@ -226,24 +228,20 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       })
     }
 
-    submit(includeUnregisteredFields = false) {
-      const { onSubmit = noop } = this.props
+    submit() {
+      const { submitUnregisteredValues, onSubmit = noop } = this.props
       const { formValue, registeredFields } = this.state
       this.setState(({ submitCount }) => ({
         submitCount: submitCount + 1
       }))
-      console.log(registeredFields)
-      // if (includeUnregisteredFields) {
-      onSubmit(formValue)
-      // }
-      // else {
-      //   const retval: F = {} as F
-      //   Object.keys(registeredFields).forEach(key => {
-      //     const path = registeredFields[key].path
-      //     set(retval, path, get(formValue, path))
-      //   })
-      //   onSubmit(retval)
-      // }
+      if (submitUnregisteredValues) {
+        return onSubmit(formValue)
+      }
+      let retval: F = {} as F
+      Object.keys(registeredFields).forEach(path => {
+        set(retval, path, get(formValue, path))
+      })
+      onSubmit(retval)
     }
 
     setValue(path: Path, val: any, setTouched = true) {
