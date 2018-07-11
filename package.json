@@ -24,8 +24,7 @@
   },
   "author": "Stuart Bourhill",
   "license": "MIT",
-  "dependencies": {
-    "@types/invariant": "^2.2.29",
+  "dependencies": {    
     "invariant": "^2.2.4",
     "lodash.clonedeep": "^4.5.0",
     "lodash.defaultsdeep": "^4.6.0",
@@ -45,7 +44,8 @@
     "react": ">=16.3.2"
   },
   "devDependencies": {
-    "@types/jest": "^23.1.5",
+		"@types/invariant": "^2.2.29",
+		"@types/jest": "^23.1.5",
     "@types/lodash.clonedeep": "^4.5.3",
     "@types/lodash.defaultsdeep": "^4.6.3",
 		"@types/lodash.get": "^4.4.3",

@@ -56,6 +56,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       initialValue: PropTypes.object,
       defaultValue: PropTypes.object,
       allowReinitialize: PropTypes.bool,
+      submitUnregisteredValues: PropTypes.bool,
       rememberStateOnReinitialize: PropTypes.bool,
       commonFieldProps: PropTypes.object,
       componentTypes(
