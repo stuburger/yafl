@@ -1,4 +1,4 @@
-# Yet Another Form Library
+# Yet. Another. Form. Library.
 
 [![Build Status](https://travis-ci.org/stuburger/yafl.svg?branch=master)](https://travis-ci.org/stuburger/yafl)
 
@@ -27,7 +27,7 @@ _Not available on npm yet._
 
 ## The **Form** Component
 
-The Form component contains all the state that makes yafl work. All other yafl components *have* to be rendered as a child of a `<Form>`. Trying to render a Field outside of a Form will cause an error to be thrown.
+The Form component contains all the state that makes yafl work. All other yafl components *have* to be rendered as a child of a `<Form>`. Trying to render a Field outside of a Form, for example, will cause an error to be thrown.
 
 Note: if you are nesting forms this may cause some pretty strange behaviour. If you have a use case for nested forms you'll have to use yafl's only non-component export: `createFormContext`.
 
@@ -38,26 +38,29 @@ interface FormConfig<T extends object> {
   // The initial value of your Form. Once this value becomes
   // truthy your Form will initialize.
   initialValue?: T
-
+  
   // The defaultValue is merged with initialValue on initialization
   // to replace any missing values.
   defaultValue?: T
-
+  
   // When true, any time the initialValue prop changes your Form will be reinitialized
   allowReinitialize?: boolean
-
+  
+  // Specify whether values that are not matched with a rendered Field, Section or Repeat
+  // should be included on submission of the form. Default is false.
+  submitUnregisteredValues?: boolean
+  
   // Specify whether your Form should remember what fields have been touched and/or
   // visited and if the submitCount should be reset to 0 when the initialValue prop changes.
   rememberStateOnReinitialize?: boolean
-
+  
   // For convenience. Uses React's context API to make these values available to all
   // Field components.
   commonFieldProps?: { [key: string]: any }
-
-  // For convenience. Allows you so use the "type" prop on Field
-  // components instead of the render prop or the component prop.
+  
+  // For convenience. Allows you specify component dictionary to match a Fields component prop with.
   componentTypes?: ComponentTypes<T>
-
+  
   // The function to call on form submission
   onSubmit?: (formValue: T) => void
 }
@@ -65,7 +68,7 @@ interface FormConfig<T extends object> {
 
 ## The **Field** Component
 
-Field components are the bread and butter of any form library and yafl's Field's are no exception! The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. The most important thing to note about the Field component is that you should never name your Field using a 'path' string. Yafl uses a Fields location in the Form's component hierarchy to determine where the the resulting form value.
+Field components are the bread and butter of any form library and yafl's Field's are no exception! The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. The most important thing to note about the Field component is that you should never name your Field using a 'path' string. Yafl uses a Fields location in the Form's component hierarchy to determine the shape of the resulting form value.
 
 ```ts
 interface FieldConfig<F extends object, T = any> {
@@ -73,17 +76,17 @@ interface FieldConfig<F extends object, T = any> {
   // this field appears in an array.
   name: string | number
 
-  // Similar to the type attribute of an HTML input, however this prop
-  // is used as a key to match against the object supplied to the
-  // componentTypes prop on a Form component.
-  type?: string
+  // Transforms a Field's value before setting it. Useful for number inputs and the like.
+  parse?: (value: any) => T
 
   // A render prop that accepts an object containing all the good stuff
   // you'll need to render a your Field.
   render?: (props: FieldProps<F, T>) => React.ReactNode
-  // Specify a component to render
-
-  component?: React.ComponentType<FieldProps<F, T>>
+	
+	// Specify a component to render. If a string is provided then yafl will attempt to 
+	// match the string component to one provided in the componentTypes Form prop
+	// and if no match is found then it will call React.createElement with the value provided.
+  component?: React.ComponentType<FieldProps<F, T>> | string
   // Any other props will be forwarded (along with any props specified by
   // commonFieldProps on the Form component) to your component or render prop.
   [key: string]: any
@@ -98,7 +101,7 @@ The following is a list of props that are passed to the render prop or component
 | - | - |
 | `input: ` [`InputProps<T>`](#field-inputprops) | An object containing the core handlers and props for an input. Allows for easy use of the spread operator. |
 | `path: string` | The path for this field. |
-| `visited: boolean` | Indicates whether this Field has been visited. Automatically set to true on when field.onBlur() is called. |
+| `visited: boolean` | Indicates whether this Field has been visited. Automatically set to true on when input.onBlur() is called. |
 | `touched: boolean` | Indicates whether this Field has been touched. Automatically set to true the first time a Field's value is changed. |
 | `isDirty: boolean` | Indicates whether the initialValue for this Field is different from its current value. |
 | `isActive: boolean` | Indicates whether this Field is currently in Focus. |
@@ -186,7 +189,7 @@ interface SectionConfig<T> {
 
 ## The **Repeat** Component
 
-The Repeat component is conceptually similar to the Section component except that can be used to create what other libraries call FieldArrays. A `<Repeat />` uses a function as children and comes with a few handy helper methods. Here's an example using TypeScript
+The Repeat component is conceptually similar to the Section component except that it can be used to create what other libraries call "FieldArrays". A `<Repeat />` uses a function as children and comes with a few handy helper methods. Here's an example using TypeScript
 
 ```tsx
 
@@ -378,10 +381,10 @@ Nice and declaritive.
 ```ts
 interface ValidatorProps {
 
-	// Defaults to false. When the invalid prop becomes true the Validator will set a Form
-	// Error for the corresponding path. If the invalid prop is not provided then an error will only
-	// be set if and when the msg prop is passed a string value.
-	invalid?: boolean
+  // Defaults to false. When the invalid prop becomes true the Validator will set a Form
+  // Error for the corresponding path. If the invalid prop is not provided then an error will only
+  // be set if and when the msg prop is passed a string value.
+  invalid?: boolean
 
   // The error message. If this Validator component is rendered
   // with the same path as another Validator component

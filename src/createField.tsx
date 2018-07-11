@@ -6,7 +6,6 @@ import isEqual from 'react-fast-compare'
 import { DefaultFieldTypeKey, forkableProps } from './defaults'
 
 const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
-  'type',
   'name',
   'value',
   'parse',
@@ -34,6 +33,7 @@ function createField(Provider: React.Provider<any>) {
       this.collectProps = this.collectProps.bind(this)
       this.registerField = this.registerField.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
+      this._renderComponent = this._renderComponent.bind(this)
       this.registerField()
     }
 
@@ -140,32 +140,32 @@ function createField(Provider: React.Provider<any>) {
       }
     }
 
-    render() {
-      const {
-        type,
-        name,
-        render,
-        component: Component,
-        forwardProps,
-        children,
-        ...rest
-      } = this.props
-
+    _renderComponent() {
+      const { render, component, componentTypes } = this.props
       const props = this.collectProps()
+      if (component) {
+        if (typeof component === 'string') {
+          if (componentTypes[component]) {
+            const Component = componentTypes[component]
+            return <Component {...props} />
+          }
+          return React.createElement(component, { ...props.input, ...props.forwardProps })
+        }
+        const Component = component
+        return <Component {...props} />
+      }
 
-      const DefaultComponent = this.props.componentTypes[type]
+      if (render) {
+        return render(props)
+      }
 
-      return (
-        <Provider value={rest}>
-          {Component ? (
-            <Component {...props} />
-          ) : render ? (
-            render(props)
-          ) : (
-            <DefaultComponent {...props} />
-          )}
-        </Provider>
-      )
+      const DefaultComponent = this.props.componentTypes[DefaultFieldTypeKey]
+      return <DefaultComponent {...props} />
+    }
+
+    render() {
+      const { name, render, component, forwardProps, children, ...rest } = this.props
+      return <Provider value={rest}>{this._renderComponent()}</Provider>
     }
   }
 }
@@ -190,20 +190,11 @@ export default function<F extends object>(
     }
 
     _render(ip: FormProvider<F1, any>) {
-      const {
-        name,
-        parse,
-        render,
-        children,
-        component,
-        type = DefaultFieldTypeKey,
-        ...forwardProps
-      } = this.props
+      const { name, parse, render, children, component, ...forwardProps } = this.props
 
       return (
         <FieldConsumer<T, F1>
           key={name}
-          type={type}
           parse={parse}
           render={render}
           children={children}
