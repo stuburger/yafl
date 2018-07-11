@@ -102,8 +102,8 @@ The following is a list of props that are passed to the render prop or component
 | `touched: boolean` | Indicates whether this Field has been touched. Automatically set to true the first time a Field's value is changed. |
 | `isDirty: boolean` | Indicates whether the initialValue for this Field is different from its current value. |
 | `isActive: boolean` | Indicates whether this Field is currently in Focus. |
-| `isValid: boolean` | Indicates whether this Field is valid based on whether there are any Faults rendered that match the path of this Field. |
-| `errors: string[]` |  An array containing any errors for this Field based on whether there are any Faults rendered that match the path of this Field. |
+| `isValid: boolean` | Indicates whether this Field is valid based on whether there are any Validators rendered that match the path of this Field. |
+| `errors: string[]` |  An array containing any errors for this Field based on whether there are any Validators rendered that match the path of this Field. |
 | `initialValue: T` | The value this Field was initialized with. |
 | `defaultValue: T` | The default value that this Field was initialized with. |
 | `setValue: (value: T, touch?: boolean) => void` | Sets the value for this Field. Optionally specify if this Field should be touched when this function is called. Default is true. |
@@ -318,8 +318,8 @@ The `<Validator />` component can be 'rendered' to create errors on your Form. T
 Here's an example:
 
 ```jsx
-// FaultExample.js
-import { Form, Field, Fault } from 'react-yafl'
+// ValidatorExample.js
+import { Form, Field, Validator } from 'react-yafl'
 
 <Form>
   <Field
@@ -340,7 +340,7 @@ import { Form, Field, Fault } from 'react-yafl'
   />
   <Gizmo
     render={({ formValue }) => formValue.password !== formValue.confirmPassword && (
-      <Fault path="issues" msg="Oops, passwords do not match!" />
+      <Validator path="issues" msg="Oops, passwords do not match!" />
     )}
   />
 </Form>
@@ -357,60 +357,44 @@ function TextInput({ input, field, minLength, label }) {
 }
 
 function IsRequired ({ value, touched, visited, validateOn = 'blur', message }) {
-  if(
-    !value &&
-    (visted && validateOn === 'blur') ||
-    (touched && validateOn === 'change')
-  ) {
-    return <Fault msg={message} />
-  }
-  return null
+  return <Validator invalid={!value} msg={message} />
 }
 
 function Length ({ value, touched, visited, validateOn = 'change', min, max, message }) {
-  if(
-    ((value.length < min) || (value.length > max)) &&
-    (visted && validateOn === 'blur') ||
-    (touched && validateOn === 'change')
-  ) {
-    return <Fault msg={message} />
-  }
-  return null
+	return (
+		<Validator 
+			msg={message} 
+			invalid={value.length < min) || (value.length > max}
+		/>
+	)
 }
 
 ```
 
 Nice and declaritive.
 
-### Fault Configuration Props
+### Validator Configuration Props
 
 ```ts
-interface FaultProps {
-  // The error message. If this Fault component is rendered
-  // with the same path as another Fault component
+interface ValidatorProps {
+
+	// Defaults to false. When the invalid prop becomes true the Validator will set a Form
+	// Error for the corresponding path. If the invalid prop is not provided then an error will only
+	// be set if and when the msg prop is passed a string value.
+	invalid?: boolean
+
+  // The error message. If this Validator component is rendered
+  // with the same path as another Validator component
   // the msg string will the pushed onto an array of error messages for the same path.
   msg: string
 
-  // Override the path for a Fault. By default the path is determined by what
+  // Override the path for a Validator. By default the path is determined by what
   // appears above this component in the Form component hierarchy. Useful for errors
   // that belong in the domain of a Section, Repeat, at the Form level
   // or for general errors.
   path?: Path
 }
 ```
-
-## Instance API
-
-The following properties are available on the Field, Section and Repeat components.
-
-| Property | Description | 
-| - | - |
-| `value: T` | The current value of the component. |
-| `isDirty: boolean` | Indicates whether this form component's value is different from its `initialValue` |
-| `touched: boolean \| BooleanTree<T>` | The visited state of the Section / Repeat or Field. |
-| `visited: boolean \| BooleanTree<T>` | The touched state of the Section / Repeat or Field. |
-| `path: string ` | The path of the component in the form's component hierarchy. |
-
 
 ## Top Level API
 
@@ -419,7 +403,7 @@ The following properties are available on the Field, Section and Repeat componen
 `createFormContext` returns all of the same components as those exported by yafl.
 
 ```js
-const { Form, Field, Section, Repeat, Gizmo, Fault } = createFormContext()
+const { Form, Field, Section, Repeat, Gizmo, Validator } = createFormContext()
 ```
 
 There are a few cases where one might want to nest one Form within another. However, since yafl uses React's context API to pass props from Provider to Consumer, rendering a Form inside another Form will make it impossible to access the outter Form values within a Field, Section or Repeat that are rendered within the inner Form. The following example serves to illustrate the problem:

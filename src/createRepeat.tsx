@@ -1,9 +1,10 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
-import { validateName, forkByName, toStrPath } from './utils'
-import { Name, FormProvider, ArrayHelpers, Path, BooleanTree } from './sharedTypes'
+import { validateName, forkByName } from './utils'
+import { Name, FormProvider, ArrayHelpers, Path } from './sharedTypes'
 import { forkableProps } from './defaults'
+import invariant from 'invariant'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T[]> {
   name: Name
@@ -34,26 +35,6 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       this.remove = this.remove.bind(this)
       this.unshift = this.unshift.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
-    }
-
-    get value(): T[] {
-      return this.props.value
-    }
-
-    get isDirty(): boolean {
-      return isEqual(this.props.value, this.props.initialValue)
-    }
-
-    get touched(): BooleanTree<T[]> {
-      return this.props.touched
-    }
-
-    get visited(): BooleanTree<T[]> {
-      return this.props.visited
-    }
-
-    get path(): string {
-      return toStrPath(this.props.path)
     }
 
     shouldComponentUpdate(np: ForkProviderConfig<F, T>) {
@@ -113,10 +94,12 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       return temp
     }
 
-    swap(index1: number, index2: number) {
+    swap(i1: number, i2: number) {
       const { setValue, value, path } = this.props
+      invariant(i1 >= 0, `Array index out of bounds: ${i1}`)
+      invariant(i2 >= 0, `Array index out of bounds: ${i2}`)
       const arr = [...value]
-      arr[index1] = [arr[index2], (arr[index2] = arr[index1])][0]
+      arr[i1] = [arr[i2], (arr[i2] = arr[i1])][0]
       setValue(path, arr, false)
     }
 

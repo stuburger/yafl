@@ -1,8 +1,8 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
-import { validateName, forkByName, toStrPath } from './utils'
+import { validateName, forkByName } from './utils'
 import isEqual from 'react-fast-compare'
-import { Name, FormProvider, Path, BooleanTree } from './sharedTypes'
+import { Name, FormProvider, Path } from './sharedTypes'
 import { forkableProps } from './defaults'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
@@ -27,26 +27,6 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
       this.unregisterField = this.unregisterField.bind(this)
-    }
-
-    get value(): T {
-      return this.props.value
-    }
-
-    get isDirty(): boolean {
-      return isEqual(this.props.value, this.props.initialValue)
-    }
-
-    get touched(): BooleanTree<T> {
-      return this.props.touched
-    }
-
-    get visited(): BooleanTree<T> {
-      return this.props.visited
-    }
-
-    get path(): string {
-      return toStrPath(this.props.path)
     }
 
     shouldComponentUpdate(np: ForkProviderConfig<F, T>) {

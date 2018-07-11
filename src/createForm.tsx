@@ -247,6 +247,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     setValue(path: Path, val: any, setTouched = true) {
+      // if (!get(this.state.registeredFields, path as string[])) return
       this.setState(({ formValue, touched }) => ({
         formValue: immutable.set(formValue, path as string[], val),
         touched: setTouched ? immutable.set(touched, path as string[], true) : touched
