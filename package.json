@@ -1,6 +1,6 @@
 {
   "name": "yafl",
-  "version": "0.0.2-alpha",
+  "version": "0.0.2",
   "description": "Yet another form library for React",
   "main": "lib/yafl.js",
   "module": "lib/yafl.es6.js",
@@ -13,7 +13,7 @@
     "build": "cross-env NODE_ENV=production tsc -p tsconfig.base.json  && rollup -c && rimraf compiled && cp ./index.js ./lib/index.js",
     "watch": "tsc --watch",
     "test": "jest",
-    "prepublish": "yarn build",
+    "prepublish": "npm run build",
     "jest:updatesnapshot": "jest --updateSnapshot",
     "precommit": "lint-staged"
   },

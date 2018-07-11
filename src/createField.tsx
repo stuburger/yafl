@@ -172,7 +172,7 @@ export default function<F extends object>(
 ) {
   const FieldConsumer = createField(Provider)
 
-  return class Field<T, F1 extends F = F> extends React.PureComponent<FieldConfig<F1, T>> {
+  return class Field<T, F1 extends object = F> extends React.PureComponent<FieldConfig<F1, T>> {
     static propTypes = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       type: PropTypes.string,

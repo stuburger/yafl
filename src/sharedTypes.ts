@@ -92,7 +92,7 @@ export interface FieldConfig<F extends object, T = any> {
   name: Name
   parse?: (value: any) => T
   render?: (state: FieldProps<F, T>) => React.ReactNode
-  component?: React.ComponentType<FieldProps<F, T>>
+  component?: React.ComponentType<FieldProps<F, T>> | string
   [key: string]: any
 }
 export interface FieldProps<F extends object, T = any> extends FieldMeta<F, T> {
