@@ -3,7 +3,8 @@ import PropTypes from 'prop-types'
 import { FormProvider, InnerFieldProps, FieldProps, InputProps, FieldConfig } from './sharedTypes'
 import { toStrPath, validateName, forkByName } from './utils'
 import isEqual from 'react-fast-compare'
-import { DefaultFieldTypeKey, forkableProps } from './defaults'
+import { forkableProps } from './defaults'
+import FieldSink from './FieldSink'
 
 const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'name',
@@ -143,24 +144,19 @@ function createField(Provider: React.Provider<any>) {
     _renderComponent() {
       const { render, component, componentTypes } = this.props
       const props = this.collectProps()
-      if (component) {
-        if (typeof component === 'string') {
-          if (componentTypes[component]) {
-            const Component = componentTypes[component]
-            return <Component {...props} />
-          }
-          return React.createElement(component, { ...props.input, ...props.forwardProps })
-        }
+      if (component && typeof component !== 'string') {
         const Component = component
         return <Component {...props} />
-      }
-
-      if (render) {
+      } else if (render) {
         return render(props)
+      } else if (typeof component === 'string') {
+        if (componentTypes[component]) {
+          const Component = componentTypes[component]
+          return <Component {...props} />
+        }
+        return React.createElement(component, { ...props.input, ...props.forwardProps })
       }
-
-      const DefaultComponent = this.props.componentTypes[DefaultFieldTypeKey]
-      return <DefaultComponent {...props} />
+      return <FieldSink {...props} />
     }
 
     render() {

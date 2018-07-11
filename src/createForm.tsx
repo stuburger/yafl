@@ -17,9 +17,6 @@ import {
   SetFormVisitedFunc,
   SetFormTouchedFunc
 } from './sharedTypes'
-import FieldSink from './FieldSink'
-import { DefaultFieldTypeKey, DefaultGizmoTypeKey } from './defaults'
-import GizmoSink from './GizmoSink'
 
 // const { whyDidYouUpdate } = require('why-did-you-update')
 // whyDidYouUpdate(React)
@@ -359,11 +356,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             initialValue: initialValue || ({} as F),
             formIsValid: !initialMount || errorCount === 0,
             formIsDirty: initialMount && !isEqual(initialValue, formValue),
-            componentTypes: {
-              ...componentTypes,
-              [DefaultFieldTypeKey]: FieldSink,
-              [DefaultGizmoTypeKey]: GizmoSink
-            }
+            componentTypes
           }}
         >
           {this.props.children}

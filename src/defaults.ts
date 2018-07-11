@@ -54,6 +54,3 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     unwrapFormState: noop
   }
 }
-
-export const DefaultFieldTypeKey = '__YAFLFieldComponentType__'
-export const DefaultGizmoTypeKey = '__YAFLGizmoComponentType__'
