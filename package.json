@@ -1,7 +1,7 @@
 {
   "name": "yafl",
-  "version": "1.0.0",
-  "description": "A library for creating forms in react using react's new context api",
+  "version": "0.0.1",
+  "description": "Yet another form library for React",
   "main": "lib/yafl.js",
   "module": "lib/yafl.es6.js",
   "typings": "lib/index.d.ts",
@@ -12,7 +12,8 @@
     "prebuild": "rimraf lib",
     "build": "cross-env NODE_ENV=production tsc -p tsconfig.base.json  && rollup -c && rimraf compiled && cp ./index.js ./lib/index.js",
     "watch": "tsc --watch",
-    "test": "jest",
+		"test": "jest",
+		"prepublish": "yarn build",
     "jest:updatesnapshot": "jest --updateSnapshot",
     "precommit": "lint-staged"
   },
@@ -36,9 +37,11 @@
     "react-fast-compare": "^2.0.1"
   },
   "keywords": [
+		"yafl",
     "react",
     "form",
-    "context"
+		"context",
+		"validation"
   ],
   "peerDependencies": {
     "react": ">=16.3.2"
