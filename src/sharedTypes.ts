@@ -155,7 +155,6 @@ export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
   setTouched: (value: boolean) => void
 }
 
-/* @internal */
 export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T> {
   name: Name
   formValue: F
@@ -167,7 +166,6 @@ export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T>
   forwardProps: { [key: string]: any }
 }
 
-/* @internal */
 export interface FormState<F extends object> {
   formValue: F
   defaultValue: F
@@ -229,7 +227,6 @@ export interface CommonFieldProps {
   [key: string]: any
 }
 
-/* @internal */
 export interface FormProvider<F extends object, T = F> {
   path: Path
   value: T
@@ -308,7 +305,6 @@ export interface GizmoConfig<F extends object> {
   [key: string]: any
 }
 
-/* @internal */
 export interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
   type: string
   formValue: F
@@ -356,4 +352,17 @@ export interface Contact {
 export interface Address {
   code: string
   street: string
+}
+
+export interface FormConfig<T extends object> {
+  initialValue?: T
+  defaultValue?: T
+  disabled?: boolean
+  children: React.ReactNode
+  submitUnregisteredValues?: boolean
+  allowReinitialize?: boolean
+  onSubmit?: (formValue: T) => void
+  rememberStateOnReinitialize?: boolean
+  commonFieldProps?: CommonFieldProps
+  componentTypes?: ComponentTypes<T>
 }

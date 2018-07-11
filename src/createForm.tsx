@@ -10,31 +10,17 @@ import {
   Path,
   FormState,
   FormProvider,
-  ComponentTypes,
   RegisteredField,
-  CommonFieldProps,
   SetFormValueFunc,
   SetFormVisitedFunc,
-  SetFormTouchedFunc
+  SetFormTouchedFunc,
+  FormConfig
 } from './sharedTypes'
 
 // const { whyDidYouUpdate } = require('why-did-you-update')
 // whyDidYouUpdate(React)
 
 const startingPath: Path = []
-
-export interface FormConfig<T extends object> {
-  initialValue?: T
-  defaultValue?: T
-  disabled?: boolean
-  children: React.ReactNode
-  submitUnregisteredValues?: boolean
-  allowReinitialize?: boolean
-  onSubmit?: (formValue: T) => void
-  rememberStateOnReinitialize?: boolean
-  commonFieldProps?: CommonFieldProps
-  componentTypes?: ComponentTypes<T>
-}
 
 function whenEnabled(func: any, defaultFunc = noop) {
   return (...params: any[]) => {
