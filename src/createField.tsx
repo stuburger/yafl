@@ -47,13 +47,11 @@ function createField(Provider: React.Provider<any>) {
     }
 
     registerField(): void {
-      const { registerField, path } = this.props
-      registerField(path, 'field')
+      this.props.registerField(this.props.path)
     }
 
     unregisterField(): void {
-      const { path, unregisterField } = this.props
-      unregisterField(path)
+      this.props.unregisterField(this.props.path)
     }
 
     setValue(value: T, touchField = true): void {

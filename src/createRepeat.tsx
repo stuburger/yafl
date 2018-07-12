@@ -43,8 +43,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 
     unregisterField(path: Path) {
       if (this.unmounted) return
-      const { unregisterField } = this.props
-      unregisterField(path)
+      this.props.unregisterField(path)
     }
 
     componentWillUnmount() {

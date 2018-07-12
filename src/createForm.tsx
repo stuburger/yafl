@@ -9,7 +9,6 @@ import {
   Path,
   FormState,
   FormProvider,
-  RegisteredField,
   SetFormValueFunc,
   SetFormVisitedFunc,
   SetFormTouchedFunc,
@@ -63,7 +62,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       }
     }
 
-    registerCache: RegisteredField[] = []
+    registerCache: string[] = []
     constructor(props: FormConfig<F>) {
       super(props)
 
@@ -85,7 +84,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.unregisterField = this.unregisterField.bind(this)
       this.registerError = this.registerError.bind(this)
       this.unregisterError = this.unregisterError.bind(this)
-      this.flushCache = this.flushCache.bind(this)
       this.incSubmitCount = this.incSubmitCount.bind(this)
       this.state = {
         initialMount: false,
@@ -95,7 +93,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         visited: {},
         initialValue: null,
         defaultValue: {} as F,
-        registeredFields: {},
         submitCount: 0,
         errorCount: 0,
         errors: {}
@@ -143,33 +140,17 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setState({ initialMount: true })
     }
 
-    componentDidUpdate(pp: FormConfig<F>) {
-      this.flushCache()
-    }
-
-    flushCache() {
-      if (this.registerCache.length > 0) {
-        this.setState(({ registeredFields: fields }) => {
-          const registeredFields = { ...fields }
-          let field: RegisteredField | undefined
-          while ((field = this.registerCache.pop())) {
-            registeredFields[toStrPath(field.path)] = true
-          }
-          return { registeredFields }
-        })
-      }
-    }
-
-    registerField(path: Path, type: 'section' | 'field') {
-      this.registerCache.push({ path, type })
+    registerField(path: Path) {
+      this.registerCache.push(toStrPath(path))
     }
 
     unregisterField(path: Path) {
-      this.setState(({ registeredFields, touched, visited }) => {
+      this.setState(({ touched, visited }) => {
+        const strPath = toStrPath(path)
+        this.registerCache = this.registerCache.filter(x => !x.startsWith(strPath))
         return {
           touched: immutable.del(touched, path as string[]),
-          visited: immutable.del(visited, path as string[]),
-          registeredFields: immutable.del(registeredFields, path as string[])
+          visited: immutable.del(visited, path as string[])
         }
       })
     }
@@ -208,19 +189,15 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       const { submitUnregisteredValues, onSubmit } = this.props
       if (!onSubmit) return
       this.incSubmitCount()
-
-      const { formValue, registeredFields } = this.state
-      // const fullValue = defaultsDeep({}, formValue, defaultValue)
-
+      const { formValue } = this.state
       if (submitUnregisteredValues) {
         onSubmit(formValue)
       } else {
-        onSubmit(constructFrom(formValue, Object.keys(registeredFields)))
+        onSubmit(constructFrom(formValue, this.registerCache))
       }
     }
 
     setValue(path: Path, val: any, setTouched = true) {
-      // if (!get(this.state.registeredFields, path as string[])) return
       this.setState(({ formValue, touched }) => ({
         formValue: immutable.set(formValue, path as string[], val),
         touched: setTouched ? immutable.set(touched, path as string[], true) : touched
@@ -301,7 +278,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         initialMount,
         initialValue,
         defaultValue,
-        registeredFields: ignore1,
         ...state
       } = this.state
 

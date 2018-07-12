@@ -61,15 +61,6 @@ export interface SetFormTouchedFunc<T extends object> {
   (previousTouched: BooleanTree<T>): BooleanTree<T>
 }
 
-export interface RegisteredField {
-  path: Path
-  type: 'section' | 'field'
-}
-
-export type RegisteredFields = {
-  [key: string]: RegisteredField
-}
-
 export type ComponentTypes<F extends object> = {
   [key: string]: React.ComponentType<FieldProps<F, any>> | React.ComponentType<GizmoProps<F>>
 }
@@ -177,7 +168,6 @@ export interface FormState<F extends object> {
   visited: BooleanTree<F>
   initialValue: F | null
   activeField: string | null
-  registeredFields: { [key: string]: boolean }
 }
 
 export interface ArrayHelpers<T> {
@@ -259,7 +249,7 @@ export interface FormProvider<F extends object, T = F> {
   setFormTouched: (setFunc: SetFormTouchedFunc<F>) => void
   setFormVisited: (setFunc: SetFormVisitedFunc<F>) => void
   unregisterField: ((path: Path) => void)
-  registerField: ((path: Path, type: 'section' | 'field') => void)
+  registerField: ((path: Path) => void)
 }
 
 export interface GizmoProps<F extends object> extends FormMeta<F> {
