@@ -20,7 +20,6 @@ const listenForProps: (keyof GeneralComponentConfig<any>)[] = [
 const propsToOmit: (keyof FormProvider<any>)[] = [
   'unregisterField',
   'unregisterField',
-  'unwrapFormState',
   'setActiveField',
   'registerField',
   'componentTypes',

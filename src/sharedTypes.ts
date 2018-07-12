@@ -237,7 +237,6 @@ export interface FormProvider<F extends object, T = F> {
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
-  unwrapFormState: (() => FormState<F>)
   commonFieldProps: CommonFieldProps
   setActiveField: ((path: string | null) => void)
   touchField: ((path: Path, touched: boolean) => void)
