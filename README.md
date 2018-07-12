@@ -63,7 +63,12 @@ interface FormConfig<T extends object> {
   componentTypes?: ComponentTypes<T>
   
   // The function to call on form submission
-  onSubmit?: (formValue: T) => void
+	onSubmit?: (formValue: T) => void
+	
+	// Will get called every time a the Form state changes. Implemented inside the Form's 
+	// componentDidUpdate function which means the same cautions apply when calling setState 
+	// here as do in any component's componentDidUpdate function
+  onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
 }
 ```
 
