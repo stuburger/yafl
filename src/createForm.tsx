@@ -139,6 +139,12 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setState({ initialMount: true })
     }
 
+    componentDidUpdate(pp: FormConfig<F>, ps: FormState<F>) {
+      const { onStateChange } = this.props
+      if (typeof onStateChange !== 'function') return
+      onStateChange(ps, this.state)
+    }
+
     registerField(path: Path) {
       this.registerCache.push(toStrPath(path))
     }

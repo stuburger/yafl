@@ -354,4 +354,5 @@ export interface FormConfig<T extends object> {
   rememberStateOnReinitialize?: boolean
   commonFieldProps?: CommonFieldProps
   componentTypes?: ComponentTypes<T>
+  onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
 }
