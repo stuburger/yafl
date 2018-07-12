@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PropTypes from 'prop-types'
+import * as PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
 import { validateName, forkByName } from './utils'
 import { Name, FormProvider, ArrayHelpers, Path } from './sharedTypes'

@@ -69,7 +69,7 @@ export interface InputProps<T = any> {
   /**
    * The name of this Field.
    */
-  name: Name
+  name: string
   /**
    * The value of this Field.
    */

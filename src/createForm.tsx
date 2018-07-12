@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PropTypes from 'prop-types'
+import * as PropTypes from 'prop-types'
 import get from 'lodash.get'
 import defaultsDeep from 'lodash.defaultsdeep'
 import { noop, isObject, toStrPath, constructFrom } from './utils'

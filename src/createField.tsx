@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PropTypes from 'prop-types'
+import * as PropTypes from 'prop-types'
 import { FormProvider, InnerFieldProps, FieldProps, InputProps, FieldConfig } from './sharedTypes'
 import { toStrPath, validateName, forkByName } from './utils'
 import isEqual from 'react-fast-compare'
@@ -20,7 +20,6 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
 ]
 
 // React.Provider<FormProvider<F, any>>
-// TODO provider types
 function createField(Provider: React.Provider<any>) {
   return class FieldConsumer<T, F extends object> extends React.Component<InnerFieldProps<F, T>> {
     constructor(props: InnerFieldProps<F, T>) {
@@ -104,7 +103,7 @@ function createField(Provider: React.Provider<any>) {
       const p = this.props
 
       const input: InputProps = {
-        name: p.name,
+        name: p.name.toString(),
         value: p.value,
         onFocus: this.onFocus,
         onBlur: this.onBlur,
