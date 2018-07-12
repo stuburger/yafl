@@ -1,9 +1,8 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import get from 'lodash.get'
-import set from 'lodash.set'
 import defaultsDeep from 'lodash.defaultsdeep'
-import { noop, isObject, toStrPath } from './utils'
+import { noop, isObject, toStrPath, constructFrom } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -16,9 +15,6 @@ import {
   SetFormTouchedFunc,
   FormConfig
 } from './sharedTypes'
-
-// const { whyDidYouUpdate } = require('why-did-you-update')
-// whyDidYouUpdate(React)
 
 const startingPath: Path = []
 
@@ -38,7 +34,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       children: PropTypes.node.isRequired,
       initialValue: PropTypes.object,
       defaultValue: PropTypes.object,
-      allowReinitialize: PropTypes.bool,
+      disableReinitialize: PropTypes.bool,
       submitUnregisteredValues: PropTypes.bool,
       rememberStateOnReinitialize: PropTypes.bool,
       commonFieldProps: PropTypes.object,
@@ -90,65 +86,55 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.registerError = this.registerError.bind(this)
       this.unregisterError = this.unregisterError.bind(this)
       this.flushCache = this.flushCache.bind(this)
+      this.incSubmitCount = this.incSubmitCount.bind(this)
       this.state = {
         initialMount: false,
         formValue: {} as F,
         activeField: null,
         touched: {},
         visited: {},
-        registeredFields: {},
         initialValue: null,
         defaultValue: {} as F,
+        registeredFields: {},
         submitCount: 0,
         errorCount: 0,
         errors: {}
       }
     }
 
+    // this really isnt very pretty...
     static getDerivedStateFromProps(np: FormConfig<F>, ps: FormState<F>) {
-      const state: Partial<FormState<F>> = {}
+      const state: Partial<FormState<F>> = {
+        formValue: ps.formValue,
+        defaultValue: np.defaultValue || ({} as F)
+      }
 
       const alreadyHasValue = isObject(ps.initialValue)
       const willHaveValue = isObject(np.initialValue)
-      // if form is still loading...
-      if (!(alreadyHasValue || willHaveValue)) {
-        state.formValue = np.defaultValue || ({} as F)
-        return state
-      }
+      const willLoad = !alreadyHasValue && willHaveValue
+      const intialValueChanged = alreadyHasValue && !isEqual(ps.initialValue, np.initialValue)
+      let updateDerivedState = !willHaveValue
 
-      let formWillPopulate = !alreadyHasValue && willHaveValue
-
-      let shouldUpdateValue = false
-      if (!isEqual(ps.initialValue, np.initialValue)) {
-        // regardless of whether allowReinitialize == true,
-        // set initialValue to whatever was incoming, this
-        // means that when reset is clicked it is reset to whatever
-        // the current 'initialValue' is. Check if this is desired,
-        // this can always be skipped
-        state.initialValue = np.initialValue || ({} as F)
-        shouldUpdateValue = true
-      }
-
-      if (!isEqual(ps.defaultValue, np.defaultValue)) {
-        state.defaultValue = np.defaultValue || ({} as F)
-        shouldUpdateValue = true
-      }
-
-      if (formWillPopulate || (shouldUpdateValue && np.allowReinitialize)) {
-        state.formValue = defaultsDeep({}, np.initialValue || {}, np.defaultValue || {})
-        if (np.rememberStateOnReinitialize) {
+      if (willLoad || (!np.disableReinitialize && intialValueChanged)) {
+        const value = np.initialValue || ({} as F)
+        state.formValue = state.initialValue = value
+        if (!np.rememberStateOnReinitialize) {
           state.submitCount = 0
           state.touched = {}
           state.visited = {}
         }
-        return state
+        updateDerivedState = true
       }
 
-      return null
+      if (updateDerivedState || !isEqual(ps.defaultValue, np.defaultValue)) {
+        state.formValue = defaultsDeep({}, state.formValue, state.defaultValue)
+      }
+
+      return updateDerivedState ? state : null
     }
 
     static defaultProps = {
-      allowReinitialize: false,
+      disableReinitialize: false,
       rememberStateOnReinitialize: false,
       submitUnregisteredValues: false
     }
@@ -212,20 +198,25 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       })
     }
 
-    submit() {
-      const { submitUnregisteredValues, onSubmit = noop } = this.props
-      const { formValue, registeredFields } = this.state
+    incSubmitCount() {
       this.setState(({ submitCount }) => ({
         submitCount: submitCount + 1
       }))
+    }
+
+    submit() {
+      const { submitUnregisteredValues, onSubmit } = this.props
+      if (!onSubmit) return
+      this.incSubmitCount()
+
+      const { formValue, registeredFields } = this.state
+      // const fullValue = defaultsDeep({}, formValue, defaultValue)
+
       if (submitUnregisteredValues) {
-        return onSubmit(formValue)
+        onSubmit(formValue)
+      } else {
+        onSubmit(constructFrom(formValue, Object.keys(registeredFields)))
       }
-      let retval: F = {} as F
-      Object.keys(registeredFields).forEach(path => {
-        set(retval, path, get(formValue, path))
-      })
-      onSubmit(retval)
     }
 
     setValue(path: Path, val: any, setTouched = true) {
@@ -305,11 +296,12 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     render() {
       const { commonFieldProps = {}, componentTypes = {} } = this.props
       const {
-        errorCount,
         formValue,
-        initialValue,
+        errorCount,
         initialMount,
-        registeredFields,
+        initialValue,
+        defaultValue,
+        registeredFields: ignore1,
         ...state
       } = this.state
 
@@ -339,6 +331,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             unregisterError: this.unregisterError,
             unregisterField: this.unregisterField,
             unwrapFormState: this.unwrapFormState,
+            defaultValue: defaultValue || ({} as F),
             initialValue: initialValue || ({} as F),
             formIsValid: !initialMount || errorCount === 0,
             formIsDirty: initialMount && !isEqual(initialValue, formValue),

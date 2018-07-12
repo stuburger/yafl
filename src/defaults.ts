@@ -6,7 +6,9 @@ export interface Noop {
 }
 
 export function noop(): never {
-  throw new Error('A <Field /> component can only appear inside a <Form /> component')
+  throw new Error(
+    'A Consumer component can only appear inside a <Form /> (Provider) component that belongs to the same context.'
+  )
 }
 
 export const forkableProps: (keyof FormProvider<any>)[] = [

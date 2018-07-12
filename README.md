@@ -43,8 +43,9 @@ interface FormConfig<T extends object> {
   // to replace any missing values.
   defaultValue?: T
   
-  // When true, any time the initialValue prop changes your Form will be reinitialized
-  allowReinitialize?: boolean
+	// When true, any time the initialValue prop changes your Form will not 
+	// reinitialized with the updated initialValue. Default is false.
+  disableReinitialize?: boolean
   
   // Specify whether values that are not matched with a rendered Field, Section or Repeat
   // should be included on submission of the form. Default is false.

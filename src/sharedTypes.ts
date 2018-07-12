@@ -360,7 +360,7 @@ export interface FormConfig<T extends object> {
   disabled?: boolean
   children: React.ReactNode
   submitUnregisteredValues?: boolean
-  allowReinitialize?: boolean
+  disableReinitialize?: boolean
   onSubmit?: (formValue: T) => void
   rememberStateOnReinitialize?: boolean
   commonFieldProps?: CommonFieldProps
