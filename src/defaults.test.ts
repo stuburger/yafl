@@ -42,7 +42,7 @@ describe('default provider props which are present if a Field or Section compone
       const maybeFunc: any = (result as any)[key]
       if (typeof maybeFunc === 'function') {
         expect(() => maybeFunc()).toThrow(
-          'A <Field /> component can only appear inside a <Form /> component'
+          'A Consumer component can only appear inside a <Form /> (Provider) component that belongs to the same context.'
         )
       }
     })
