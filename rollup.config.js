@@ -16,8 +16,7 @@ const rollupUmd = ({ env }) => ({
     name: 'yafl',
     format: 'umd',
     sourcemap: true,
-    file:
-      env === 'production' ? `./lib/yafl.umd.${env}.js` : `./lib/yafl.umd.${env}.js`,
+    file: `./lib/yafl.umd.${env}.js`,
     exports: 'named',
     globals: {
       react: 'React',
@@ -55,7 +54,6 @@ const rollupUmd = ({ env }) => ({
           pure_getters: true
         },
         warnings: true,
-        // ecma: 5,
         toplevel: false
       })
   ]

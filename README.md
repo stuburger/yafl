@@ -1,6 +1,7 @@
 # Yet. Another. Form. Library.
 
 [![Build Status](https://travis-ci.org/stuburger/yafl.svg?branch=master)](https://travis-ci.org/stuburger/yafl)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/yafl/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl/lib/yafl.umd.production.js)
 
 YAFL - Yet Another Form Library
 
@@ -17,11 +18,12 @@ yafl's philosophy is to "keep it super simple". While it provides a lot of funct
 - Create deeply nested forms or forms within forms.
 - Structure your Components to match the shape of your data. This means no more accessing field values using string paths!
 - Render a Validator!
-- Fully featured and weighing in at less than 8KB! Thats almost half the size of libraries offering similar functionality!
 
 ## Installation
 
-_Not available on npm yet._
+```bash
+npm i yafl
+ ```
 
 # API
 
@@ -38,36 +40,36 @@ interface FormConfig<T extends object> {
   // The initial value of your Form. Once this value becomes
   // truthy your Form will initialize.
   initialValue?: T
-  
+
   // The defaultValue is merged with initialValue on initialization
   // to replace any missing values.
   defaultValue?: T
-  
-	// When true, any time the initialValue prop changes your Form will not 
-	// reinitialized with the updated initialValue. Default is false.
+
+  // When true, any time the initialValue prop changes your Form will not 
+  // reinitialized with the updated initialValue. Default is false.
   disableReinitialize?: boolean
-  
+
   // Specify whether values that are not matched with a rendered Field, Section or Repeat
   // should be included on submission of the form. Default is false.
   submitUnregisteredValues?: boolean
-  
+
   // Specify whether your Form should remember what fields have been touched and/or
   // visited and if the submitCount should be reset to 0 when the initialValue prop changes.
   rememberStateOnReinitialize?: boolean
-  
+
   // For convenience. Uses React's context API to make these values available to all
   // Field components.
   commonFieldProps?: { [key: string]: any }
-  
+
   // For convenience. Allows you specify component dictionary to match a Fields component prop with.
   componentTypes?: ComponentTypes<T>
-  
+
   // The function to call on form submission
-	onSubmit?: (formValue: T) => void
-	
-	// Will get called every time a the Form state changes. Implemented inside the Form's 
-	// componentDidUpdate function which means the same cautions apply when calling setState 
-	// here as do in any component's componentDidUpdate function
+  onSubmit?: (formValue: T) => void
+
+  // Will get called every time a the Form state changes. Implemented inside the Form's 
+  // componentDidUpdate function which means the same cautions apply when calling setState 
+  // here as do in any component's componentDidUpdate function
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
 }
 ```
@@ -81,18 +83,19 @@ interface FieldConfig<F extends object, T = any> {
   // Name your field! Providing a number usually indicates that
   // this field appears in an array.
   name: string | number
-
+  
   // Transforms a Field's value before setting it. Useful for number inputs and the like.
   parse?: (value: any) => T
-
+  
   // A render prop that accepts an object containing all the good stuff
   // you'll need to render a your Field.
   render?: (props: FieldProps<F, T>) => React.ReactNode
-	
-	// Specify a component to render. If a string is provided then yafl will attempt to 
-	// match the string component to one provided in the componentTypes Form prop
-	// and if no match is found then it will call React.createElement with the value provided.
+  
+  // Specify a component to render. If a string is provided then yafl will attempt to 
+  // match the string component to one provided in the componentTypes Form prop
+  // and if no match is found then it will call React.createElement with the value provided.
   component?: React.ComponentType<FieldProps<F, T>> | string
+  
   // Any other props will be forwarded (along with any props specified by
   // commonFieldProps on the Form component) to your component or render prop.
   [key: string]: any

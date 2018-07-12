@@ -3,12 +3,17 @@
   "version": "0.0.4",
   "description": "Yet another form library for React",
   "main": "lib/yafl.js",
-  "module": "lib/yafl.es6.js",
+  "module": "lib/yafl.esm.js",
   "typings": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stuburger/yafl"
+  },
   "files": [
     "lib"
   ],
   "scripts": {
+    "size": "size-limit",
     "prebuild": "rimraf lib",
     "build": "cross-env NODE_ENV=production tsc -p tsconfig.base.json  && rollup -c && rimraf compiled && cp ./index.js ./lib/index.js",
     "watch": "tsc --watch",
@@ -74,7 +79,8 @@
     "rollup-plugin-replace": "^2.0.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-uglify": "^4.0.0",
-    "ts-jest": "^23.0.0",
+    "size-limit": "^0.18.5",
+    "ts-jest": "^22.4.6",
     "typescript": "^2.9.2",
     "uglify-es": "^3.3.9",
     "why-did-you-update": "^0.1.1"
@@ -97,5 +103,19 @@
       "json",
       "node"
     ]
-  }
+  },
+  "size-limit": [
+    {
+      "path": "./lib/index.js",
+      "limit": "16 kB"
+    },
+    {
+      "path": "./lib/yafl.esm.js",
+      "limit": "16 kB"
+    },
+    {
+      "path": "./lib/yafl.umd.production.js",
+      "limit": "16 kB"
+    }
+  ]
 }
