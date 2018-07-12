@@ -31,8 +31,7 @@ const expected = {
   unregisterError: noop,
   registerField: noop,
   setActiveField: noop,
-  unregisterField: noop,
-  unwrapFormState: noop
+  unregisterField: noop
 }
 
 describe('default provider props which are present if a Field or Section component are rendered outside the Form Provider', () => {

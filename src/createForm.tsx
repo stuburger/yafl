@@ -80,7 +80,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setTouched = disabledGuard(this.setTouched.bind(this))
       this.setVisited = disabledGuard(this.setVisited.bind(this))
       this.registerField = this.registerField.bind(this)
-      this.unwrapFormState = this.unwrapFormState.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
       this.registerError = this.registerError.bind(this)
       this.unregisterError = this.unregisterError.bind(this)
@@ -266,10 +265,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       })
     }
 
-    unwrapFormState() {
-      return this.state
-    }
-
     render() {
       const { commonFieldProps = {}, componentTypes = {} } = this.props
       const {
@@ -306,7 +301,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             setActiveField: this.setActiveField,
             unregisterError: this.unregisterError,
             unregisterField: this.unregisterField,
-            unwrapFormState: this.unwrapFormState,
             defaultValue: defaultValue || ({} as F),
             initialValue: initialValue || ({} as F),
             formIsValid: !initialMount || errorCount === 0,

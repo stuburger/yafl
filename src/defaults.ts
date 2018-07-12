@@ -52,7 +52,6 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     setFormVisited: noop,
     setActiveField: noop,
     unregisterError: noop,
-    unregisterField: noop,
-    unwrapFormState: noop
+    unregisterField: noop
   }
 }
