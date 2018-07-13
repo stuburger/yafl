@@ -59,7 +59,7 @@ By default any time the `initialValue` prop changes, your Form will be reinitial
 
 This is a convenience prop that can be used to pass common values to all the components on your form. Yafl uses React's context API to make these values available to all Field components.
 
-> **Why you might need this:**:
+> **Why you might need this:**
 > - For things like theming, etc
 > - Passing any common values that you might need available on all of your Fields.
 
@@ -435,11 +435,6 @@ Override the `path` for a Validator. By default the `path` is determined by what
 >
 > This is useful assign errors that belong to the domain of a Section, Repeat, at the Form level. Using the `path` prop is also for simply displaying general errors with a custom path or key.
 
-
-> **Note:**
->
-> Currently Yafl does not guarantee the order in which error messages will appear in a Field's `errors` array. However this is usually only important when you only want to display the first error message using something like `errors[0]`. Fortunately Yafl provides the syntax that allows you to stop validating Fields "on first failure". You can accomplish this by nesting a `<Validator />` as the child of another `<Validator />`. This works because the children of a Validator are only rendered when Validation passes for any particular `<Validator />`.
-
 ### How to stop validating a Field on first failure
 
 Say you have a custom `<TextInput />` component that accepts a `validate` prop which is a simple array of functions. Let's take a look at how this component might be implemented:
@@ -463,7 +458,7 @@ const TextInput = ({ visited, submitCount, errors, isValid, validators, input })
 
 > **Note:**
 >
-> You might be wondering about the use of `reduceRight` in the TextInput component above. The simple reason for its use is this - because validators would be passed to our hypothetical component in a left to right fashion in the same order we'd like to see errors displayed.
+> You might be wondering about the use of `reduceRight` in the TextInput component above. The simple reason for its use is because validators would be passed to our hypothetical component in a left to right fashion in the same order we'd like to see errors displayed.
 
 Our simple validators would look something like this:
 
@@ -481,8 +476,7 @@ const minLength = (length: number) => (value: string) : string | undefined => {
 }
 ```
 
-
-Finally, we use our `TextInput` component:
+Finally, we can put this all together and use our `TextInput` component:
 
 ```jsx
 render() {
@@ -498,6 +492,11 @@ render() {
   )
 }
 ```
+
+
+> **Note:**
+>
+> Currently Yafl does not guarantee the order in which error messages will appear in a Field's `errors` array. However this is usually only important when you only want to display the first error message using something like `errors[0]`. Fortunately Yafl provides the syntax that allows you to stop validating Fields "on first failure". You can accomplish this by nesting a `<Validator />` as the child of another `<Validator />`. This works because the children of a Validator are only rendered when Validation passes for any particular `<Validator />`.
 
 
 ## Top Level API
