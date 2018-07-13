@@ -7,16 +7,18 @@ YAFL - Yet Another Form Library
 
 ## Motivation
 
-Development on yafl only started after the release of React 16.3 and uses the React Context API behind the scenes to pass props between components. It has drawn a lot of inspiration from Redux-Form and Formik (both awesome projects!)
+Development on Yafl only started after the release of React 16.3 and uses the React Context API behind the scenes to pass props between components. It has drawn a lot of inspiration from Redux-Form and Formik (both awesome projects!)
 
-yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use.
+Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use. At the start of Yafl's development, the decision was made to leave as much of the implementation of your form up to you, the developer. Yafl aims to provide the tools to build forms without caring too much about the specific use case.
 
 ## Why use YAFL?
 
-- Use TypeScript to create strongly typed forms to give you peace of mind and a good nights sleep.
+- Use TypeScript with JSX generics to create strongly typed forms that give you peace of mind and a good nights sleep.
 - Create multi-page forms without needing to use specialized components or a state management library like flux or redux.
-- Create deeply nested forms or forms within forms.
 - Structure your Components to match the shape of your data. This means no more accessing field values using string paths!
+- Deeply nested forms.
+- Create forms within forms.
+- Flexible and fun.
 - Render a Validator!
 
 ## Installation
@@ -29,73 +31,102 @@ npm i yafl
 
 ## The **Form** Component
 
-The Form component contains all the state that makes yafl work. All other yafl components *have* to be rendered as a child of a `<Form>`. Trying to render a Field outside of a Form, for example, will cause an error to be thrown.
+The Form component contains all the state that makes Yafl work. All other Yafl components *have* to be rendered as a child of a `<Form>`. Trying to render a Field outside of a Form, for example, will cause an error to be thrown.
 
-Note: if you are nesting forms this may cause some pretty strange behaviour. If you have a use case for nested forms you'll have to use yafl's only non-component export: `createFormContext`.
+Note: if you are nesting forms this may cause some pretty strange behaviour. If you have a use case for nested forms you'll have to use Yafl's only non-component export: `createFormContext`.
 
 ### Form Configuration Props
 
-```ts
-interface FormConfig<T extends object> {
-  // The initial value of your Form. Once this value becomes
-  // truthy your Form will initialize.
-  initialValue?: T
+**initialValue?: T**
 
-  // The defaultValue is merged with initialValue on initialization
-  // to replace any missing values.
-  defaultValue?: T
+The initial value of your Form. Once `initialValue` becomes a non-null object, your Form will initialize.
 
-  // When true, any time the initialValue prop changes your Form will not 
-  // reinitialized with the updated initialValue. Default is false.
-  disableReinitialize?: boolean
 
-  // Specify whether values that are not matched with a rendered Field, Section or Repeat
-  // should be included on submission of the form. Default is false.
-  submitUnregisteredValues?: boolean
+**defaultValue?: T**
 
-  // Specify whether your Form should remember what fields have been touched and/or
-  // visited and if the submitCount should be reset to 0 when the initialValue prop changes.
-  rememberStateOnReinitialize?: boolean
+The `defaultValue` is merged with the `formValue`. Currently this is done any time the `defaultValue` changes and not when your `formValue` changes.
 
-  // For convenience. Uses React's context API to make these values available to all
-  // Field components.
-  commonFieldProps?: { [key: string]: any }
 
-  // For convenience. Allows you specify component dictionary to match a Fields component prop with.
-  componentTypes?: ComponentTypes<T>
+**disableReinitialize?: boolean**
 
-  // The function to call on form submission
-  onSubmit?: (formValue: T) => void
+Default is `false`.
 
-  // Will get called every time a the Form state changes. Implemented inside the Form's 
-  // componentDidUpdate function which means the same cautions apply when calling setState 
-  // here as do in any component's componentDidUpdate function
-  onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
-}
+By default any time the `initialValue` prop changes, your Form will be reinitialized with the updated `initialValue`. To prevent this behaviour simply set `disableReinitialize` to `true`.
+
+
+**commonFieldProps?: { [key: string]: any }**
+
+This is a convenience prop that can be used to pass common values to all the components on your form. Yafl uses React's context API to make these values available to all Field components.
+
 ```
+Useful for:
+- Theming, etc
+- Passing any common values that you might need available on all of your Fields.
+```
+
+
+**componentTypes?: ComponentTypes<T>**
+
+Another convenience prop which allows you provide component dictionary to match a Field's `component` prop with. For example:
+
+```tsx
+  <Form componentTypes={{ input: TextInput, number: NumberInput }}>
+    ...
+    {/* The default HTML input will now be overridden by my custom TextInput */}
+    <Field name="firstName" component="input" />
+
+    {/* Renders my custom NumberInput  */}
+    <Field name="age" component="number" />
+  </Form>
+```
+
+
+**onSubmit?: (formValue: T) => void**
+
+The function to call on form submission. By default the `formValue` argument will contain only fields that are actually mounted. To include all values in your form you can use the `submitUnregisteredValues` prop.
+
+
+**submitUnregisteredValues?: boolean**
+
+Default is `false`.
+
+Specify whether values that do not have a corresponding Field, Section or Repeat should be included on submission of your form.
+
+```
+useful for:
+
+Partially updating an object and by submitting the unchanged values along with those that have been modified. This is frequently the cause when on a PUT on some endpoint that is expecting the full value to be sent down the wire.
+```
+
+
+**onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void**
+
+Will get called every time the Form state changes. `onStateChange` is implemented inside the Form's `componentDidUpdate` function which means the same cautions apply when calling setState here as do in any component's `componentDidUpdate` function.
+
+
 
 ## The **Field** Component
 
-Field components are the bread and butter of any form library and yafl's Field's are no exception! The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. The most important thing to note about the Field component is that you should never name your Field using a 'path' string. Yafl uses a Fields location in the Form's component hierarchy to determine the shape of the resulting form value.
+Field components are the bread and butter of any form library and Yafl's Field's are no exception! The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. The most important thing to note about the Field component is that you should never name your Field using a 'path' string. Yafl uses a Fields location in the Form's component hierarchy to determine the shape of the resulting form value.
 
 ```ts
 interface FieldConfig<F extends object, T = any> {
   // Name your field! Providing a number usually indicates that
   // this field appears in an array.
   name: string | number
-  
+
   // Transforms a Field's value before setting it. Useful for number inputs and the like.
   parse?: (value: any) => T
-  
+
   // A render prop that accepts an object containing all the good stuff
   // you'll need to render a your Field.
   render?: (props: FieldProps<F, T>) => React.ReactNode
-  
-  // Specify a component to render. If a string is provided then yafl will attempt to 
+
+  // Specify a component to render. If a string is provided then Yafl will attempt to
   // match the string component to one provided in the componentTypes Form prop
   // and if no match is found then it will call React.createElement with the value provided.
   component?: React.ComponentType<FieldProps<F, T>> | string
-  
+
   // Any other props will be forwarded (along with any props specified by
   // commonFieldProps on the Form component) to your component or render prop.
   [key: string]: any
@@ -325,7 +356,7 @@ interface GizmoConfig<F extends object> {
 
 ## The **Validator** Component
 
-The `<Validator />` component can be 'rendered' to create errors on your Form. The concept of "rendering a validator" might require a small shift in the way you think about form validation since other form libraries usually do validation through the use of a `validate` prop. With yafl however, you validate your form by simply rendering a Validator. This has some interesting benefits, one of which is that a "rendered" validator solves some of the edge cases around form validation - the most obvious example being that of async validation. 
+The `<Validator />` component can be 'rendered' to create errors on your Form. The concept of "rendering a validator" might require a small shift in the way you think about form validation since other form libraries usually do validation through the use of a `validate` prop. With Yafl however, you validate your form by simply rendering a Validator. This has some interesting benefits, one of which is that a "rendered" validator solves some of the edge cases around form validation - the most obvious example being that of async validation.
 
 Here's an example:
 
@@ -374,8 +405,8 @@ function IsRequired ({ value, touched, visited, validateOn = 'blur', message }) 
 
 function Length ({ value, touched, visited, validateOn = 'change', min, max, message }) {
 	return (
-		<Validator 
-			msg={message} 
+		<Validator
+			msg={message}
 			invalid={value.length < min) || (value.length > max}
 		/>
 	)
@@ -410,15 +441,15 @@ interface ValidatorProps {
 
 ## Top Level API
 
-**yafl** only exports a single function:
+**Yafl** only exports a single function:
 
-`createFormContext` returns all of the same components as those exported by yafl.
+`createFormContext` returns all of the same components as those exported by Yafl.
 
 ```js
 const { Form, Field, Section, Repeat, Gizmo, Validator } = createFormContext()
 ```
 
-There are a few cases where one might want to nest one Form within another. However, since yafl uses React's context API to pass props from Provider to Consumer, rendering a Form inside another Form will make it impossible to access the outter Form values within a Field, Section or Repeat that are rendered within the inner Form. The following example serves to illustrate the problem:
+There are a few cases where one might want to nest one Form within another. However, since Yafl uses React's context API to pass props from Provider to Consumer, rendering a Form inside another Form will make it impossible to access the outter Form values within a Field, Section or Repeat that are rendered within the inner Form. The following example serves to illustrate the problem:
 
 ```js
 import { Form, Field, Section } from 'yafl'
