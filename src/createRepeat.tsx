@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
 import { validateName, forkByName } from './utils'
-import { Name, FormProvider, ArrayHelpers, Path } from './sharedTypes'
+import { Name, FormProvider, ArrayHelpers, Path, RepeatConfig } from './sharedTypes'
 import { forkableProps } from './defaults'
 import invariant from 'invariant'
 
@@ -130,12 +130,6 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       )
     }
   }
-}
-
-export interface RepeatConfig<T> {
-  name: Name
-  fallback?: T[]
-  children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)
 }
 
 export default function<F extends object>(

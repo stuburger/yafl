@@ -170,6 +170,12 @@ export interface FormState<F extends object> {
   activeField: string | null
 }
 
+export interface RepeatConfig<T> {
+  name: Name
+  fallback?: T[]
+  children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)
+}
+
 export interface ArrayHelpers<T> {
   /**
    * Appends new elements to an array, and returns the new length of the array.
