@@ -15,6 +15,7 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
   'errors',
   'touched',
   'visited',
+  'forkable',
   'children',
   'errorCount',
   'submitCount',

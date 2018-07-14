@@ -272,7 +272,21 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     render() {
-      const { commonFieldProps = {}, componentTypes = {} } = this.props
+      const {
+        disabled: ignore1,
+        children: ignore2,
+        onSubmit: ignore3,
+        onStateChange: ignore4,
+        initialValue: ignore6,
+        defaultValue: ignore7,
+        disableReinitialize: ignore5,
+        submitUnregisteredValues: ignore8,
+        rememberStateOnReinitialize: ignore9,
+        componentTypes = {},
+        commonFieldProps = {},
+        ...forkable
+      } = this.props
+
       const {
         formValue,
         errorCount,
@@ -286,6 +300,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         <Provider
           value={{
             ...state,
+            forkable,
             formValue,
             errorCount,
             initialMount,

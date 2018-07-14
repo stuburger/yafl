@@ -17,8 +17,7 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'component',
   'submitCount',
   'forwardProps',
-  'componentTypes',
-  'commonFieldProps'
+  'componentTypes'
 ]
 
 // React.Provider<FormProvider<F, any>>
@@ -71,9 +70,10 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onChange(e: React.ChangeEvent<any>) {
-      const { forwardProps, parse } = this.props
-      if (forwardProps.onChange) {
-        forwardProps.onChange(e)
+      const { parse, commonFieldProps } = this.props
+      const onChange = this.props.onChange || commonFieldProps.onChange
+      if (typeof onChange === 'function') {
+        onChange(e, this.collectProps())
       }
       if (e.isDefaultPrevented()) return
       const { value } = e.target
@@ -81,17 +81,21 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onFocus(e: React.FocusEvent<any>): void {
-      const { forwardProps, setActiveField, path } = this.props
-      if (forwardProps.onFocus) {
-        forwardProps.onFocus(e)
+      const { path, setActiveField, commonFieldProps } = this.props
+      const onFocus = this.props.onFocus || commonFieldProps.onFocus
+      if (typeof onFocus === 'function') {
+        onFocus(e, this.collectProps())
       }
+      if (e.isDefaultPrevented()) return
       setActiveField(toStrPath(path))
     }
 
     onBlur(e: React.FocusEvent<any>) {
-      const { visited, setActiveField, forwardProps } = this.props
-      if (forwardProps.onBlur) {
-        forwardProps.onBlur(e)
+      const { commonFieldProps, visited, setActiveField } = this.props
+      const onBlur = this.props.onBlur || commonFieldProps.onBlur
+
+      if (typeof onBlur === 'function') {
+        onBlur(e, this.collectProps())
       }
       if (e.isDefaultPrevented()) return
       if (visited) {
@@ -135,7 +139,7 @@ function createField(Provider: React.Provider<any>) {
         setFormVisited: p.setFormVisited,
         setFormTouched: p.setFormTouched,
         clearForm: p.clearForm,
-        ...p.commonFieldProps,
+        ...p.forkable,
         ...p.forwardProps
       }
     }
@@ -185,17 +189,30 @@ export default function<F extends object>(
     }
 
     _render(ip: FormProvider<F1, any>) {
-      const { name, parse, render, children, component, ...forwardProps } = this.props
+      const {
+        name,
+        parse,
+        render,
+        children,
+        component,
+        onBlur,
+        onChange,
+        onFocus,
+        ...forwardProps
+      } = this.props
 
       return (
         <FieldConsumer<T, F1>
           key={name}
           parse={parse}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onChange={onChange}
           render={render}
           children={children}
           component={component}
-          forwardProps={forwardProps}
-          commonFieldProps={ip.commonFieldProps}
+          forwardProps={{ ...ip.commonFieldProps, ...forwardProps }}
+          // commonFieldProps={ip.commonFieldProps}
           {...forkByName(name, ip, forkableProps)}
         />
       )

@@ -16,6 +16,7 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
   'errors',
   'touched',
   'visited',
+  'forkable',
   'children',
   'errorCount',
   'activeField',
@@ -150,10 +151,10 @@ export default function<F extends object>(
       this._render = this._render.bind(this)
     }
 
-    _render(incomingProps: FormProvider<F, any>) {
+    _render(ip: FormProvider<F, any>) {
       const { children, name, fallback } = this.props
       return (
-        <InnerComponent<T> key={name} {...forkByName(name, incomingProps, forkableProps, fallback)}>
+        <InnerComponent<T> key={name} {...forkByName(name, ip, forkableProps, fallback)}>
           {children}
         </InnerComponent>
       )

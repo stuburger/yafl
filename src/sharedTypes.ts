@@ -84,6 +84,9 @@ export interface FieldConfig<F extends object, T = any> {
   parse?: (value: any) => T
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>> | string
+  onChange?: (e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
+  onBlur?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
+  onFocus?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   [key: string]: any
 }
 export interface FieldProps<F extends object, T = any> extends FieldMeta<F, T> {
@@ -146,7 +149,7 @@ export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
   setTouched: (value: boolean) => void
 }
 
-export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T> {
+export interface InnerFieldProps<F extends object, T = any> extends FormProvider<F, T> {
   name: Name
   formValue: F
   value: T
@@ -154,6 +157,9 @@ export interface InnerFieldProps<F extends object, T> extends FormProvider<F, T>
   parse?: (value: any) => T
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>> | string
+  onChange?: (e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
+  onBlur?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
+  onFocus?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   forwardProps: { [key: string]: any }
 }
 
@@ -219,8 +225,15 @@ export interface ArrayHelpers<T> {
   remove: (index: number) => T | undefined
 }
 
-export interface CommonFieldProps {
+export interface CommonFieldProps<F extends object> {
+  onChange?: <T = any>(e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
+  onBlur?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
+  onFocus?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   [key: string]: any
+}
+
+export type Forkable<F extends object> = {
+  [K in keyof F]?: F[K] extends object ? Forkable<F[K]> : F[K]
 }
 
 export interface FormProvider<F extends object, T = F> {
@@ -243,7 +256,8 @@ export interface FormProvider<F extends object, T = F> {
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
-  commonFieldProps: CommonFieldProps
+  forkable?: any //Forkable<F>
+  commonFieldProps: CommonFieldProps<F>
   setActiveField: ((path: string | null) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)
@@ -358,7 +372,8 @@ export interface FormConfig<T extends object> {
   disableReinitialize?: boolean
   onSubmit?: (formValue: T) => void
   rememberStateOnReinitialize?: boolean
-  commonFieldProps?: CommonFieldProps
+  commonFieldProps?: CommonFieldProps<T>
   componentTypes?: ComponentTypes<T>
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
+  [key: string]: any
 }

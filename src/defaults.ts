@@ -1,4 +1,4 @@
-import { FormProvider } from './sharedTypes'
+import { FormProvider, Forkable } from './sharedTypes'
 
 /* @internal */
 export interface Noop {
@@ -30,6 +30,7 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     initialMount: false,
     formValue: {} as F,
     initialValue: {} as T,
+    forkable: {} as Forkable<F>,
     defaultValue: {} as T,
     componentTypes: {},
     activeField: null,
