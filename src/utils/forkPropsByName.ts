@@ -18,10 +18,10 @@ export default <F extends object, T, R>(
   result.name = name
   result.value = result.value === undefined ? valueFallback : result.value
   result.path = props.path.concat(name)
-  result.forkable = isObject(props.forkable)
-    ? Object.keys(props.forkable).reduce(
+  result.forkProps = isObject(props.forkProps)
+    ? Object.keys(props.forkProps).reduce(
         (ret: any, key: string) => {
-          ret[key] = isObject(props.forkable[key]) ? props.forkable[key][name] : undefined
+          ret[key] = isObject(props.forkProps[key]) ? props.forkProps[key][name] : undefined
           return ret
         },
         {} as any

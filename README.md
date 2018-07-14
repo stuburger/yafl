@@ -3,23 +3,28 @@
 [![Build Status](https://travis-ci.org/stuburger/yafl.svg?branch=master)](https://travis-ci.org/stuburger/yafl)
 [![gzip size](http://img.badgesize.io/https://unpkg.com/yafl/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl/lib/yafl.umd.production.js)
 
-YAFL - Yet Another Form Library
+YAFL - Fun. Flexible. Forms.
 
 ## Motivation
 
 Development on Yafl only started after the release of React 16.3 and uses the React Context API behind the scenes to pass props between components. It has drawn a lot of inspiration from Redux-Form and Formik (both awesome projects!)
 
-Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use. At the start of Yafl's development, the decision was made to leave as much of the implementation of your form up to you, the developer. Yafl aims to provide the tools to build forms without caring too much about the specific use case.
+Yafl was not built because I saw the need for yet another form library. Instead, Yafl started out as an idea that has evolved throughout its development. It has gone through many iterations (I dare you to go through the commit history) and on a number of occations I almost had to start from the *beginning* when I realized that the current code structure didn't accommodate a specific use case. Validation in particular was handled in multiple wildly different ways before I stumbled on - for better or worse - the idea of *rendering an error*. So there you have it, the motivation for the existence this library was pretty much of the "eh, why not" variety as opposed to the often touted "I saw a need for it" variety. That said however, I've found Yafl extremely fun and flexible to use even more so, I dare say, than the alternatives. X
+
+## Philosophy
+
+Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use. At the start of Yafl's development, the decision was made to leave as much of the implementation of your form up to you, the developer. Yafl aims to provide the tools to build forms without caring too much about the specific use case. 
 
 ## Why use YAFL?
 
 - Use TypeScript with JSX generics to create strongly typed forms that give you peace of mind and a good nights sleep.
 - Create multi-page forms without needing to use specialized components or a state management library like flux or redux.
 - Structure your Components to match the shape of your data. This means no more accessing field values using string paths!
-- Deeply nested forms.
-- Create forms within forms.
-- Flexible and fun.
+- Deeply nested forms and forms within forms!
 - Render a Validator!
+- Best of all you can even opt out of using Yafl's internal implementation by keeping track of your own form state and only use Yafl's context as a means to intelligently distribute state to your Fields!
+- Flexible.
+- Fun.
 
 ## Installation
 
@@ -31,11 +36,7 @@ npm i yafl
 
 ## The **Form** Component
 
-The Form component contains all the state that makes Yafl work. All other Yafl components *have* to be rendered as a child of a `<Form>`. Trying to render a Field outside of a Form, for example, will cause an error to be thrown.
-
-> **Note:**
->
-> If you are nesting forms this may cause some pretty strange behaviour. If you have a use case for nested forms you'll have to use Yafl's only non-component export: `createFormContext`.
+The `<Form />` component contains all the state that tracks what's going on in your form. This state includes things like whether or not a field `isDirty` or has been `visited`. It also keeps track of what Fields are mounted at any point in time which is useful for determining what values should be submitted collected for submission. All other Yafl components *have* to be rendered inside the Form. Trying to render a Field outside of a Form, for example, will cause an error to be thrown.
 
 ### Configuration
 
@@ -55,9 +56,9 @@ Default is `false`.
 
 By default any time the `initialValue` prop changes, your Form will be reinitialized with the updated `initialValue`. To prevent this behaviour simply set `disableReinitialize` to `true`.
 
-#### `commonFieldProps?: { [key: string]: any }`
+#### `sharedProps?: { [key: string]: any }`
 
-This is a convenience prop that can be used to pass common values to all the components on your form. Yafl uses React's context API to make these values available to all Field components.
+This is a convenience prop that can be used to pass and shared values to all the Fields on your form. Yafl uses React's context API to make these values available to all Field components.
 
 > **Why you might need this:**
 > - For things like theming, etc
@@ -103,7 +104,6 @@ Will get called every time the Form state changes.
 > `onStateChange` is implemented inside the Form's `componentDidUpdate` function which means the same cautions apply when calling setState here as do in any component's `componentDidUpdate` function.
 
 
-
 ## The **Field** Component
 
 Field components are the bread and butter of any form library and Yafl's Field's are no exception! The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. The most important thing to note about the Field component is that you should never name your Field using a 'path' string. Yafl uses a Fields location in the Form's component hierarchy to determine the shape of the resulting form value.
@@ -132,7 +132,7 @@ Specify a component to render. If a string is provided then Yafl will attempt to
 
 > **Note:**
 >
-> Any other props will be forwarded (along with any props specified by commonFieldProps on the Form component) to your component or render prop.
+> Any other props will be forwarded (along with any props specified by `sharedProps` on the Form component) to your component or render prop.
 
 
 ### Field Props
@@ -503,6 +503,63 @@ render() {
   )
 }
 ```
+
+
+### Using your own state
+
+Yafl gives you the ability to implement your own solution for managing the state of your form. The basic idea is this:
+
+1. Override Yafl's default behaviours by plugging into simple input event hooks.
+2. Keep track of the state of your form in your *own* component.
+3. Then allow Yafl to forward only the relevent parts your state on to your Fields.
+
+All of the Form's configuration props documented in the here are "recognized" by Yafl, but you can also give your `<Form />` any additional props of your own. There is one important criteria that all of these additional props should be should conform to is that they should be *forkable*. An object is forkable if it matches the shape of your `formValue`. This concept is probably best illustrated using the following *recursive* type:
+
+> `type FormProp<F extends object> = { [K in keyof F]?: F[K] extends object ? FormProp<F[K]> : any }`
+
+If you're new to TypeScript the above simply means that every additional prop should be an object with keys that match those of your `formValue`. So, for example if your `formValue` looks like this:
+
+```ts
+const formValue = {
+  contact: {
+    tel: '',
+      addresss: {
+        streetNo: '',
+        streetName: '',
+    }
+  }
+}
+```
+
+A valid forkable object might look something like this:
+
+```ts
+const errors = {
+  contact: {
+    tel: { msg: 'some custom error', danger: 'HIGH' },
+      addresss: {
+        streetNo: { msg: 'some custom error', danger: 'HIGH' },
+        streetName: { msg: 'some custom error', danger: 'LOW' },
+    }
+  }
+}
+```
+
+Or like this:
+
+```ts
+const isTouched = {
+  contact: {
+    tel: false,
+      addresss: {
+        streetNo: true,
+        streetName: false,
+    }
+  }
+}
+```
+
+Again, the important thing to notice here is that while the values can be of `any` type, the keys should match those of your `formValue`.
 
 ## Top Level API
 

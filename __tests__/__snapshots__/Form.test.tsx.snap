@@ -117,6 +117,7 @@ Array [
   "visited": {},
   "submitCount": 0,
   "errors": {},
+  "forkProps": {},
   "formValue": {
     "firstName": "John",
     "lastName": "Woodcock",
@@ -131,7 +132,7 @@ Array [
     ]
   },
   "errorCount": 0,
-  "commonFieldProps": {},
+  "sharedProps": {},
   "defaultValue": {
     "firstName": "",
     "lastName": "",

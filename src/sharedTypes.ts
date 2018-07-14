@@ -7,6 +7,8 @@ export type FormErrors<T extends object> = {
   [P in keyof T]?: T[P] extends object ? FormErrors<T[P]> : string[]
 }
 
+// export type FormProp<F extends object> = { [K in keyof F]?: F[K] extends object ? FormProp<F[K]> : any }
+
 export interface FormMeta<T extends object> {
   /**
    * The current value of the form.
@@ -225,15 +227,11 @@ export interface ArrayHelpers<T> {
   remove: (index: number) => T | undefined
 }
 
-export interface CommonFieldProps<F extends object> {
+export interface SharedFieldProps<F extends object> {
   onChange?: <T = any>(e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
   onBlur?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   onFocus?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   [key: string]: any
-}
-
-export type Forkable<F extends object> = {
-  [K in keyof F]?: F[K] extends object ? Forkable<F[K]> : F[K]
 }
 
 export interface FormProvider<F extends object, T = F> {
@@ -243,6 +241,7 @@ export interface FormProvider<F extends object, T = F> {
   initialValue: T
   errorCount: number
   formValue: F
+  forkProps: any
   initialMount: boolean
   touched: BooleanTree<T>
   visited: BooleanTree<T>
@@ -256,8 +255,7 @@ export interface FormProvider<F extends object, T = F> {
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
-  forkable?: any //Forkable<F>
-  commonFieldProps: CommonFieldProps<F>
+  sharedProps: SharedFieldProps<F>
   setActiveField: ((path: string | null) => void)
   touchField: ((path: Path, touched: boolean) => void)
   visitField: ((path: Path, visited: boolean) => void)
@@ -372,7 +370,7 @@ export interface FormConfig<T extends object> {
   disableReinitialize?: boolean
   onSubmit?: (formValue: T) => void
   rememberStateOnReinitialize?: boolean
-  commonFieldProps?: CommonFieldProps<T>
+  sharedProps?: SharedFieldProps<T>
   componentTypes?: ComponentTypes<T>
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
   [key: string]: any

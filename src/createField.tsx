@@ -70,8 +70,8 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onChange(e: React.ChangeEvent<any>) {
-      const { parse, commonFieldProps } = this.props
-      const onChange = this.props.onChange || commonFieldProps.onChange
+      const { parse, sharedProps } = this.props
+      const onChange = this.props.onChange || sharedProps.onChange
       if (typeof onChange === 'function') {
         onChange(e, this.collectProps())
       }
@@ -81,8 +81,8 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onFocus(e: React.FocusEvent<any>): void {
-      const { path, setActiveField, commonFieldProps } = this.props
-      const onFocus = this.props.onFocus || commonFieldProps.onFocus
+      const { path, setActiveField, sharedProps } = this.props
+      const onFocus = this.props.onFocus || sharedProps.onFocus
       if (typeof onFocus === 'function') {
         onFocus(e, this.collectProps())
       }
@@ -91,8 +91,8 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onBlur(e: React.FocusEvent<any>) {
-      const { commonFieldProps, visited, setActiveField } = this.props
-      const onBlur = this.props.onBlur || commonFieldProps.onBlur
+      const { sharedProps, visited, setActiveField } = this.props
+      const onBlur = this.props.onBlur || sharedProps.onBlur
 
       if (typeof onBlur === 'function') {
         onBlur(e, this.collectProps())
@@ -139,7 +139,7 @@ function createField(Provider: React.Provider<any>) {
         setFormVisited: p.setFormVisited,
         setFormTouched: p.setFormTouched,
         clearForm: p.clearForm,
-        ...p.forkable,
+        ...p.forkProps,
         ...p.forwardProps
       }
     }
@@ -211,8 +211,7 @@ export default function<F extends object>(
           render={render}
           children={children}
           component={component}
-          forwardProps={{ ...ip.commonFieldProps, ...forwardProps }}
-          // commonFieldProps={ip.commonFieldProps}
+          forwardProps={{ ...ip.sharedProps, ...forwardProps }}
           {...forkByName(name, ip, forkableProps)}
         />
       )

@@ -36,7 +36,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       disableReinitialize: PropTypes.bool,
       submitUnregisteredValues: PropTypes.bool,
       rememberStateOnReinitialize: PropTypes.bool,
-      commonFieldProps: PropTypes.object,
+      sharedProps: PropTypes.object,
       componentTypes(
         props: FormConfig<F>,
         propName: 'componentTypes',
@@ -283,8 +283,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         submitUnregisteredValues: ignore8,
         rememberStateOnReinitialize: ignore9,
         componentTypes = {},
-        commonFieldProps = {},
-        ...forkable
+        sharedProps = {},
+        ...forkProps
       } = this.props
 
       const {
@@ -300,11 +300,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         <Provider
           value={{
             ...state,
-            forkable,
+            forkProps,
             formValue,
             errorCount,
+            sharedProps,
             initialMount,
-            commonFieldProps,
             path: startingPath,
             submit: this.submit,
             setValue: this.setValue,
