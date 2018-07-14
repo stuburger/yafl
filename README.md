@@ -37,25 +37,25 @@ The Form component contains all the state that makes Yafl work. All other Yafl c
 >
 > If you are nesting forms this may cause some pretty strange behaviour. If you have a use case for nested forms you'll have to use Yafl's only non-component export: `createFormContext`.
 
-### Form Configuration Props
+### Configuration
 
-**initialValue?: T**
+#### `initialValue?: T`
 
 The initial value of your Form. Once `initialValue` becomes a non-null object, your Form will initialize.
 
 
-**defaultValue?: T**
+#### `defaultValue?: T`
 
 The `defaultValue` is merged with the `formValue`. Currently this is done any time the `defaultValue` changes and not when your `formValue` changes.
 
 
-**disableReinitialize?: boolean**
+#### `disableReinitialize?: boolean`
 
 Default is `false`.
 
 By default any time the `initialValue` prop changes, your Form will be reinitialized with the updated `initialValue`. To prevent this behaviour simply set `disableReinitialize` to `true`.
 
-**commonFieldProps?: { [key: string]: any }**
+#### `commonFieldProps?: { [key: string]: any }`
 
 This is a convenience prop that can be used to pass common values to all the components on your form. Yafl uses React's context API to make these values available to all Field components.
 
@@ -63,7 +63,7 @@ This is a convenience prop that can be used to pass common values to all the com
 > - For things like theming, etc
 > - Passing any common values that you might need available on all of your Fields.
 
-**componentTypes?: ComponentTypes<T>**
+#### `componentTypes?: ComponentTypes<T>`
 
 Another convenience prop which allows you provide component dictionary to match a Field's `component` prop with. For example:
 
@@ -78,11 +78,11 @@ Another convenience prop which allows you provide component dictionary to match 
   </Form>
 ```
 
-**onSubmit?: (formValue: T) => void**
+#### `onSubmit?: (formValue: T) => void`
 
 The function to call on form submission. By default the `formValue` argument will contain only fields that are actually mounted. To include all values in your form you can use the `submitUnregisteredValues` prop.
 
-**submitUnregisteredValues?: boolean**
+#### `submitUnregisteredValues?: boolean`
 
 Default is `false`.
 
@@ -94,7 +94,7 @@ Specify whether values that do not have a corresponding Field, Section or Repeat
 > For partially updating an object by submitting the unchanged values along with those that you have modified. This is frequently the cause when a PUT is done on some API endpoint that is expecting the full value to be sent down the wire.
 
 
-**onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void**
+#### `onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void`
 
 Will get called every time the Form state changes.
 
@@ -108,13 +108,13 @@ Will get called every time the Form state changes.
 
 Field components are the bread and butter of any form library and Yafl's Field's are no exception! The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. The most important thing to note about the Field component is that you should never name your Field using a 'path' string. Yafl uses a Fields location in the Form's component hierarchy to determine the shape of the resulting form value.
 
-### Field Configuration Props
+### Configuration
 
-**name: string | number**
+#### `name: string | number`
 
 Name your field! Providing a number usually indicates that this Field appears in an array.
 
-**parse?: (value: any) => T**
+#### `parse?: (value: any) => T`
 
 Transforms a Field's value before setting it.
 
@@ -122,17 +122,17 @@ Transforms a Field's value before setting it.
 >
 > This prop is useful for when you need to convert a value from one type to another. A common use case is converting string values that have been typed into a text input into number types.
 
-**render?: (props: FieldProps<F, T>) => React.ReactNode**
+#### `render?: (props: FieldProps<F, T>) => React.ReactNode`
 
 A render prop that accepts an object containing all the good stuff you'll need to render a your Field.
 
-**component?: React.ComponentType<FieldProps<F, T>> | string**
+#### `component?: React.ComponentType<FieldProps<F, T>> | string`
 
 Specify a component to render. If a string is provided then Yafl will attempt to match the string component to one provided in the componentTypes Form prop and if no match is found then it will call React.createElement with the value provided.
 
-**[key: string]: any**
-
-Any other props will be forwarded (along with any props specified by commonFieldProps on the Form component) to your component or render prop.
+> **Note:**
+>
+> Any other props will be forwarded (along with any props specified by commonFieldProps on the Form component) to your component or render prop.
 
 
 ### Field Props
@@ -177,6 +177,26 @@ The following is a list of props that are passed to the `render` prop or `compon
 
 Section components give your forms depth. The `name` prop of a `<Section />` will become the key of an object value in your Form. If a `<Field />` appears anywhere in a Section's children it will be a property of that Section. So, for example, the following piece of JSX
 
+### Configuration
+
+#### `name: Name`
+
+Like a Field, a Section also requires a name prop! Corresponds to the name of the object this Section will create on the `formValue`.
+
+#### `fallback?: T`
+
+The `fallback` prop is similar to the `defaultValue` prop on the Form component, except that it never gets merged into the `formValue`.
+
+> **Why you might need this:**
+>
+> A `fallback` is useful if the value for the Section is ever null or undefined. A fallback becomes especially handy if a Section or Field component is rendered within a `<Repeat />`. Since it doesn't often make much sense to assign anything other than an empty array[] as the default value for a list of things, we can specify a `fallback` to prevent warnings about uncontrolled inputs becoming controlled inputs.
+
+#### `children: React.ReactNode`
+
+This usually would not warrent an explanation, but it is important to note if any of the children of a Section (that occur anywhere in the hierarchy) that are of type Section, Field or Repeat will be correctly assigned a corresponding value on the object that this Section will produce.
+
+### Example
+
 ```jsx
 // Leaving out some required props for the sake of brevity
 <Form>
@@ -210,27 +230,38 @@ will produce a `formValue` object that looks like
 
 Cool, huh!
 
-### Section Configuration Props
-
-**name: Name**
-
-Like a Field, a Section also requires a name prop! Corresponds to the name of the object this Section will create on the `formValue`.
-
-**fallback?: T**
-
-The `fallback` prop is similar to the `defaultValue` prop on the Form component, except that it never gets merged into the `formValue`.
-
-> **Why you might need this:**
->
-> A `fallback` is useful if the value for the Section is ever null or undefined. A fallback becomes especially handy if a Section or Field component is rendered within a `<Repeat />`. Since it doesn't often make much sense to assign anything other than an empty array[] as the default value for a list of things, we can specify a `fallback` to prevent warnings about uncontrolled inputs becoming controlled inputs.
-
-**children: React.ReactNode**
-
-This usually would not warrent an explanation, but it is important to note if any of the children of a Section (that occur anywhere in the hierarchy) that are of type Section, Field or Repeat will be correctly assigned a corresponding value on the object that this Section will produce.
-
 ## The **Repeat** Component
 
 The Repeat component is conceptually similar to the Section component except that it can be used to create what other libraries call "FieldArrays". A `<Repeat />` uses a function as children and comes with a few handy helper methods. Here's an example using TypeScript
+
+### Configuration
+
+#### `name: Name`
+
+The name of the array this Repeat creates.
+
+#### `fallback?: T[]`
+
+Serves the same purpose as a Section's fallback prop. This is usually more useful when dealing with Repeats since it will allow you to call value.map() without worrying about the value being null or undefined
+
+#### `children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)`
+
+The Repeat Component uses the function as a child pattern. The first argument is the value of this Repeat. The second argument is an object of array helper functions which provide some simple array manipulation functionality.
+
+### Array Helpers
+
+| Prop | Description |
+| - | - |
+| `push: (...items: T[]) => number` | Appends new elements to the array, and returns the new length of the array. |
+| `pop: () => T \| undefined` | Removes the last element from the array and returns it. |
+| `shift: () => T \| undefined` | Removes the first element from the array and returns it. |
+| `unshift: (...items: T[]) => number` | Inserts new elements at the start of the array and returns the new length of the array. |
+| `insert: (index: number, ...items: T[]) => number` | Inserts new elements into the array at the specified index and returns the new length of the array. |
+| `swap: (index1: number, index2: number) => void` | Swaps two elements at the specified indices. |
+| `remove: (index: number) => T \| undefined` | Removes an element from the array at the specified index. |
+
+
+### Example
 
 ```tsx
 
@@ -278,36 +309,25 @@ Will produce...
   }
 ```
 
-### Repeat Configuration Props
-
-**name: Name**
-
-The name of the array this Repeat creates.
-
-**fallback?: T[]**
-
-Serves the same purpose as a Section's fallback prop. This is usually more useful when dealing with Repeats since it will allow you to call value.map() without worrying about the value being null or undefined
-
-**children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)**
-
-The Repeat Component uses the function as a child pattern. The first argument is the value of this Repeat. The second argument is an object of array helper functions which provide some simple array manipulation functionality.
-
-### Array Helpers
-
-| Prop | Description |
-| - | - |
-| `push: (...items: T[]) => number` | Appends new elements to the array, and returns the new length of the array. |
-| `pop: () => T \| undefined` | Removes the last element from the array and returns it. |
-| `shift: () => T \| undefined` | Removes the first element from the array and returns it. |
-| `unshift: (...items: T[]) => number` | Inserts new elements at the start of the array and returns the new length of the array. |
-| `insert: (index: number, ...items: T[]) => number` | Inserts new elements into the array at the specified index and returns the new length of the array. |
-| `swap: (index1: number, index2: number) => void` | Swaps two elements at the specified indices. |
-| `remove: (index: number) => T \| undefined` | Removes an element from the array at the specified index. |
-
-
 ## The **Gizmo** Component
 
 Gizmo's are general purpose components that can be used to render anything that isn't a field - a submit button is a good example, but this could be anything. Another possible use case for the `<Gizmo />` component is to create your own higher order components! Since a Gizmo is a pure Consumer (which means it doesn't take a `name` prop which forks the Form state) you can render Fields, Sections and Repeats within a Gizmo so it becomes simple to decorate any component of your choice with any or all the functions that you might need. Lets take a look:
+
+### Configuration
+
+#### `render?: (props: GizmoProps<F>) => React.ReactNode`
+
+A render prop function which recieves all the good stuff you might need in the way of Form functions and state.
+
+#### `component?: React.ComponentType<GizmoProps<F>>`
+
+Same as above but uses React.createElement with the component you give it.
+
+> **Note:**
+>
+> Any other props will be forwarded to your Gizmo's `component` or `render` prop.
+
+### Example
 
 ```jsx
 // withForm.js
@@ -338,23 +358,33 @@ const MyForm = (props) => (
 export default withForm(MyForm)
 ```
 
-### Gizmo Configuration Props
-
-**render?: (props: GizmoProps<F>) => React.ReactNode**
-
-A render prop function which recieves all the good stuff you might need in the way of Form functions and state.
-
-**component?: React.ComponentType<GizmoProps<F>>**
-
-Same as above but uses React.createElement with the component you give it.
-
-**[key: string]: any**
-
-Any other props you provide will be forwarded to your component.
 
 ## The **Validator** Component
 
 The `<Validator />` component can be 'rendered' to create errors on your Form. The concept of "rendering a validator" might require a small shift in the way you think about form validation since other form libraries usually do validation through the use of a `validate` prop. With Yafl however, you validate your form by simply rendering a Validator. This has some interesting benefits, one of which is that a "rendered" validator solves some of the edge cases around form validation - the most obvious example being that of async validation.
+
+### Configuration
+
+#### `invalid?: boolean`
+
+Defaults to false. When the invalid prop becomes true the Validator will set an error for the corresponding path.
+
+> **Note:**
+>
+> If the `invalid` prop is not provided then an error will only be set if and when the `msg` prop is passed a string value.
+
+#### `msg: string`
+
+The error message. If this Validator component is rendered with the same path as another Validator component the msg string will the pushed onto an array of error messages for the same path.
+
+#### `path?: Path`
+Override the `path` for a Validator. By default the `path` is determined by what appears above this component in the Form component hierarchy.
+
+>**Why you might need this:**
+>
+> This is useful assign errors that belong to the domain of a Section, Repeat, at the Form level. Using the `path` prop is also for simply displaying general errors with a custom path or key.
+
+### Example 
 
 Here's an example:
 
@@ -402,38 +432,19 @@ function IsRequired ({ value, touched, visited, validateOn = 'blur', message }) 
 }
 
 function Length ({ value, touched, visited, validateOn = 'change', min, max, message }) {
-	return (
-		<Validator
-			msg={message}
-			invalid={value.length < min) || (value.length > max}
-		/>
-	)
+  return (
+    <Validator
+      msg={message}
+      invalid={value.length < min) || (value.length > max}
+    />
+  )
 }
 
 ```
 
-Nice and declaritive.
-
-### Validator Configuration Props
-
-**invalid?: boolean**
-
-Defaults to false. When the invalid prop becomes true the Validator will set an error for the corresponding path.
-
 > **Note:**
 >
-> If the `invalid` prop is not provided then an error will only be set if and when the `msg` prop is passed a string value.
-
-**msg: string**
-
-The error message. If this Validator component is rendered with the same path as another Validator component the msg string will the pushed onto an array of error messages for the same path.
-
-**path?: Path**
-Override the `path` for a Validator. By default the `path` is determined by what appears above this component in the Form component hierarchy.
-
->**Why you might need this:**
->
-> This is useful assign errors that belong to the domain of a Section, Repeat, at the Form level. Using the `path` prop is also for simply displaying general errors with a custom path or key.
+> Currently Yafl does not guarantee the order in which error messages will appear in a Field's `errors` array. However this is usually only important when you only want to display the first error message using something like `errors[0]`. Fortunately Yafl provides the syntax that allows you to stop validating Fields "on first failure". You can accomplish this by nesting a `<Validator />` as the child of another `<Validator />`. This works because the children of a Validator are only rendered when Validation passes for any particular `<Validator />`.
 
 ### How to stop validating a Field on first failure
 
@@ -448,7 +459,7 @@ const TextInput = ({ visited, submitCount, errors, isValid, validators, input })
       {/* see note below */ }
       {showErrors && validators.reduceRight((ret, validate) => {
         return (
-          <FormValidator msg={validate(input.value)}>{ret}</FormValidator>
+          <Validator msg={validate(input.value)}>{ret}</Validator>
         )
       }, null)}
     </div>
@@ -458,7 +469,7 @@ const TextInput = ({ visited, submitCount, errors, isValid, validators, input })
 
 > **Note:**
 >
-> You might be wondering about the use of `reduceRight` in the TextInput component above. The simple reason for its use is because validators would be passed to our hypothetical component in a left to right fashion in the same order we'd like to see errors displayed.
+> You might be wondering about the use of `reduceRight` in the code snippet above. The simple reason I'm using `reduceRight` instead of `reduce` is because validators would be passed to our hypothetical component in a left to right fashion in the same order that we'd like to see errors displayed which means we want the right most validator (the one last in the array) to be the inner most child.
 
 Our simple validators would look something like this:
 
@@ -493,15 +504,11 @@ render() {
 }
 ```
 
-
-> **Note:**
->
-> Currently Yafl does not guarantee the order in which error messages will appear in a Field's `errors` array. However this is usually only important when you only want to display the first error message using something like `errors[0]`. Fortunately Yafl provides the syntax that allows you to stop validating Fields "on first failure". You can accomplish this by nesting a `<Validator />` as the child of another `<Validator />`. This works because the children of a Validator are only rendered when Validation passes for any particular `<Validator />`.
-
-
 ## Top Level API
 
 **Yafl** only exports a single function:
+
+#### `createFormContext` 
 
 `createFormContext` returns all of the same components as those exported by Yafl.
 
@@ -509,56 +516,27 @@ render() {
 const { Form, Field, Section, Repeat, Gizmo, Validator } = createFormContext()
 ```
 
-There are a few cases where one might want to nest one Form within another. However, since Yafl uses React's context API to pass props from Provider to Consumer, rendering a Form inside another Form will make it impossible to access the outter Form values within a Field, Section or Repeat that are rendered within the inner Form. The following example serves to illustrate the problem:
+The `createFormContext` function creates an independent form context that will only "listen" to changes made with in components that belong to that context.
+
+> **Why you might need this:**
+>
+> There are a few edge cases where you might find this handy. One might for example, want to nest one Form within another. However, since Yafl uses React's context API to pass props from Provider to Consumer, rendering a Form inside another Form will make it impossible to access the outter Form values from anywhere inside the inner Form.
+
+### Example
 
 ```js
-import { Form, Field, Section } from 'yafl'
+import { createFormContext } from 'yafl'
 
-const ProblemForm = (props) => {
-  return (
-    <Form> // Call me Form A!
-      <Section name="sectionA">
-        <Field
-          name="formAField1"
-          render={(props) => {
-            // I correctly belong to Form A
-            return null
-          }}
-          />
-        <Form>  // I am Form B!
-          <Section name="sectionB">
-            <Field
-              name="formBField1"
-              render={(props) => {
-                // I correctly belong to Form B
-                return null
-              }}
-            />
-            <Field
-              name="formAField2"
-              render={(props) => {
-                // Oops! I belong to Form B!
-                return null
-              }}
-            />
-          </Section>
-        </Form>
-      </Section>
-    </Form>
-  )
-}
+const contextA = createFormContext()
+const contextB = createFormContext()
 
-```
-So how do we solve this?
+const FormA = contextA.Form
+const FieldA = contextA.Field
+const SectionA = contextA.Section
 
-```js
-import { Form as FormA, Field as FieldA, Section as SectionA, createFormContext } from 'yafl'
-
-const context = createFormContext()
-
-const FormB = context.Form
-const FieldB = context.Field
-const SectionB = context.Section
+const FormB = contextB.Form
+const FieldB = contextB.Field
+const SectionB = contextB.Section
 
 const NestedFormExample = (props) => {
   return (
