@@ -13,7 +13,7 @@ npm i yafl
 
 ## TL;DR
 
-Can't wait to get coding? Here's a short example to give some of you the basics.
+Can't wait to get coding? Here's a quick example to give you the basics.
 
 ```jsx
 import React, { Component } from 'react'
@@ -100,7 +100,7 @@ class ExampleForm extends Component {
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [About YAFL](#about-yafl)
+- [About this library](#about-this-library)
   - [Motivation](#motivation)
   - [Philosophy](#philosophy)
   - [Why use YAFL?](#why-use-yafl)
@@ -137,19 +137,19 @@ class ExampleForm extends Component {
       - [`children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)`](#children-value-t-utils-arrayhelperst--reactreactnode)
     - [Array Helpers](#array-helpers)
     - [Example](#example-1)
-  - [`<Gizmo />`](#gizmo-)
-    - [Configuration](#configuration-4)
-      - [`render?: (props: GizmoProps<F>) => React.ReactNode`](#render-props-gizmopropsf--reactreactnode)
-      - [`component?: React.ComponentType<GizmoProps<F>>`](#component-reactcomponenttypegizmopropsf)
-    - [Example](#example-2)
   - [`<Validator />`](#validator-)
-    - [Configuration](#configuration-5)
+    - [Configuration](#configuration-4)
       - [`invalid?: boolean`](#invalid-boolean)
       - [`msg: string`](#msg-string)
       - [`path?: Path`](#path-path)
+    - [Example](#example-2)
+    - [How to stop validating a Field on first failure](#how-to-stop-validating-a-field-on-first-failure)
+  - [`<Gizmo />`](#gizmo-)
+    - [Configuration](#configuration-5)
+      - [`render?: (props: FormProps<F>) => React.ReactNode`](#render-props-formpropsf--reactreactnode)
+      - [`component?: React.ComponentType<FormProps<F>>`](#component-reactcomponenttypeformpropsf)
     - [Example](#example-3)
-  - [How to stop validating a Field on first failure](#how-to-stop-validating-a-field-on-first-failure)
-- [Using your own state](#using-your-own-state)
+- [Managing your own state](#managing-your-own-state)
 - [Top Level API](#top-level-api)
       - [`createFormContext`](#createformcontext)
     - [Example](#example-4)
@@ -461,56 +461,6 @@ Will produce...
   }
 ```
 
-### `<Gizmo />`
-
-Gizmo's are general purpose components that can be used to render anything that isn't a field - a submit button is a good example, but this could be anything. Another possible use case for the `<Gizmo />` component is to create your own higher order components! Since a Gizmo is a pure Consumer (which means it doesn't take a `name` prop which forks the Form state) you can render Fields, Sections and Repeats within a Gizmo so it becomes simple to decorate any component of your choice with any or all the functions that you might need. Lets take a look:
-
-#### Configuration
-
-##### `render?: (props: GizmoProps<F>) => React.ReactNode`
-
-A render prop function which recieves all the good stuff you might need in the way of Form functions and state.
-
-##### `component?: React.ComponentType<GizmoProps<F>>`
-
-Same as above but uses React.createElement with the component you give it.
-
-> **Note:**
->
-> Any other props will be forwarded to your Gizmo's `component` or `render` prop.
-
-#### Example
-
-```jsx
-// withForm.js
-import { Gizmo, Form } from 'yafl'
-
-export default (Comp) => ({ initialValue, onSubmit, /* other Form props */ children, ...props }) => (
-  <Form
-    onSubmit={onSubmit}
-    initialValue={initialValue}
-  >
-    <Gizmo render={utils => <Comp {...utils} {...props}>{children}</Comp>} />
-  </Form>
-)
-```
-
-```jsx
-// SimpleForm.js
-import withForm from './withForm'
-
-const MyForm = (props) => (
-  <React.Fragment>
-    <Field name="email" render={({ input }) => <input {...input} />} />
-    <Field name="password" render={({ input }) => <input {...input} />} />
-    <button disabled={!props.formIsValid} onClick={props.submit}>Login</button>
-  </React.Fragment>
-)
-
-export default withForm(MyForm)
-```
-
-
 ### `<Validator />`
 
 The `<Validator />` component can be 'rendered' to create errors on your Form. The concept of "rendering a validator" might require a small shift in the way you think about form validation since other form libraries usually do validation through the use of a `validate` prop. With Yafl however, you validate your form by simply rendering a Validator. This has some interesting benefits, one of which is that a "rendered" validator solves some of the edge cases around form validation - the most obvious example being that of async validation.
@@ -598,7 +548,7 @@ function Length ({ value, touched, visited, validateOn = 'change', min, max, mes
 >
 > Currently Yafl does not guarantee the order in which error messages will appear in a Field's `errors` array. However this is usually only important when you only want to display the first error message using something like `errors[0]`. Fortunately Yafl provides the syntax that allows you to stop validating Fields "on first failure". You can accomplish this by nesting a `<Validator />` as the child of another `<Validator />`. This works because the children of a Validator are only rendered when Validation passes for any particular `<Validator />`.
 
-### How to stop validating a Field on first failure
+#### How to stop validating a Field on first failure
 
 Say you have a custom `<TextInput />` component that accepts a `validate` prop which is a simple array of functions. Let's take a look at how this component might be implemented:
 
@@ -657,17 +607,68 @@ render() {
 ```
 
 
-## Using your own state
+### `<Gizmo />`
+
+Gizmo's are general purpose components that can be used to render anything that isn't a field - a submit button is a good example, but this could be anything. Another possible use case for the `<Gizmo />` component is to create your own higher order components! Since a Gizmo is a pure Consumer (which means it doesn't take a `name` prop which forks the Form state) you can render Fields, Sections and Repeats within a Gizmo so it becomes simple to decorate any component of your choice with any or all the functions that you might need. Lets take a look:
+
+#### Configuration
+
+##### `render?: (props: FormProps<F>) => React.ReactNode`
+
+A render prop function which recieves all the good stuff you might need in the way of Form functions and state.
+
+##### `component?: React.ComponentType<FormProps<F>>`
+
+Same as above but uses React.createElement with the component you give it.
+
+> **Note:**
+>
+> Any other props will be forwarded to your Gizmo's `component` or `render` prop.
+
+#### Example
+
+```jsx
+// withForm.js
+import { Gizmo, Form } from 'yafl'
+
+export default (Comp) => ({ initialValue, onSubmit, /* other Form props */ children, ...props }) => (
+  <Form
+    onSubmit={onSubmit}
+    initialValue={initialValue}
+  >
+    <Gizmo render={utils => <Comp {...utils} {...props}>{children}</Comp>} />
+  </Form>
+)
+```
+
+```jsx
+// SimpleForm.js
+import withForm from './withForm'
+
+const MyForm = (props) => (
+  <React.Fragment>
+    <Field name="email" render={({ input }) => <input {...input} />} />
+    <Field name="password" render={({ input }) => <input {...input} />} />
+    <button disabled={!props.formIsValid} onClick={props.submit}>Login</button>
+  </React.Fragment>
+)
+
+export default withForm(MyForm)
+```
+
+## Managing your own state
 
 Yafl gives you the ability to implement your own solution for managing the state of your form. The basic idea is this:
 
 1. Override Yafl's default behaviours by plugging into simple input event hooks.
-2. Keep track of the state of your form in your *own* component.
+2. Keep track of the state of your Form in your *own* component.
 3. Then allow Yafl to forward only the relevent parts your state on to your Fields.
 
-All of the Form's configuration props documented in the here are "recognized" by Yafl, but you can also give your `<Form />` any additional props of your own. There is one important criteria that all of these additional props should be should conform to is that they should be *forkable*. An object is forkable if it matches the shape of your `formValue`. This concept is probably best illustrated using the following *recursive* type:
+All of the Form's configuration props documented in here are "recognized" by Yafl, but you can also give your `<Form />` additional props of your own. The one important criteria that all of these additional props should conform to is that they should be *forkable*. An object is forkable if it matches the shape of your `formValue`. This concept is probably best illustrated using the following *recursive* type:
 
-> `type FormProp<F extends object> = { [K in keyof F]?: F[K] extends object ? FormProp<F[K]> : any }`
+```ts
+type ExtraProp<F extends object> = { [K in keyof F]?: F[K] extends object ? ExtraProp<F[K]> : any }
+```
 
 If you're new to TypeScript the above simply means that every additional prop should be an object with keys that match those of your `formValue`. So, for example if your `formValue` looks like this:
 
@@ -711,7 +712,7 @@ const isTouched = {
 }
 ```
 
-Again, the important thing to notice here is that while the values can be of `any` type, the keys should match those of your `formValue`.
+Again, the important thing to notice here is that while the values can be of `any` type, the keys should match those of your `formValue`. If any of the keys on your object are absent, any Field that exists further down the same path will simply receive `undefined` for that value.
 
 ## Top Level API
 

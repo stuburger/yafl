@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { FormProvider, GeneralComponentConfig, GizmoConfig, GizmoProps } from './sharedTypes'
+import { FormProvider, GeneralComponentConfig, GizmoConfig, FormProps } from './sharedTypes'
 import GizmoSink from './GizmoSink'
 import isEqual from 'react-fast-compare'
 import omit from 'lodash.omit'
@@ -41,7 +41,7 @@ function createGizmo<F extends object>() {
       return listenForProps.some(key => !isEqual(this.props[key], np[key]))
     }
 
-    collectProps(): GizmoProps<F> {
+    collectProps(): FormProps<F> {
       const {
         type,
         render,

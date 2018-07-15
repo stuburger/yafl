@@ -64,7 +64,7 @@ export interface SetFormTouchedFunc<T extends object> {
 }
 
 export type ComponentTypes<F extends object> = {
-  [key: string]: React.ComponentType<FieldProps<F, any>> | React.ComponentType<GizmoProps<F>>
+  [key: string]: React.ComponentType<FieldProps<F, any>> | React.ComponentType<FormProps<F>>
 }
 
 export interface InputProps<T = any> {
@@ -269,8 +269,6 @@ export interface FormProvider<F extends object, T = F> {
   registerField: ((path: Path) => void)
 }
 
-export type GizmoProps<F extends object> = FormProps<F>
-
 export interface FormProps<F extends object> extends FormMeta<F> {
   /**
    * Indicates if the Form has mounted. Field's are only registerd once initialMount becomes true.
@@ -317,8 +315,8 @@ export interface FormProps<F extends object> extends FormMeta<F> {
 }
 
 export interface GizmoConfig<F extends object> {
-  render?: (props: GizmoProps<F>) => React.ReactNode
-  component?: React.ComponentType<GizmoProps<F>>
+  render?: (props: FormProps<F>) => React.ReactNode
+  component?: React.ComponentType<FormProps<F>>
   [key: string]: any
 }
 
