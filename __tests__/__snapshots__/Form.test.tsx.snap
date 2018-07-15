@@ -112,12 +112,6 @@ Array [
   </div>,
   <pre>
     {
-  "activeField": null,
-  "touched": {},
-  "visited": {},
-  "submitCount": 0,
-  "errors": {},
-  "forkProps": {},
   "formValue": {
     "firstName": "John",
     "lastName": "Woodcock",
@@ -132,7 +126,6 @@ Array [
     ]
   },
   "errorCount": 0,
-  "sharedProps": {},
   "defaultValue": {
     "firstName": "",
     "lastName": "",
@@ -142,6 +135,8 @@ Array [
       "email": "asdf@testing.com"
     }
   },
+  "formIsDirty": true,
+  "formIsValid": true,
   "initialValue": {
     "firstName": "John",
     "lastName": "Woodcock",
@@ -154,8 +149,14 @@ Array [
       "oumar"
     ]
   },
-  "formIsValid": true,
-  "formIsDirty": false
+  "initialMount": true,
+  "errors": {},
+  "touched": {},
+  "visited": {},
+  "activeField": null,
+  "submitCount": 0,
+  "forkProps": {},
+  "sharedProps": {}
 }
   </pre>,
 ]
