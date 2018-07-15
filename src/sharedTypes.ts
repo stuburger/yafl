@@ -269,7 +269,13 @@ export interface FormProvider<F extends object, T = F> {
   registerField: ((path: Path) => void)
 }
 
-export interface GizmoProps<F extends object> extends FormMeta<F> {
+export type GizmoProps<F extends object> = FormProps<F>
+
+export interface FormProps<F extends object> extends FormMeta<F> {
+  /**
+   * Indicates if the Form has mounted. Field's are only registerd once initialMount becomes true.
+   */
+  initialMount: boolean
   /**
    * The default value of the Form.
    */
@@ -300,6 +306,10 @@ export interface GizmoProps<F extends object> extends FormMeta<F> {
    */
   touched: BooleanTree<F>
   /**
+   * The number of errors on your Form.
+   */
+  errorCount: number
+  /**
    * The error state of the Form.
    */
   errors: FormErrors<F>
@@ -321,6 +331,7 @@ export interface GeneralComponentConfig<F extends object> extends GizmoConfig<F>
   touched: BooleanTree<F>
   visited: BooleanTree<F>
   activeField: string | null
+  errorCount: number
   submitCount: number
   formIsValid: boolean
   formIsDirty: boolean
@@ -365,10 +376,10 @@ export interface FormConfig<T extends object> {
   initialValue?: T
   defaultValue?: T
   disabled?: boolean
-  children: React.ReactNode
+  children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)
   submitUnregisteredValues?: boolean
   disableReinitialize?: boolean
-  onSubmit?: (formValue: T) => void
+  onSubmit?: (formValue: T, props: FormProps<T>) => boolean | void
   rememberStateOnReinitialize?: boolean
   sharedProps?: SharedFieldProps<T>
   componentTypes?: ComponentTypes<T>

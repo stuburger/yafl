@@ -14,6 +14,7 @@ const listenForProps: (keyof GeneralComponentConfig<any>)[] = [
   'component',
   'formValue',
   'submitCount',
+  'initialMount',
   'activeField',
   'forwardProps',
   'componentTypes'
@@ -25,7 +26,6 @@ const propsToOmit: (keyof FormProvider<any>)[] = [
   'setActiveField',
   'registerField',
   'componentTypes',
-  'initialMount',
   'value',
   'path'
 ]

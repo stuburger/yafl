@@ -12,7 +12,8 @@ import {
   SetFormValueFunc,
   SetFormVisitedFunc,
   SetFormTouchedFunc,
-  FormConfig
+  FormConfig,
+  FormProps
 } from './sharedTypes'
 
 const startingPath: Path = []
@@ -30,7 +31,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
     static propTypes = {
       onSubmit: PropTypes.func.isRequired,
-      children: PropTypes.node.isRequired,
+      children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
       initialValue: PropTypes.object,
       defaultValue: PropTypes.object,
       disableReinitialize: PropTypes.bool,
@@ -84,6 +85,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.registerError = this.registerError.bind(this)
       this.unregisterError = this.unregisterError.bind(this)
       this.incSubmitCount = this.incSubmitCount.bind(this)
+      this.collectFormProps = this.collectFormProps.bind(this)
       this.state = {
         initialMount: false,
         formValue: {} as F,
@@ -185,20 +187,26 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     incSubmitCount() {
-      this.setState(({ submitCount }) => ({
-        submitCount: submitCount + 1
-      }))
+      this.setState(
+        ({ submitCount }) => ({
+          submitCount: submitCount + 1
+        }),
+        () => {
+          console.log(this.state)
+        }
+      )
     }
 
     submit() {
       const { submitUnregisteredValues, onSubmit } = this.props
       if (!onSubmit) return
-      this.incSubmitCount()
       const { formValue } = this.state
-      if (submitUnregisteredValues) {
-        onSubmit(formValue)
-      } else {
-        onSubmit(constructFrom(formValue, this.registerCache))
+      const props = this.collectFormProps()
+      const inc = submitUnregisteredValues
+        ? onSubmit(formValue, props)
+        : onSubmit(constructFrom(formValue, this.registerCache), props)
+      if (inc !== false) {
+        this.incSubmitCount()
       }
     }
 
@@ -271,8 +279,38 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       })
     }
 
+    collectFormProps(): FormProps<F> {
+      const { formValue, errorCount, initialMount, ...state } = this.state
+      const defaultValue = this.state.defaultValue || ({} as F)
+      const initialValue = this.state.initialValue || ({} as F)
+      const formIsValid = !initialMount || errorCount === 0
+      const formIsDirty = initialMount && !isEqual(initialValue, formValue)
+      return {
+        formValue,
+        errorCount,
+        defaultValue,
+        formIsDirty,
+        formIsValid,
+        initialValue,
+        initialMount,
+        errors: state.errors,
+        touched: state.touched,
+        visited: state.visited,
+        activeField: state.activeField,
+        submitCount: state.submitCount,
+        submit: this.submit,
+        resetForm: this.resetForm,
+        clearForm: this.clearForm,
+        forgetState: this.forgetState,
+        setFormTouched: this.setTouched,
+        setFormVisited: this.setVisited,
+        setFormValue: this.setFormValue
+      }
+    }
+
     render() {
       const {
+        children,
         disabled: ignore1,
         children: ignore2,
         onSubmit: ignore3,
@@ -287,24 +325,15 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         ...forkProps
       } = this.props
 
-      const {
-        formValue,
-        errorCount,
-        initialMount,
-        initialValue,
-        defaultValue,
-        ...state
-      } = this.state
+      const props = this.collectFormProps()
 
       return (
         <Provider
           value={{
-            ...state,
+            ...props,
             forkProps,
-            formValue,
-            errorCount,
             sharedProps,
-            initialMount,
+            componentTypes,
             path: startingPath,
             submit: this.submit,
             setValue: this.setValue,
@@ -321,15 +350,10 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             registerField: this.registerField,
             setActiveField: this.setActiveField,
             unregisterError: this.unregisterError,
-            unregisterField: this.unregisterField,
-            defaultValue: defaultValue || ({} as F),
-            initialValue: initialValue || ({} as F),
-            formIsValid: !initialMount || errorCount === 0,
-            formIsDirty: initialMount && !isEqual(initialValue, formValue),
-            componentTypes
+            unregisterField: this.unregisterField
           }}
         >
-          {this.props.children}
+          {typeof children === 'function' ? children(props) : children}
         </Provider>
       )
     }
