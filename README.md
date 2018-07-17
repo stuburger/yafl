@@ -106,7 +106,7 @@ class ExampleForm extends Component {
   - [Why use YAFL?](#why-use-yafl)
 - [API](#api)
   - [`<Form />`](#form-)
-      - [Configuration](#configuration)
+    - [Configuration](#configuration)
       - [`initialValue?: T`](#initialvalue-t)
       - [`defaultValue?: T`](#defaultvalue-t)
       - [`disableReinitialize?: boolean`](#disablereinitialize-boolean)
@@ -114,6 +114,8 @@ class ExampleForm extends Component {
       - [`componentTypes?: ComponentTypes<T>`](#componenttypes-componenttypest)
       - [`onSubmit?: (formValue: T) => boolean | void`](#onsubmit-formvalue-t--boolean--void)
       - [`submitUnregisteredValues?: boolean`](#submitunregisteredvalues-boolean)
+      - [`persistFieldState?: boolean`](#persistfieldstate-boolean)
+      - [`onFormValueChange?: (prev: T, next: T) => void`](#onformvaluechange-prev-t-next-t--void)
       - [`onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void`](#onstatechange-previousstate-formstatet-nextstate-formstatet--void)
       - [`children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)`](#children-reactreactnode--props-formpropst--reactreactnode)
   - [`<Field />`](#field-)
@@ -163,11 +165,11 @@ class ExampleForm extends Component {
 
 Development on Yafl only started after the release of React 16.3 and uses the React Context API behind the scenes to pass props between components. It has drawn a lot of inspiration from Redux-Form and Formik (both awesome projects!)
 
-I didn't build Yafl because I saw the need for yet another form library. Instead, Yafl started out as an idea that has evolved throughout development. It has gone through many iterations (I dare you to go through the commit history) and on a number of occations I almost had to start from the *beginning* when I realized that the current code structure didn't accommodate a specific use case. Validation in particular was handled in multiple wildly different ways before I stumbled on - for better or worse - the idea of *rendering an error*. So there you have it, the motivation for the existence this library was pretty much of the "eh, why not" variety as opposed to the often touted "I saw a need for it" variety. That said however, I've found Yafl extremely fun and flexible to use even more so, I dare say, than the alternatives.
+I didn't build Yafl because I saw the need for yet another form library. Instead, Yafl started out as an idea that has evolved throughout development. It has gone through many iterations (I dare you to go through the commit history) and on a number of occations I almost had to start from the *beginning* when I realized that the current code structure didn't accommodate a specific use case. Validation in particular was handled in multiple wildly different ways before I stumbled on - for better or worse - the idea of *rendering an error*. So there you have it, the motivation for the existence of this library was pretty much of the "eh, why not" variety as opposed to the often touted "I saw a need for it" variety. That said however, I've found Yafl extremely fun and flexible to use even more so, I dare say, than the alternatives.
 
 ### Philosophy
 
-Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use. At the start of Yafl's development, the decision was made to leave as much of the implementation of your form up to you, the developer. Yafl aims to provide the tools to build forms without caring too much about the specific use case. 
+Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out of the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use. At the start of Yafl's development, the decision was made to leave as much of the implementation of your form up to you, the developer. Yafl aims to provide the tools to build forms without caring too much about the specific use case. 
 
 ### Why use YAFL?
 
@@ -186,7 +188,7 @@ Yafl's philosophy is to "keep it super simple". While it provides a lot of funct
 
 The `<Form />` component contains all the state that tracks what's going on in your form. This state includes things like whether or not a field `isDirty` or has been `visited`. It also keeps track of what Fields are mounted at any point in time which is useful for determining what values should be submitted collected for submission. All other Yafl components *have* to be rendered inside the Form. Trying to render a Field outside of a Form, for example, will cause an error to be thrown.
 
-##### Configuration
+#### Configuration
 
 ##### `initialValue?: T`
 
@@ -240,8 +242,23 @@ Specify whether values that do not have a corresponding Field, Section or Repeat
 
 > **Why you might need this:**
 >
-> For partially updating an object by submitting the unchanged values along with those that you have modified. This is frequently the cause when a PUT is done on some API endpoint that is expecting the full value to be sent down the wire.
+> For partially updating an object by submitting the unchanged values along with those that you have modified. This is frequently the case when a PUT is done on some API endpoint that is expecting the full value to be sent down the wire.
 
+##### `persistFieldState?: boolean`
+
+Default is `false`.
+
+Specify whether the `touched` and `visited` state of your `<Field />` components should persisted when they are unmounted.
+
+
+> **Why you might need this:**
+>
+> You're not likely to use the `persistFieldState` prop very often, but it may come in handy when you are working with multi-route forms. By default, whenever a Field's `componentWillUnmount` function is called the Field will be removed from the Form component's internal state, and along with it, any state that is associated with the Field. When you're creating a multi-page Form, you'll probably want to keep this state around while visiting different routes, or areas of your Form where some of your Fields may not currently be mounted!
+
+
+##### `onFormValueChange?: (prev: T, next: T) => void`
+
+Will get called every time the `formValue` changes.
 
 ##### `onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void`
 
@@ -249,7 +266,7 @@ Will get called every time the Form state changes.
 
 > **Note:**
 >
-> `onStateChange` is implemented inside the Form's `componentDidUpdate` function which means the same cautions apply when calling setState here as do in any component's `componentDidUpdate` function.
+> `onStateChange` and `onFormValueChange` are implemented inside the Form's `componentDidUpdate` function which means the same cautions apply when calling `setState` in either of these function as do in any component's `componentDidUpdate` function.
 
 ##### `children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)`
 
@@ -341,7 +358,7 @@ The `fallback` prop is similar to the `defaultValue` prop on the Form component,
 
 > **Why you might need this:**
 >
-> A `fallback` is useful if the value for the Section is ever null or undefined. A fallback becomes especially handy if a Section or Field component is rendered within a `<Repeat />`. Since it doesn't often make much sense to assign anything other than an empty array[] as the default value for a list of things, we can specify a `fallback` to prevent warnings about uncontrolled inputs becoming controlled inputs.
+> A `fallback` is useful if the value for the Section is ever null or undefined. A fallback becomes especially handy if a Section or Field component is rendered within a `<Repeat />`. Since it doesn't often make much sense to assign anything other than an empty array[] as the default value for a list of things, we can specify a `fallback` to prevent warnings about uncontrolled inputs becoming controlled inputs for any Fields rendered inside the Repeat.
 
 ##### `children: React.ReactNode`
 
@@ -577,7 +594,7 @@ Our simple validators would look something like this:
 
 ```ts
 const required = (value: any): string | undefined => {
-  if (value) {
+  if (!value) {
     return 'This field is required'
   }
 }

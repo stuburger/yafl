@@ -70,10 +70,10 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onChange(e: React.ChangeEvent<any>) {
-      const { parse, sharedProps } = this.props
+      const { parse, sharedProps, forwardProps } = this.props
       const onChange = this.props.onChange || sharedProps.onChange
       if (typeof onChange === 'function') {
-        onChange(e, this.collectProps())
+        onChange(e, this.collectProps(), forwardProps)
       }
       if (e.isDefaultPrevented()) return
       const { value } = e.target
@@ -81,21 +81,21 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onFocus(e: React.FocusEvent<any>): void {
-      const { path, setActiveField, sharedProps } = this.props
+      const { path, setActiveField, sharedProps, forwardProps } = this.props
       const onFocus = this.props.onFocus || sharedProps.onFocus
       if (typeof onFocus === 'function') {
-        onFocus(e, this.collectProps())
+        onFocus(e, this.collectProps(), forwardProps)
       }
       if (e.isDefaultPrevented()) return
       setActiveField(toStrPath(path))
     }
 
     onBlur(e: React.FocusEvent<any>) {
-      const { sharedProps, visited, setActiveField } = this.props
+      const { sharedProps, visited, setActiveField, forwardProps } = this.props
       const onBlur = this.props.onBlur || sharedProps.onBlur
 
       if (typeof onBlur === 'function') {
-        onBlur(e, this.collectProps())
+        onBlur(e, this.collectProps(), forwardProps)
       }
       if (e.isDefaultPrevented()) return
       if (visited) {

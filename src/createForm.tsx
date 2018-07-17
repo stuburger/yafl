@@ -37,6 +37,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       disableReinitialize: PropTypes.bool,
       submitUnregisteredValues: PropTypes.bool,
       rememberStateOnReinitialize: PropTypes.bool,
+      persistFieldState: PropTypes.bool,
       sharedProps: PropTypes.object,
       componentTypes(
         props: FormConfig<F>,
@@ -142,9 +143,14 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     componentDidUpdate(pp: FormConfig<F>, ps: FormState<F>) {
-      const { onStateChange } = this.props
-      if (typeof onStateChange !== 'function') return
-      onStateChange(ps, this.state)
+      const { onStateChange, onFormValueChange } = this.props
+      if (typeof onStateChange === 'function') {
+        onStateChange(ps, this.state)
+      }
+      const { formValue } = this.state
+      if (typeof onFormValueChange === 'function' && !isEqual(ps.formValue, formValue)) {
+        onFormValueChange(ps.formValue, formValue)
+      }
     }
 
     registerField(path: Path) {
@@ -152,14 +158,13 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     unregisterField(path: Path) {
-      this.setState(({ touched, visited }) => {
-        const strPath = toStrPath(path)
-        this.registerCache = this.registerCache.filter(x => !x.startsWith(strPath))
-        return {
-          touched: immutable.del(touched, path as string[]),
-          visited: immutable.del(visited, path as string[])
-        }
-      })
+      const strPath = toStrPath(path)
+      this.registerCache = this.registerCache.filter(x => !x.startsWith(strPath))
+      if (this.props.persistFieldState) return
+      this.setState(({ touched, visited }) => ({
+        touched: immutable.del(touched, path as string[]),
+        visited: immutable.del(visited, path as string[])
+      }))
     }
 
     registerError(path: Path, error: string) {
@@ -320,6 +325,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         disableReinitialize: ignore5,
         submitUnregisteredValues: ignore8,
         rememberStateOnReinitialize: ignore9,
+        persistFieldState: ignore10,
+        onFormValueChange: ignore11,
         componentTypes = {},
         sharedProps = {},
         ...forkProps

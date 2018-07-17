@@ -159,9 +159,21 @@ export interface InnerFieldProps<F extends object, T = any> extends FormProvider
   parse?: (value: any) => T
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>> | string
-  onChange?: (e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
-  onBlur?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  onFocus?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
+  onChange?: (
+    e: React.ChangeEvent<any>,
+    props: FieldProps<F, T>,
+    forwardProps: { [key: string]: any }
+  ) => void
+  onBlur?: (
+    e: React.FocusEvent<any>,
+    props: FieldProps<F, T>,
+    forwardProps: { [key: string]: any }
+  ) => void
+  onFocus?: (
+    e: React.FocusEvent<any>,
+    props: FieldProps<F, T>,
+    forwardProps: { [key: string]: any }
+  ) => void
   forwardProps: { [key: string]: any }
 }
 
@@ -228,9 +240,21 @@ export interface ArrayHelpers<T> {
 }
 
 export interface SharedFieldProps<F extends object> {
-  onChange?: <T = any>(e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
-  onBlur?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  onFocus?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
+  onChange?: <T = any>(
+    e: React.ChangeEvent<any>,
+    props: FieldProps<F, T>,
+    forwardProps: { [key: string]: any }
+  ) => void
+  onBlur?: <T = any>(
+    e: React.FocusEvent<any>,
+    props: FieldProps<F, T>,
+    forwardProps: { [key: string]: any }
+  ) => void
+  onFocus?: <T = any>(
+    e: React.FocusEvent<any>,
+    props: FieldProps<F, T>,
+    forwardProps: { [key: string]: any }
+  ) => void
   [key: string]: any
 }
 
@@ -376,11 +400,13 @@ export interface FormConfig<T extends object> {
   disabled?: boolean
   children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)
   submitUnregisteredValues?: boolean
+  persistFieldState?: boolean
   disableReinitialize?: boolean
   onSubmit?: (formValue: T, props: FormProps<T>) => boolean | void
   rememberStateOnReinitialize?: boolean
   sharedProps?: SharedFieldProps<T>
   componentTypes?: ComponentTypes<T>
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
+  onFormValueChange?: (prev: T, next: T) => void
   [key: string]: any
 }
