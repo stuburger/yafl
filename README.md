@@ -146,10 +146,7 @@ class ExampleForm extends Component {
       - [`path?: Path`](#path-path)
     - [Example](#example-2)
     - [How to stop validating a Field on first failure](#how-to-stop-validating-a-field-on-first-failure)
-  - [`<Gizmo />`](#gizmo-)
-    - [Configuration](#configuration-5)
-      - [`render?: (props: FormProps<F>) => React.ReactNode`](#render-props-formpropsf--reactreactnode)
-      - [`component?: React.ComponentType<FormProps<F>>`](#component-reactcomponenttypeformpropsf)
+  - [`connect`](#connect)
     - [Example](#example-3)
 - [Managing your own state](#managing-your-own-state)
 - [Top Level API](#top-level-api)
@@ -508,33 +505,40 @@ Override the `path` for a Validator. By default the `path` is determined by what
 Here's an example:
 
 ```jsx
-// ValidatorExample.js
+// ValidatorExample.jsx
 import { Form, Field, Validator } from 'yafl'
 
-<Form>
-  <Field
-    name="email"
-    label="Email" // unrecognized props are forwarded to your component
-    component={TextInput}
-  />
-  <Field
-    name="password"
-    label="Password"
-    minLength={6}
-    component={TextInput}
-  />
-  <Field
-    name="confirmPassword"
-    label="Confirm Password"
-    component={TextInput}
-  />
-  <Gizmo
-    render={({ formValue }) => formValue.password !== formValue.confirmPassword && (
-      <Validator path="issues" msg="Oops, passwords do not match!" />
+const ValidatorExample = (props) => (
+  <Form>
+    {({ submit, formValue }) => (
+      <form onSubmit={submit}>
+        <Field
+          name="email"
+          label="Email" // unrecognized props are forwarded to your component
+          component={TextInput}
+        />
+        <Field
+          name="password"
+          label="Password"
+          minLength={6}
+          component={TextInput}
+        />
+        <Field
+          name="confirmPassword"
+          label="Confirm Password"
+          component={TextInput}
+        />
+        {formValue.password !== formValue.confirmPassword && (
+          <Validator path="issues" msg="Oops, passwords do not match!" />
+        )
+      </form>
     )}
-  />
-</Form>
+  </Form>
+)
+```
 
+```jsx
+// TextInput.jsx
 function TextInput({ input, field, minLength, label }) {
   return (
     <Fragment>
@@ -545,11 +549,17 @@ function TextInput({ input, field, minLength, label }) {
     </Fragment>
   )
 }
+```
 
+```jsx
+// IsRequiredValidator.jsx
 function IsRequired ({ value, touched, visited, validateOn = 'blur', message }) {
   return <Validator invalid={!value} msg={message} />
 }
+```
 
+```jsx
+// LengthValidator.jsx
 function Length ({ value, touched, visited, validateOn = 'change', min, max, message }) {
   return (
     <Validator
@@ -623,54 +633,39 @@ render() {
 }
 ```
 
+### `connect`
 
-### `<Gizmo />`
-
-Gizmo's are general purpose components that can be used to render anything that isn't a field - a submit button is a good example, but this could be anything. Another possible use case for the `<Gizmo />` component is to create your own higher order components! Since a Gizmo is a pure Consumer (which means it doesn't take a `name` prop which forks the Form state) you can render Fields, Sections and Repeats within a Gizmo so it becomes simple to decorate any component of your choice with any or all the functions that you might need. Lets take a look:
-
-#### Configuration
-
-##### `render?: (props: FormProps<F>) => React.ReactNode`
-
-A render prop function which recieves all the good stuff you might need in the way of Form functions and state.
-
-##### `component?: React.ComponentType<FormProps<F>>`
-
-Same as above but uses React.createElement with the component you give it.
-
-> **Note:**
->
-> Any other props will be forwarded to your Gizmo's `component` or `render` prop.
+Use the connect higher order component to connect any component to the Yafl context.
 
 #### Example
 
 ```jsx
-// withForm.js
-import { Gizmo, Form } from 'yafl'
+// SimpleForm.js
+import { Form, Field, QuickForm } from 'yafl'
 
-export default (Comp) => ({ initialValue, onSubmit, /* other Form props */ children, ...props }) => (
-  <Form
-    onSubmit={onSubmit}
-    initialValue={initialValue}
-  >
-    <Gizmo render={utils => <Comp {...utils} {...props}>{children}</Comp>} />
-  </Form>
-)
+class SimpleForm extends React.Component {
+  render () {
+    return (
+      <Form {/* ...form props */}>
+        <QuickForm>
+          ...
+          <Field name="year" component="input" />
+        </QuickForm>
+      </Form>
+    )
+  }
+}
 ```
 
 ```jsx
-// SimpleForm.js
-import withForm from './withForm'
+// QuickForm.js
+import { connect } from 'yafl'
 
-const MyForm = (props) => (
-  <React.Fragment>
-    <Field name="email" render={({ input }) => <input {...input} />} />
-    <Field name="password" render={({ input }) => <input {...input} />} />
-    <button disabled={!props.formIsValid} onClick={props.submit}>Login</button>
-  </React.Fragment>
+const QuickForm = ({ yafl, children, ...props }) => (
+  <form onSubmit={yafl.submit} {...props}>{children}</form>
 )
 
-export default withForm(MyForm)
+export default connect(QuickForm)
 ```
 
 ## Managing your own state
@@ -740,7 +735,7 @@ Again, the important thing to notice here is that while the values can be of `an
 `createFormContext` returns all of the same components as those exported by Yafl.
 
 ```js
-const { Form, Field, Section, Repeat, Gizmo, Validator } = createFormContext()
+const { Form, Field, Section, Repeat, Validator, connect } = createFormContext()
 ```
 
 The `createFormContext` function creates an independent form context that will only "listen" to changes made with in components that belong to that context.

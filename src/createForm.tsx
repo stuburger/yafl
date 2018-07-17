@@ -192,14 +192,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     incSubmitCount() {
-      this.setState(
-        ({ submitCount }) => ({
-          submitCount: submitCount + 1
-        }),
-        () => {
-          console.log(this.state)
-        }
-      )
+      this.setState(({ submitCount }) => ({
+        submitCount: submitCount + 1
+      }))
     }
 
     submit() {
