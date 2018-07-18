@@ -1,6 +1,13 @@
 import * as React from 'react'
 import * as PropTypes from 'prop-types'
-import { FormProvider, InnerFieldProps, FieldProps, InputProps, FieldConfig } from './sharedTypes'
+import {
+  FormProvider,
+  InnerFieldProps,
+  FieldProps,
+  InputProps,
+  FieldConfig,
+  FieldMeta
+} from './sharedTypes'
 import { toStrPath, validateName, branchByName } from './utils'
 import isEqual from 'react-fast-compare'
 import { branchableProps } from './defaults'
@@ -34,7 +41,9 @@ function createField(Provider: React.Provider<any>) {
       this.collectProps = this.collectProps.bind(this)
       this.registerField = this.registerField.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
+      this.collectMetaProps = this.collectMetaProps.bind(this)
       this._renderComponent = this._renderComponent.bind(this)
+      this.collectInputProps = this.collectInputProps.bind(this)
       this.registerField()
     }
 
@@ -105,19 +114,9 @@ function createField(Provider: React.Provider<any>) {
       }
     }
 
-    collectProps(): FieldProps<F, T> {
+    collectMetaProps(): FieldMeta<F, T> {
       const p = this.props
-
-      const input: InputProps = {
-        name: p.name.toString(),
-        value: p.value,
-        onFocus: this.onFocus,
-        onBlur: this.onBlur,
-        onChange: this.onChange
-      }
-
       return {
-        input,
         path: toStrPath(p.path),
         errors: (p.errors || []) as any,
         visited: !!p.visited,
@@ -138,9 +137,28 @@ function createField(Provider: React.Provider<any>) {
         forgetState: p.forgetState,
         setFormVisited: p.setFormVisited,
         setFormTouched: p.setFormTouched,
-        clearForm: p.clearForm,
-        ...p.branchProps,
-        ...p.forwardProps
+        clearForm: p.clearForm
+      }
+    }
+
+    collectInputProps(): InputProps {
+      const { name, value } = this.props
+      return {
+        value,
+        name: name.toString(),
+        onFocus: this.onFocus,
+        onBlur: this.onBlur,
+        onChange: this.onChange
+      }
+    }
+
+    collectProps(): FieldProps<F, T> {
+      const { branchProps, forwardProps } = this.props
+      return {
+        input: this.collectInputProps(),
+        meta: this.collectMetaProps(),
+        ...branchProps,
+        ...forwardProps
       }
     }
 
@@ -159,7 +177,7 @@ function createField(Provider: React.Provider<any>) {
         }
         return React.createElement(component, { ...props.input, ...props.forwardProps })
       }
-      return <FieldSink {...props} />
+      return <FieldSink path={props.meta.path} {...props} />
     }
 
     render() {

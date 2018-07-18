@@ -125,6 +125,7 @@ class ExampleForm extends Component {
       - [`component?: React.ComponentType<FieldProps<F, T>> | string`](#component-reactcomponenttypefieldpropsf-t--string)
     - [Field Props](#field-props)
       - [Field InputProps](#field-inputprops)
+      - [FieldMeta](#fieldmeta)
   - [`<Section />`](#section-)
     - [Configuration](#configuration-2)
       - [`name: Name`](#name-name)
@@ -302,6 +303,24 @@ The following is a list of props that are passed to the `render` prop or `compon
 | Prop | Description |
 | - | - |
 | `input: ` [`InputProps<T>`](#field-inputprops) | An object containing the core handlers and props for an input.<br />*Allows for easy use of the spread operator.* |
+| `meta: ` [`FieldMeta<F, T>`](#fieldmeta) | An object containing any meta state related to the current field as well as some handy functions. |
+
+##### Field InputProps
+
+| Prop | Description |
+| - | - |
+| `name: string` | Forwarded from the `name` prop of this Field. |
+| `value: T` | The current value of this Field. |
+| `onBlur: (e: React.FocusEvent<any>) => void` | The onBlur handler for your input (DOM only).<br />*Useful if you need to keep track of which Fields have been visited.* |
+| `onFocus: (e: React.FocusEvent<any>) => void` | The onFocus handler for your input (DOM only).<br />*Useful if you need to keep track of which field is currently active.* |
+| `onChange: (e: React.ChangeEvent<any>) => void` | The onChange handler for your input (DOM only).<br />Sets the value of this Field. |
+
+##### FieldMeta
+
+TypeScript: `FieldMeta<F, T>` where `F` and `T` correspond to the generic types for the current Field and Form respectively.
+
+| Prop | Description |
+| - | - |
 | `path: string` | The path for this field. |
 | `visited: boolean` | Indicates whether this Field has been visited.<br />*Automatically set to true on when input.onBlur() is called.* |
 | `touched: boolean` | Indicates whether this Field has been touched.<br />*Automatically set to true the first time a Field's value is changed.* |
@@ -321,17 +340,6 @@ The following is a list of props that are passed to the `render` prop or `compon
 | `setFormValue: (set: SetFormValueFunc<F>) => void` |  Sets the `formValue` imperatively. |
 | `setFormVisited: (set: SetFormVisitedFunc<F>) => void` |  Sets the Form's `visited` state imperatively.<br />Accepts a callback with the Form's previous value. |
 | `setFormTouched: (set: SetFormTouchedFunc<F>) => void` | Sets the Form's `touched` state imperatively.<br />Accepts a callback with the Form's previous visited state. |
-
-##### Field InputProps
-
-| Prop | Description |
-| - | - |
-| `name: string` | Forwarded from the `name` prop of this Field. |
-| `value: T` | The current value of this Field. |
-| `onBlur: (e: React.FocusEvent<any>) => void` | The onBlur handler for your input (DOM only).<br />*Useful if you need to keep track of which Fields have been visited.* |
-| `onFocus: (e: React.FocusEvent<any>) => void` | The onFocus handler for your input (DOM only).<br />*Useful if you need to keep track of which field is currently active.* |
-| `onChange: (e: React.ChangeEvent<any>) => void` | The onChange handler for your input (DOM only).<br />Sets the value of this Field. |
-
 
 ### `<Section />`
 
@@ -471,7 +479,7 @@ Will produce...
 
 ### `<ForwardProps />`
 
-Yafl uses React's context API to make values available to all Field components and the `<ForwardProps />` provides a simple but effective way to pass or *forward* certain common props to all of your Fields. These components can be nested so that a `<FowardProps />` component rendered further down the component hierarchy will override any values that might already be forwarded from a parent `<ForwardProps />` component. Any props forwarded to your Fields will arrive on the Field's rendered component
+Yafl uses React's context API to make values available to all Field components and the `<ForwardProps />` provides a simple but effective way to pass or *forward* certain common props to all of your Fields. These components can be nested so that a `<FowardProps />` component rendered further down the component hierarchy will override any values that might already be forwarded from a parent `<ForwardProps />` component. Any props forwarded to your Fields will arrive on the Field's rendered component on the same object as `input` and `meta`.
 
 ### Configuration
 

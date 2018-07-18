@@ -91,8 +91,9 @@ export interface FieldConfig<F extends object, T = any> {
   onFocus?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   [key: string]: any
 }
-export interface FieldProps<F extends object, T = any> extends FieldMeta<F, T> {
+export interface FieldProps<F extends object, T = any> {
   input: InputProps<T>
+  meta: FieldMeta<F, T>
   [key: string]: any
 }
 
@@ -174,6 +175,7 @@ export interface InnerFieldProps<F extends object, T = any> extends FormProvider
     props: FieldProps<F, T>,
     forwardProps: { [key: string]: any }
   ) => void
+  branchProps: { [key: string]: any }
   forwardProps: { [key: string]: any }
 }
 
