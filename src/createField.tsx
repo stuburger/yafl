@@ -24,6 +24,7 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'component',
   'components',
   'submitCount',
+  'branchProps',
   'forwardProps'
 ]
 

@@ -10,7 +10,7 @@ export default function<F extends object>(
 ) {
   return class ForwardProps extends React.Component<PropForwarderConfig<F>> {
     static propTypes = {
-      split: PropTypes.string,
+      mode: PropTypes.oneOf(['default', 'branch']),
       children: PropTypes.node
     }
     static defaultProps = {
@@ -27,7 +27,7 @@ export default function<F extends object>(
       if (mode === 'branch') {
         invariant(
           Object.keys(rest).every(key => isObject(rest[key])),
-          'When using mode="branch" on the <ForwardProps /> component, all other props must be of type object'
+          'When using mode="branch" on the <ForwardProps /> component, all additional props must be of type object'
         )
         value.branchProps = { ...value.branchProps, ...rest }
       } else {
