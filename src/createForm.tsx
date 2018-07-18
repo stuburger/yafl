@@ -39,9 +39,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       rememberStateOnReinitialize: PropTypes.bool,
       persistFieldState: PropTypes.bool,
       sharedProps: PropTypes.object,
-      componentTypes(
+      components(
         props: FormConfig<F>,
-        propName: 'componentTypes',
+        propName: 'components',
         componentName: string
       ): Error | void {
         const value = props[propName]
@@ -309,23 +309,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
     }
 
     render() {
-      const {
-        children,
-        disabled: ignore1,
-        children: ignore2,
-        onSubmit: ignore3,
-        onStateChange: ignore4,
-        initialValue: ignore6,
-        defaultValue: ignore7,
-        disableReinitialize: ignore5,
-        submitUnregisteredValues: ignore8,
-        rememberStateOnReinitialize: ignore9,
-        persistFieldState: ignore10,
-        onFormValueChange: ignore11,
-        componentTypes = {},
-        sharedProps = {},
-        ...forkProps
-      } = this.props
+      const { children, components = {} } = this.props
 
       const props = this.collectFormProps()
 
@@ -333,9 +317,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         <Provider
           value={{
             ...props,
-            forkProps,
-            sharedProps,
-            componentTypes,
+            components,
+            branchProps: {},
+            sharedProps: {},
             path: startingPath,
             submit: this.submit,
             setValue: this.setValue,

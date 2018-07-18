@@ -110,8 +110,7 @@ class ExampleForm extends Component {
       - [`initialValue?: T`](#initialvalue-t)
       - [`defaultValue?: T`](#defaultvalue-t)
       - [`disableReinitialize?: boolean`](#disablereinitialize-boolean)
-      - [`sharedProps?: { [key: string]: any }`](#sharedprops--key-string-any-)
-      - [`componentTypes?: ComponentTypes<T>`](#componenttypes-componenttypest)
+      - [`components?: ComponentTypes<T>`](#components-componenttypest)
       - [`onSubmit?: (formValue: T) => boolean | void`](#onsubmit-formvalue-t--boolean--void)
       - [`submitUnregisteredValues?: boolean`](#submitunregisteredvalues-boolean)
       - [`persistFieldState?: boolean`](#persistfieldstate-boolean)
@@ -139,14 +138,17 @@ class ExampleForm extends Component {
       - [`children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)`](#children-value-t-utils-arrayhelperst--reactreactnode)
     - [Array Helpers](#array-helpers)
     - [Example](#example-1)
+  - [`<ForwardProps />`](#forwardprops-)
+  - [Configuration](#configuration-4)
+      - [`mode?: 'default' | 'branch'`](#mode-default--branch)
   - [`<Validator />`](#validator-)
-    - [Configuration](#configuration-4)
+    - [Configuration](#configuration-5)
       - [`invalid?: boolean`](#invalid-boolean)
       - [`msg: string`](#msg-string)
       - [`path?: Path`](#path-path)
     - [Example](#example-2)
     - [How to stop validating a Field on first failure](#how-to-stop-validating-a-field-on-first-failure)
-  - [`connect`](#connect)
+  - [`connect<T>(Component: React.ComponentType<T>)`](#connecttcomponent-reactcomponenttypet)
     - [Example](#example-3)
 - [Managing your own state](#managing-your-own-state)
 - [Top Level API](#top-level-api)
@@ -203,20 +205,12 @@ Default is `false`.
 
 By default any time the `initialValue` prop changes, your Form will be reinitialized with the updated `initialValue`. To prevent this behaviour simply set `disableReinitialize` to `true`.
 
-##### `sharedProps?: { [key: string]: any }`
-
-This is a convenience prop that can be used to pass and shared values to all the Fields on your form. Yafl uses React's context API to make these values available to all Field components.
-
-> **Why you might need this:**
-> - For things like theming, etc
-> - Passing any common values that you might need available on all of your Fields.
-
-##### `componentTypes?: ComponentTypes<T>`
+##### `components?: ComponentTypes<T>`
 
 Another convenience prop which allows you provide component dictionary to match a Field's `component` prop with. For example:
 
 ```tsx
-  <Form componentTypes={{ input: TextInput, number: NumberInput }}>
+  <Form components={{ input: TextInput, number: NumberInput }}>
     ...
     {/* The default HTML input will now be overridden by my custom TextInput */}
     <Field name="firstName" component="input" />
@@ -237,7 +231,7 @@ Default is `false`.
 Specify whether values that do not have a corresponding Field, Section or Repeat should be included on submission of your form.
 
 
-> **Why you might need this:**
+> **Why you might need this: `submitUnregisteredValues`**
 >
 > For partially updating an object by submitting the unchanged values along with those that you have modified. This is frequently the case when a PUT is done on some API endpoint that is expecting the full value to be sent down the wire.
 
@@ -248,7 +242,7 @@ Default is `false`.
 Specify whether the `touched` and `visited` state of your `<Field />` components should persisted when they are unmounted.
 
 
-> **Why you might need this:**
+> **Why you might need this: `persistFieldState`**
 >
 > You're not likely to use the `persistFieldState` prop very often, but it may come in handy when you are working with multi-route forms. By default, whenever a Field's `componentWillUnmount` function is called the Field will be removed from the Form component's internal state, and along with it, any state that is associated with the Field. When you're creating a multi-page Form, you'll probably want to keep this state around while visiting different routes, or areas of your Form where some of your Fields may not currently be mounted!
 
@@ -284,7 +278,7 @@ Name your field! Providing a number usually indicates that this Field appears in
 
 Transforms a Field's value before setting it.
 
-> **Why you might need this:**
+> **Why you might need this: `parse`**
 >
 > This prop is useful for when you need to convert a value from one type to another. A common use case is converting string values that have been typed into a text input into number types.
 
@@ -294,7 +288,7 @@ A render prop that accepts an object containing all the good stuff you'll need t
 
 ##### `component?: React.ComponentType<FieldProps<F, T>> | string`
 
-Specify a component to render. If a string is provided then Yafl will attempt to match the string component to one provided in the componentTypes Form prop and if no match is found then it will call React.createElement with the value provided.
+Specify a component to render. If a string is provided then Yafl will attempt to match the string component to one provided in the `components` Form prop and if no match is found then it will call React.createElement with the value provided.
 
 > **Note:**
 >
@@ -353,7 +347,7 @@ Like a Field, a Section also requires a name prop! Corresponds to the name of th
 
 The `fallback` prop is similar to the `defaultValue` prop on the Form component, except that it never gets merged into the `formValue`.
 
-> **Why you might need this:**
+> **Why you might need this: `fallback`**
 >
 > A `fallback` is useful if the value for the Section is ever null or undefined. A fallback becomes especially handy if a Section or Field component is rendered within a `<Repeat />`. Since it doesn't often make much sense to assign anything other than an empty array[] as the default value for a list of things, we can specify a `fallback` to prevent warnings about uncontrolled inputs becoming controlled inputs for any Fields rendered inside the Repeat.
 
@@ -475,6 +469,26 @@ Will produce...
   }
 ```
 
+### `<ForwardProps />`
+
+Yafl uses React's context API to make values available to all Field components and the `<ForwardProps />` provides a simple but effective way to pass or *forward* certain common props to all of your Fields. These components can be nested so that a `<FowardProps />` component rendered further down the component hierarchy will override any values that might already be forwarded from a parent `<ForwardProps />` component. Any props forwarded to your Fields will arrive on the Field's rendered component
+
+### Configuration
+
+Any number of values can be passed to - and forwarded by - the `<ForwardProps />` component. All props (apart from the single configurable prop listed below) will be forwarded to your `<Field />` components.
+
+>**Why you might need this: `<ForwardProps />`**
+>
+> - Passing any common values that you might need available on all of your Fields.
+> - For things like theming, etc 
+> - See the section on [Managing your own state](#managing-your-own-state) for more information on why this component might be useful
+
+
+##### `mode?: 'default' | 'branch'`
+
+The only configurable prop on the ForwardProps component is `mode`. By default all props will be forwarded *as is* to every `<Field />` in your `<Form />`. However, by specifying `mode="branch"` you are saying that you want all the *additional* props to be *branched* by `name` every time it encounters a `name` prop on a `<Section />`, `<Repeat />` or `<Field />`. 
+
+
 ### `<Validator />`
 
 The `<Validator />` component can be 'rendered' to create errors on your Form. The concept of "rendering a validator" might require a small shift in the way you think about form validation since other form libraries usually do validation through the use of a `validate` prop. With Yafl however, you validate your form by simply rendering a Validator. This has some interesting benefits, one of which is that a "rendered" validator solves some of the edge cases around form validation - the most obvious example being that of async validation.
@@ -496,7 +510,7 @@ The error message. If this Validator component is rendered with the same path as
 ##### `path?: Path`
 Override the `path` for a Validator. By default the `path` is determined by what appears above this component in the Form component hierarchy.
 
->**Why you might need this:**
+>**Why you might need this: `path`**
 >
 > This is useful assign errors that belong to the domain of a Section, Repeat, at the Form level. Using the `path` prop is also for simply displaying general errors with a custom path or key.
 
@@ -633,7 +647,7 @@ render() {
 }
 ```
 
-### `connect`
+### `connect<T>(Component: React.ComponentType<T>)`
 
 Use the connect higher order component to connect any component to the Yafl context.
 
@@ -674,9 +688,9 @@ Yafl gives you the ability to implement your own solution for managing the state
 
 1. Override Yafl's default behaviours by plugging into simple input event hooks.
 2. Keep track of the state of your Form in your *own* component.
-3. Then allow Yafl to forward only the relevent parts your state on to your Fields.
+3. Use Yafl's `<ForwardProps />` component with `mode="branch"` and any number of *additional* props to forward only the relevent parts your state on to your Fields.
 
-All of the Form's configuration props documented in here are "recognized" by Yafl, but you can also give your `<Form />` additional props of your own. The one important criteria that all of these additional props should conform to is that they should be *forkable*. An object is forkable if it matches the shape of your `formValue`. This concept is probably best illustrated using the following *recursive* type:
+The one important criteria that all of these additional props should conform to is that they should be *branchable*. An object is branchable if it matches the shape of your `formValue`. This concept is probably best illustrated using the following *recursive* type:
 
 ```ts
 type ExtraProp<F extends object> = { [K in keyof F]?: F[K] extends object ? ExtraProp<F[K]> : any }
@@ -696,7 +710,7 @@ const formValue = {
 }
 ```
 
-A valid forkable object might look something like this:
+A valid branchable object might look something like this:
 
 ```ts
 const errors = {
@@ -740,7 +754,7 @@ const { Form, Field, Section, Repeat, Validator, connect } = createFormContext()
 
 The `createFormContext` function creates an independent form context that will only "listen" to changes made with in components that belong to that context.
 
-> **Why you might need this:**
+> **Why you might need this: `createFormContext`**
 >
 > There are a few edge cases where you might find this handy. One might for example, want to nest one Form within another. However, since Yafl uses React's context API to pass props from Provider to Consumer, rendering a Form inside another Form will make it impossible to access the outter Form values from anywhere inside the inner Form.
 

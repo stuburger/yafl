@@ -156,9 +156,9 @@ exports[`Form should render correctly 1`] = `
     "visited": {},
     "activeField": null,
     "submitCount": 0,
-    "forkProps": {},
+    "components": {},
+    "branchProps": {},
     "sharedProps": {},
-    "componentTypes": {},
     "path": [],
     "value": {
       "firstName": "John",

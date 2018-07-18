@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
-import { validateName, forkByName } from './utils'
+import { validateName, branchByName } from './utils'
 import { Name, FormProvider, ArrayHelpers, Path, RepeatConfig } from './sharedTypes'
-import { forkableProps } from './defaults'
+import { branchableProps } from './defaults'
 import invariant from 'invariant'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T[]> {
@@ -16,11 +16,12 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
   'errors',
   'touched',
   'visited',
-  'forkProps',
   'children',
   'errorCount',
-  'activeField',
-  'submitCount'
+  'submitCount',
+  'branchProps',
+  'sharedProps',
+  'activeField'
 ]
 
 function createForkProvider<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
@@ -154,7 +155,7 @@ export default function<F extends object>(
     _render(ip: FormProvider<F, any>) {
       const { children, name, fallback } = this.props
       return (
-        <InnerComponent<T> key={name} {...forkByName(name, ip, forkableProps, fallback)}>
+        <InnerComponent<T> key={name} {...branchByName(name, ip, branchableProps, fallback)}>
           {children}
         </InnerComponent>
       )

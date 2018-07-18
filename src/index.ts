@@ -7,6 +7,7 @@ import createField from './createField'
 import createConnect from './createConnect'
 import createRepeat from './createRepeat'
 import createValidator from './createValidator'
+import createForwardProps from './createForwardProps'
 
 export function createFormContext<F extends object>() {
   const context = React.createContext<FormProvider<F>>(getDefaultProviderValue())
@@ -17,9 +18,22 @@ export function createFormContext<F extends object>() {
     Repeat: createRepeat<F>(Provider, Consumer),
     Field: createField<F>(Provider, Consumer),
     Validator: createValidator(Consumer),
-    connect: createConnect<F>(Consumer)
+    ForwardProps: createForwardProps(Provider, Consumer),
+    connect: createConnect<F>(Consumer),
+    FormContextProvider: Provider,
+    FormContextConsumer: Consumer
   }
 }
 
-export const { Form, Section, Field, Repeat, Validator, connect } = createFormContext<any>()
+export const {
+  Form,
+  Section,
+  Field,
+  Repeat,
+  Validator,
+  ForwardProps,
+  connect,
+  FormContextProvider,
+  FormContextConsumer
+} = createFormContext<any>()
 export * from './sharedTypes'

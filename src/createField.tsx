@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as PropTypes from 'prop-types'
 import { FormProvider, InnerFieldProps, FieldProps, InputProps, FieldConfig } from './sharedTypes'
-import { toStrPath, validateName, forkByName } from './utils'
+import { toStrPath, validateName, branchByName } from './utils'
 import isEqual from 'react-fast-compare'
-import { forkableProps } from './defaults'
+import { branchableProps } from './defaults'
 import FieldSink from './FieldSink'
 
 const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
@@ -15,9 +15,9 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'touched',
   'visited',
   'component',
+  'components',
   'submitCount',
-  'forwardProps',
-  'componentTypes'
+  'forwardProps'
 ]
 
 // React.Provider<FormProvider<F, any>>
@@ -139,13 +139,13 @@ function createField(Provider: React.Provider<any>) {
         setFormVisited: p.setFormVisited,
         setFormTouched: p.setFormTouched,
         clearForm: p.clearForm,
-        ...p.forkProps,
+        ...p.branchProps,
         ...p.forwardProps
       }
     }
 
     _renderComponent() {
-      const { render, component, componentTypes } = this.props
+      const { render, component, components } = this.props
       const props = this.collectProps()
       if (component && typeof component !== 'string') {
         const Component = component
@@ -153,8 +153,8 @@ function createField(Provider: React.Provider<any>) {
       } else if (render) {
         return render(props)
       } else if (typeof component === 'string') {
-        if (componentTypes[component]) {
-          const Component = componentTypes[component]
+        if (components[component]) {
+          const Component = components[component]
           return <Component {...props} />
         }
         return React.createElement(component, { ...props.input, ...props.forwardProps })
@@ -212,7 +212,7 @@ export default function<F extends object>(
           children={children}
           component={component}
           forwardProps={{ ...ip.sharedProps, ...forwardProps }}
-          {...forkByName(name, ip, forkableProps)}
+          {...branchByName(name, ip, branchableProps)}
         />
       )
     }

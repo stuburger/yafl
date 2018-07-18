@@ -265,12 +265,12 @@ export interface FormProvider<F extends object, T = F> {
   initialValue: T
   errorCount: number
   formValue: F
-  forkProps: any
+  branchProps: any
   initialMount: boolean
   touched: BooleanTree<T>
   visited: BooleanTree<T>
   activeField: string | null
-  componentTypes: ComponentTypes<F>
+  components: ComponentTypes<F>
   submitCount: number
   formIsValid: boolean
   formIsDirty: boolean
@@ -362,7 +362,7 @@ export interface GeneralComponentConfig<F extends object> extends GizmoConfig<F>
   resetForm: (() => void)
   clearForm: (() => void)
   forgetState: (() => void)
-  componentTypes: ComponentTypes<F>
+  components: ComponentTypes<F>
   setActiveField: ((path: string | null) => void)
   setValue: ((path: Path, value: any, setTouched?: boolean) => void)
   setFormValue: (set: SetFormValueFunc<F>) => void
@@ -404,9 +404,13 @@ export interface FormConfig<T extends object> {
   disableReinitialize?: boolean
   onSubmit?: (formValue: T, props: FormProps<T>) => boolean | void
   rememberStateOnReinitialize?: boolean
-  sharedProps?: SharedFieldProps<T>
-  componentTypes?: ComponentTypes<T>
+  components?: ComponentTypes<T>
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
   onFormValueChange?: (prev: T, next: T) => void
+}
+
+export interface PropForwarderConfig<T extends object> extends SharedFieldProps<T> {
+  children: React.ReactNode
+  mode?: 'default' | 'branch'
   [key: string]: any
 }

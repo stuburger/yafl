@@ -11,7 +11,7 @@ export function noop(): never {
   )
 }
 
-export const forkableProps: (keyof FormProvider<any>)[] = [
+export const branchableProps: (keyof FormProvider<any>)[] = [
   'touched',
   'visited',
   'errors',
@@ -30,9 +30,9 @@ export function getDefaultProviderValue<F extends object, T>(): FormProvider<F, 
     initialMount: false,
     formValue: {} as F,
     initialValue: {} as T,
-    forkProps: {},
+    branchProps: {},
     defaultValue: {} as T,
-    componentTypes: {},
+    components: {},
     activeField: null,
     touched: {},
     visited: {},
