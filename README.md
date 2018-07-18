@@ -187,7 +187,7 @@ Yafl's philosophy is to "keep it super simple". While it provides a lot of funct
 ## Demos
 
 - [Welcome to Yet Another For Library.](https://codesandbox.io/s/nn657lqpv4) A small working Form app with basic create and update functionality showing some basic use cases.
-- [Yup and Yafl.](https://codesandbox.io/s/xrmv9xn684) An example of how one might easily integrate third party validation into your app. In this case I'm using [Yup](https://github.com/jquense/yup) but it could swap it out for anything you like!
+- [Yup and Yafl.](https://codesandbox.io/s/xrmv9xn684) An example of how one might easily integrate third party validation into your app. In this case I'm using [Yup](https://github.com/jquense/yup) but you could swap it out for anything you like!
 
 ## API
 
@@ -707,7 +707,7 @@ Yafl gives you the ability to implement your own solution for managing the state
 2. Keep track of the state of your Form in your *own* component.
 3. Use Yafl's `<ForwardProps />` component with `mode="branch"` and any number of *additional* props to forward only the relevent parts your state on to your Fields.
 
-An example of this in action can be found [here](https://codesandbox.io/s/xrmv9xn684) where I use Yup to handle validation. Note that this doesn't have to be validation either, you could in theory opt out of using any (or all) of Yafl's internal state management implementation.
+An example of this in action can be found [here](https://codesandbox.io/s/xrmv9xn684) where I use Yup to handle validation. Note that this doesn't have to be validation either, you could - in theory - opt out of using any (or all) of Yafl's internal state management implementation.
 
 The one important criteria that all of these additional props should conform to is that they should be *branchable*. An object is branchable if it matches the shape of your `formValue`. This concept is probably best illustrated using the following *recursive* type:
 
