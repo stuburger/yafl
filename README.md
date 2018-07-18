@@ -13,7 +13,7 @@ npm i yafl
 
 ## TL;DR
 
-Can't wait to get coding? Here's a quick example to give you the basics.
+Can't wait to get coding? Here's a quick example to give you the basics. Or you can check out the demo on [CodeSandbox](https://codesandbox.io/s/nn657lqpv4).
 
 ```jsx
 import React, { Component } from 'react'
@@ -104,6 +104,7 @@ class ExampleForm extends Component {
   - [Motivation](#motivation)
   - [Philosophy](#philosophy)
   - [Why use YAFL?](#why-use-yafl)
+- [Demos](#demos)
 - [API](#api)
   - [`<Form />`](#form-)
     - [Configuration](#configuration)
@@ -178,9 +179,15 @@ Yafl's philosophy is to "keep it super simple". While it provides a lot of funct
 - Structure your components to match the shape of your data. This means no more accessing field values using string paths! 🤯
 - Deeply nested forms and forms within forms! 🎁
 - Render a Validator! 😱
-- Opt out of using Yafl's internal implementation by keeping track of your own form state and only use Yafl's context as a means to intelligently distribute state to your Fields!  🚀
+- Opt out of using Yafl's internal implementation by keeping track of your own form state and only use Yafl's context as a means to intelligently distribute state to your Fields! 🚀
+- Easily use third pary validation libraries like Yup - it just works!
 - Flexible. 💪
 - Fun. 😻
+
+## Demos
+
+- [Welcome to Yet Another For Library.](https://codesandbox.io/s/nn657lqpv4) A small working Form app with basic create and update functionality showing some basic use cases.
+- [Yup and Yafl.](https://codesandbox.io/s/xrmv9xn684) An example of how one might easily integrate third party validation into your app. In this case I'm using [Yup](https://github.com/jquense/yup) but it could swap it out for anything you like!
 
 ## API
 
@@ -494,7 +501,7 @@ Any number of values can be passed to - and forwarded by - the `<ForwardProps />
 
 ##### `mode?: 'default' | 'branch'`
 
-The only configurable prop on the ForwardProps component is `mode`. By default all props will be forwarded *as is* to every `<Field />` in your `<Form />`. However, by specifying `mode="branch"` you are saying that you want all the *additional* props to be *branched* by `name` every time it encounters a `name` prop on a `<Section />`, `<Repeat />` or `<Field />`. 
+The only configurable prop on the ForwardProps component is `mode`. By default all props will be forwarded *as is* to every `<Field />` in your `<Form />`. However, by specifying `mode="branch"` you are saying that you want all the *additional* props to be *branched* by `name` every time it encounters a `name` prop on a `<Section />`, `<Repeat />` or `<Field />`.
 
 
 ### `<Validator />`
@@ -561,13 +568,16 @@ const ValidatorExample = (props) => (
 
 ```jsx
 // TextInput.jsx
-function TextInput({ input, field, minLength, label }) {
+function TextInput({ input, meta, ...props }) {
+  const { visited, submitCount, errors, isValid } = meta
+  const showErrors = !isValid && (submitCount > 0 || visited)
   return (
     <Fragment>
-      <label>{label}</label>
-      <input type="text" {...input} />
-      <IsRequired message="This field is required" {...field} />
-      <Length message="Too short!" min={minLength} {...field}  />
+      <label>{props.label}</label>
+			<input type="text" {...input} />
+      {showErrors && <span className="error">{errors[0]}</span>}
+      <IsRequired message="This field is required" value={input.value} />
+      <MinLength message="Too short!" min={props.minLength} value={input.value}  />
     </Fragment>
   )
 }
@@ -575,19 +585,16 @@ function TextInput({ input, field, minLength, label }) {
 
 ```jsx
 // IsRequiredValidator.jsx
-function IsRequired ({ value, touched, visited, validateOn = 'blur', message }) {
+function IsRequired ({ value, message }) {
   return <Validator invalid={!value} msg={message} />
 }
 ```
 
 ```jsx
-// LengthValidator.jsx
-function Length ({ value, touched, visited, validateOn = 'change', min, max, message }) {
+// MinLengthValidator.jsx
+function MinLength ({ value, min, message }) {
   return (
-    <Validator
-      msg={message}
-      invalid={value.length < min) || (value.length > max}
-    />
+    <Validator msg={message} invalid={value.length < min} />
   )
 }
 
@@ -602,13 +609,15 @@ function Length ({ value, touched, visited, validateOn = 'change', min, max, mes
 Say you have a custom `<TextInput />` component that accepts a `validate` prop which is a simple array of functions. Let's take a look at how this component might be implemented:
 
 ```jsx
-const TextInput = ({ visited, submitCount, errors, isValid, validators, input }) => {
+const TextInput = ({ input, meta, validators }) => {
+  const { visited, submitCount, errors, isValid } = meta
   const showErrors = !isValid && (submitCount > 0 || visited)
   return (
     <div className="form-input">
       <input {...input} />
-      {/* see note below */ }
-      {showErrors && validators.reduceRight((ret, validate) => {
+      {showErrors && <span className="error">{errors[0]}</span>}
+      {/* reduceRight, WTF? See note below... */ }
+      {validators.reduceRight((ret, validate) => {
         return (
           <Validator msg={validate(input.value)}>{ret}</Validator>
         )
@@ -697,6 +706,8 @@ Yafl gives you the ability to implement your own solution for managing the state
 1. Override Yafl's default behaviours by plugging into simple input event hooks.
 2. Keep track of the state of your Form in your *own* component.
 3. Use Yafl's `<ForwardProps />` component with `mode="branch"` and any number of *additional* props to forward only the relevent parts your state on to your Fields.
+
+An example of this in action can be found [here](https://codesandbox.io/s/xrmv9xn684) where I use Yup to handle validation. Note that this doesn't have to be validation either, you could in theory opt out of using any (or all) of Yafl's internal state management implementation.
 
 The one important criteria that all of these additional props should conform to is that they should be *branchable*. An object is branchable if it matches the shape of your `formValue`. This concept is probably best illustrated using the following *recursive* type:
 
