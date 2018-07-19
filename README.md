@@ -252,7 +252,7 @@ Specify whether the `touched` and `visited` state of your `<Field />` components
 
 > **Why you might need this: `persistFieldState`**
 >
-> You're not likely to use the `persistFieldState` prop very often, but it may come in handy when you are working with multi-route forms. By default, whenever a Field's `componentWillUnmount` function is called the Field will be removed from the Form component's internal state, and along with it, any state that is associated with the Field. When you're creating a multi-page Form, you'll probably want to keep this state around while visiting different routes, or areas of your Form where some of your Fields may not currently be mounted!
+> You're not likely to use the `persistFieldState` prop very often, but it may come in handy when you are working with multi-route forms. By default, whenever a Field's `componentWillUnmount` function is called, the Field will be removed from the Form component's internal state and along with it, any state that is associated with that Field. When you're creating a multi-page Form, you'll probably want to keep this state around while visiting different routes, or areas of your Form where some of your Fields may not currently be mounted!
 
 
 ##### `onFormValueChange?: (prev: T, next: T) => void`
@@ -488,7 +488,7 @@ Will produce...
 
 Yafl uses React's context API to make values available to all Field components and the `<ForwardProps />` provides a simple but effective way to pass or *forward* certain common props to all of your Fields. These components can be nested so that a `<FowardProps />` component rendered further down the component hierarchy will override any values that might already be forwarded from a parent `<ForwardProps />` component. Any props forwarded to your Fields will arrive on the Field's rendered component on the same object as `input` and `meta`.
 
-### Configuration
+#### Configuration
 
 Any number of values can be passed to - and forwarded by - the `<ForwardProps />` component. All props (apart from the single configurable prop listed below) will be forwarded to your `<Field />` components.
 

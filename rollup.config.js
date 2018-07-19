@@ -35,6 +35,7 @@ const rollupUmd = ({ env }) => ({
       namedExports: {
         'node_modules/prop-types/index.js': [
           'object',
+          'oneOf',
           'oneOfType',
           'string',
           'number',
