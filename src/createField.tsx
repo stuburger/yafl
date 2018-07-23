@@ -6,7 +6,8 @@ import {
   FieldProps,
   InputProps,
   FieldConfig,
-  FieldMeta
+  FieldMeta,
+  SetFieldValueFunc
 } from './sharedTypes'
 import { toStrPath, validateName, branchByName } from './utils'
 import isEqual from 'react-fast-compare'
@@ -64,9 +65,9 @@ function createField(Provider: React.Provider<any>) {
       this.props.unregisterField(this.props.path)
     }
 
-    setValue(value: T, touchField = true): void {
-      const { path, setValue } = this.props
-      setValue(path, value, touchField)
+    setValue(value: T | SetFieldValueFunc<T>, touchField = true): void {
+      const { path, setValue, value: prev } = this.props
+      setValue(path, typeof value === 'function' ? value(prev) : value, touchField)
     }
 
     touchField(touched: boolean): void {

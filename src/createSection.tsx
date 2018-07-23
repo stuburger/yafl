@@ -2,12 +2,12 @@ import * as React from 'react'
 import * as PropTypes from 'prop-types'
 import { validateName, branchByName } from './utils'
 import isEqual from 'react-fast-compare'
-import { Name, FormProvider, Path } from './sharedTypes'
+import { Name, FormProvider, Path, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
 import { branchableProps } from './defaults'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
   name: Name
-  children: React.ReactNode
+  children: ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
 }
 
 const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
@@ -28,6 +28,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     unmounted = false
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
+      this.setValue = this.setValue.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
     }
 
@@ -45,10 +46,21 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       this.unmounted = true
     }
 
+    setValue(value: T | SetFieldValueFunc<T>): void {
+      const { path, setValue, value: prev } = this.props
+      setValue(path, typeof value === 'function' ? value(prev) : value, false)
+    }
+
     render() {
       const { name, children, unregisterField, ...props } = this.props
       return (
-        <Provider value={{ ...props, unregisterField: this.unregisterField }}>{children}</Provider>
+        <Provider value={{ ...props, unregisterField: this.unregisterField }}>
+          {typeof children === 'function'
+            ? children(props.value, {
+                setValue: this.setValue
+              })
+            : children}
+        </Provider>
       )
     }
   }
@@ -57,7 +69,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 export interface SectionConfig<T> {
   name: Name
   fallback?: T
-  children: React.ReactNode
+  children: ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
 }
 
 export default function<F extends object>(
@@ -69,7 +81,7 @@ export default function<F extends object>(
   return class Section<T extends object> extends React.PureComponent<SectionConfig<T>> {
     static propTypes = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      children: PropTypes.node.isRequired
+      children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
     }
 
     constructor(props: SectionConfig<T>) {

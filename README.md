@@ -1,7 +1,7 @@
 # Yet. Another. Form. Library.
 
 [![Build Status](https://travis-ci.org/stuburger/yafl.svg?branch=master)](https://travis-ci.org/stuburger/yafl)
-[![gzip size](http://img.badgesize.io/https://unpkg.com/yafl/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl/lib/yafl.umd.production.js)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/yafl@0.0.7/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl@0.0.7/lib/yafl.umd.production.js)
 
 YAFL - Fun, flexible forms in React.
 
@@ -132,6 +132,7 @@ class ExampleForm extends Component {
       - [`name: Name`](#name-name)
       - [`fallback?: T`](#fallback-t)
       - [`children: React.ReactNode`](#children-reactreactnode)
+    - [Section Helpers](#section-helpers)
     - [Example](#example)
   - [`<Repeat />`](#repeat-)
     - [Configuration](#configuration-3)
@@ -141,7 +142,7 @@ class ExampleForm extends Component {
     - [Array Helpers](#array-helpers)
     - [Example](#example-1)
   - [`<ForwardProps />`](#forwardprops-)
-  - [Configuration](#configuration-4)
+    - [Configuration](#configuration-4)
       - [`mode?: 'default' | 'branch'`](#mode-default--branch)
   - [`<Validator />`](#validator-)
     - [Configuration](#configuration-5)
@@ -370,6 +371,13 @@ The `fallback` prop is similar to the `defaultValue` prop on the Form component,
 
 This usually would not warrent an explanation, but it is important to note if any of the children of a Section (that occur anywhere in the hierarchy) that are of type Section, Field or Repeat will be correctly assigned a corresponding value on the object that this Section will produce.
 
+#### Section Helpers
+
+| Prop | Description |
+| - | - |
+| `setValue: (value: T) => void` | Sets the value of this Section. |
+
+
 #### Example
 
 ```jsx
@@ -434,6 +442,7 @@ The Repeat Component uses the function as a child pattern. The first argument is
 | `insert: (index: number, ...items: T[]) => number` | Inserts new elements into the array at the specified index and returns the new length of the array. |
 | `swap: (index1: number, index2: number) => void` | Swaps two elements at the specified indices. |
 | `remove: (index: number) => T \| undefined` | Removes an element from the array at the specified index. |
+| `setValue: (value: T[]) => void` | Sets the value of the array. |
 
 
 #### Example

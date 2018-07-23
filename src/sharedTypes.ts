@@ -55,6 +55,10 @@ export interface SetFormValueFunc<T extends object> {
   (previousValue: T): T
 }
 
+export interface SetFieldValueFunc<T> {
+  (previousValue: T): T
+}
+
 export interface SetFormVisitedFunc<T extends object> {
   (previousVisited: BooleanTree<T>): BooleanTree<T>
 }
@@ -139,7 +143,7 @@ export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
    * @param value The value to set.
    * @param touch Optionally specify if this Field should be touched when this function is called. Default is true.
    */
-  setValue: (value: T, touch?: boolean) => void
+  setValue: (value: T | SetFieldValueFunc<T>, touch?: boolean) => void
   /**
    * Sets the visited state for this Field.
    * @param value The boolean value to which this Field's visited state should be set.
@@ -239,6 +243,21 @@ export interface ArrayHelpers<T> {
    * @returns The value that was removed.
    */
   remove: (index: number) => T | undefined
+  /**
+   * Sets the value of the array.
+   * @param value The new value of the array, or a callback function that accepts
+   * the previous value of the array and returns the next value.
+   */
+  setValue: (value: T[] | SetFieldValueFunc<T[]>) => void
+}
+
+export interface SectionHelpers<T> {
+  /**
+   * Sets the value of this section.
+   * @param value  The new value for this section, or a callback function that accepts
+   * the previous value of the array and returns the next value.
+   */
+  setValue: (value: T | SetFieldValueFunc<T>) => void
 }
 
 export interface SharedFieldProps<F extends object> {

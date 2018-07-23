@@ -2,7 +2,14 @@ import * as React from 'react'
 import * as PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
 import { validateName, branchByName } from './utils'
-import { Name, FormProvider, ArrayHelpers, Path, RepeatConfig } from './sharedTypes'
+import {
+  Name,
+  FormProvider,
+  ArrayHelpers,
+  Path,
+  RepeatConfig,
+  SetFieldValueFunc
+} from './sharedTypes'
 import { branchableProps } from './defaults'
 import invariant from 'invariant'
 
@@ -36,6 +43,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       this.insert = this.insert.bind(this)
       this.remove = this.remove.bind(this)
       this.unshift = this.unshift.bind(this)
+      this.setValue = this.setValue.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
     }
 
@@ -53,6 +61,11 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
       // will also unregister all of its children
       this.unregisterField(this.props.path)
       this.unmounted = true
+    }
+
+    setValue(value: T[] | SetFieldValueFunc<T[]>): void {
+      const { path, setValue, value: prev } = this.props
+      setValue(path, typeof value === 'function' ? value(prev) : value, false)
     }
 
     push(...items: T[]) {
@@ -125,7 +138,8 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
                 swap: this.swap,
                 shift: this.shift,
                 unshift: this.unshift,
-                remove: this.remove
+                remove: this.remove,
+                setValue: this.setValue
               })
             : children}
         </Provider>
