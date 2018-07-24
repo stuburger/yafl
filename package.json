@@ -21,7 +21,9 @@
     "test": "jest",
     "prepublish": "npm run build",
     "jest:updatesnapshot": "jest --updateSnapshot",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "start-docs": "cd yafl-docs && yarn develop",
+    "build-docs": "cd yafl-docs && yarn install && yarn build"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -38,6 +40,7 @@
     "lodash.get": "^4.4.2",
     "lodash.set": "^4.3.2",
     "object-path-immutable": "^3.0.0",
+    "prismjs": "^1.15.0",
     "prop-types": "^15.6.2",
     "react-fast-compare": "^2.0.1",
     "tslib": "^1.9.3"
