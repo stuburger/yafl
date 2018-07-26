@@ -124,6 +124,7 @@ class ExampleForm extends Component {
       - [`parse?: (value: any) => T`](#parse-value-any--t)
       - [`render?: (props: FieldProps<F, T>) => React.ReactNode`](#render-props-fieldpropsf-t--reactreactnode)
       - [`component?: React.ComponentType<FieldProps<F, T>> | string`](#component-reactcomponenttypefieldpropsf-t--string)
+      - [`forwardRef?: React.Ref<any>`](#forwardref-reactrefany)
     - [Field Props](#field-props)
       - [Field InputProps](#field-inputprops)
       - [FieldMeta](#fieldmeta)
@@ -302,6 +303,17 @@ Specify a component to render. If a string is provided then Yafl will attempt to
 > **Note:**
 >
 > Any other props will be forwarded (along with any props specified by `sharedProps` on the Form component) to your component or render prop.
+
+##### `forwardRef?: React.Ref<any>`
+
+If you want to gain access to your rendered component you can use the forwardRef prop. As you might expect, `forwardRef` does not work with stateless function components.
+
+> **Why you might need this: `forwardRef`** 
+>
+> Any time you need to access the functions of a rendered component from within a parent. Common uses cases cited in the [React](https://reactjs.org/docs/refs-and-the-dom.html) docs include, but are not limited to:
+> - Managing focus, text selection, or media playback.
+> - Triggering imperative animations.
+> - Integrating with third-party DOM libraries.
 
 
 #### Field Props

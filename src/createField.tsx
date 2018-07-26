@@ -165,19 +165,20 @@ function createField(Provider: React.Provider<any>) {
     }
 
     _renderComponent() {
-      const { render, component, components } = this.props
+      const { render, component, components, forwardRef } = this.props
       const props = this.collectProps()
       if (component && typeof component !== 'string') {
         const Component = component
-        return <Component {...props} />
+        return <Component ref={forwardRef} {...props} />
       } else if (render) {
         return render(props)
       } else if (typeof component === 'string') {
         if (components[component]) {
           const Component = components[component]
-          return <Component {...props} />
+          return <Component ref={forwardRef} {...props} />
         }
-        return React.createElement(component, { ...props.input, ...props.forwardProps })
+        const { input, meta, ...rest } = props
+        return React.createElement(component, { ...input, ...rest, ref: forwardRef })
       }
       return <FieldSink path={props.meta.path} {...props} />
     }
@@ -218,12 +219,14 @@ export default function<F extends object>(
         onBlur,
         onChange,
         onFocus,
+        forwardRef,
         ...forwardProps
       } = this.props
 
       return (
         <FieldConsumer<T, F1>
           key={name}
+          forwardRef={forwardRef}
           parse={parse}
           onFocus={onFocus}
           onBlur={onBlur}
