@@ -87,6 +87,7 @@ export interface InputProps<T = any> {
 
 export interface FieldConfig<F extends object, T = any> {
   name: Name
+  forwardRef?: React.Ref<any>
   parse?: (value: any) => T
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>> | string
@@ -162,6 +163,7 @@ export interface InnerFieldProps<F extends object, T = any> extends FormProvider
   value: T
   initialValue: T
   parse?: (value: any) => T
+  forwardRef: React.Ref<any>
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>> | string
   onChange?: (

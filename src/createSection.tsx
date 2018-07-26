@@ -7,7 +7,7 @@ import { branchableProps } from './defaults'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
   name: Name
-  children: ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
+  children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
 }
 
 const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
@@ -69,7 +69,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 export interface SectionConfig<T> {
   name: Name
   fallback?: T
-  children: ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
+  children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
 }
 
 export default function<F extends object>(
