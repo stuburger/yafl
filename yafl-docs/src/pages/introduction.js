@@ -1,8 +1,8 @@
 import React from 'react'
 // import styled from 'styled-components'
-import DocsLayout from '../../components/DocsLayout'
+import DocsLayout from '../components/DocsLayout'
 import md from 'react-markings'
-// import rem from '../../utils/rem'
+// import rem from '../utils/rem'
 
 const Motivation = () => md`
 ## Motivation

@@ -20,10 +20,10 @@ const Wrapped = () => (
 export default () => (
   <DocsLayout
     title="API Reference"
-    description="API Reference of styled-components"
+    description="API Reference for Yet Another Form Library"
   >
     <Wrapped title="Basic Usage" />
     <CodeSnippet js={BasicFormCode} />
-    <NextPage to="/docs/tooling" title="Tooling" />
+    <NextPage to="/api/form-component" title="The Form component" />
   </DocsLayout>
 )

@@ -45,7 +45,7 @@ class DocsLayout extends Component {
     return (
       <Container>
         <Head
-          title={`styled-components${title ? `: ${title}` : ''}`}
+          title={`yafl${title ? `: ${title}` : ''}`}
           description={description}
         />
 

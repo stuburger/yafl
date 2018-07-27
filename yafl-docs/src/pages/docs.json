@@ -3,41 +3,28 @@
     {
       "title": "Introduction to Yafl",
       "pathname": "introduction",
-      "sections": [
-        {
-          "title": "Motivation"
-        },
-        {
-          "title": "Philosophy"
-        },
-        {
-          "title": "Why use Yafl?"
-        },
-        {
-          "title": "Installation"
-        }
-      ]
+      "sections": []
     },
     {
       "title": "API Reference",
       "pathname": "api",
       "sections": [
         {
-					"title": "<Form />"
+          "title": "Form Component"
         },
         {
-					"title": "<Field />"
+          "title": "Field Component"
         }
       ]
     },
-   
+
     {
       "title": "Examples",
       "pathname": "examples",
       "sections": [
         {
-					"title": "Basic",
-					"pathname": "basic"
+          "title": "Basic",
+          "pathname": "basic"
         },
         {
           "title": "Rendering Errors"
@@ -62,7 +49,7 @@
       "sections": [
         {
           "title": "Why render an Error?"
-        }       
+        }
       ]
     }
   ]

@@ -37,10 +37,10 @@ const SubSection = styled.h5`
 class Folder extends Component {
   constructor(props) {
     super(props)
-    this.state = { isOpen: false  }
+    this.state = { isOpen: false }
   }
 
-  static getDerivedStateFromProps(ps, np) {
+  static getDerivedStateFromProps(np, ps) {
     return ps.isOpen !== np.isOpenDefault ? { isOpen: np.isOpenDefault } : null
   }
 
@@ -48,16 +48,7 @@ class Folder extends Component {
     this.setState({ isOpen: !this.state.isOpen })
   }
 
-  // componentWillMount() {
-  //   this.setState({ isOpen: this.props.isOpenDefault })
-  // }
-
-  // componentWillReceiveProps(nextProps) {
-  //   this.setState({ isOpen: nextProps.isOpenDefault })
-  // }
-
   render() {
-    // eslint-disable-next-line
     const { children, isOpenDefault, ...props } = this.props
     const { isOpen } = this.state
 
@@ -78,19 +69,18 @@ export const DocsSidebarMenu = ({ onRouteChange }) => (
         key={title}
         isOpenDefault={
           typeof window !== 'undefined' &&
-          window.location.pathname === `/docs/${pathname}`
+          window.location.pathname.startsWith(`/${pathname}`)
         }
       >
         {({ rootProps, toggleSubSections, isOpen }) => (
-          <Section {...rootProps} onClick={onRouteChange}>
+					<Section {...rootProps} onClick={onRouteChange}>
             <SectionTitle onClick={toggleSubSections}>
-              <Link to={`/docs/${pathname}`}>{title}</Link>
+              <Link to={`/${pathname}`}>{title}</Link>
             </SectionTitle>
-
             {isOpen &&
               sections.map(({ title }) => (
                 <SubSection key={title}>
-                  <StyledLink to={`/docs/${pathname}#${titleToDash(title)}`}>
+                  <StyledLink to={`${pathname}/${titleToDash(title)}`}>
                     {title}
                   </StyledLink>
                 </SubSection>
