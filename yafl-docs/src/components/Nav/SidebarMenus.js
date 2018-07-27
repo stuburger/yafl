@@ -80,7 +80,7 @@ export const DocsSidebarMenu = ({ onRouteChange }) => (
             {isOpen &&
               sections.map(({ title }) => (
                 <SubSection key={title}>
-                  <StyledLink to={`${pathname}/${titleToDash(title)}`}>
+                  <StyledLink to={`/${pathname}/${titleToDash(title)}`}>
                     {title}
                   </StyledLink>
                 </SubSection>
