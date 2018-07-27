@@ -1,13 +1,12 @@
 import React, { Component } from 'react'
-// import Head from './SeoHead'
+import Head from './HtmlHead'
 import Nav from './Nav'
 import { Container, Content, Title } from './Layout'
-
 
 class DocsLayout extends Component {
   state = {
     isSideFolded: true,
-    isMobileNavFolded: true
+    isMobileNavFolded: true,
   }
 
   static defaultProps = {
@@ -45,12 +44,10 @@ class DocsLayout extends Component {
 
     return (
       <Container>
-
-    {/*    <Head
+        <Head
           title={`styled-components${title ? `: ${title}` : ''}`}
-          description={description}>
-            <meta name="robots" content="noodp" />
-		</Head> */}
+          description={description}
+        />
 
         <Nav
           useDocsSidebarMenu={useDocsSidebarMenu}
@@ -63,9 +60,7 @@ class DocsLayout extends Component {
         />
 
         <Content moveRight={!isSideFolded} data-e2e-id="content">
-          <Title>
-            {title}
-          </Title>
+          <Title>{title}</Title>
 
           {children}
         </Content>
@@ -74,5 +69,6 @@ class DocsLayout extends Component {
   }
 }
 
-
 export default DocsLayout
+
+//<meta name="robots" content="noodp" />

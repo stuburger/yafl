@@ -1,8 +1,6 @@
-
 import React from 'react'
 import styled, { css } from 'styled-components'
-// import ChevronRightIcon from 'react-octicons-svg/dist/ChevronRightIcon'
-
+import ChevronRightIcon from 'react-octicons-svg/dist/ChevronRight'
 import rem from '../utils/rem'
 import Link from './Link'
 import { lightGrey } from '../utils/colors'
@@ -11,7 +9,7 @@ import { headerFont } from '../utils/fonts'
 
 const Wrapper = styled(Link).attrs({
   unstyled: true,
-  prefetch: true
+  prefetch: true,
 })`
   display: flex;
   flex-direction: row;
@@ -27,7 +25,7 @@ const Wrapper = styled(Link).attrs({
     text-align: left;
     justify-content: center;
     padding: ${rem(30)} ${rem(20)};
-  `)}
+  `)};
 `
 
 const Text = styled.h3`
@@ -42,13 +40,13 @@ const PageName = styled.h2`
   margin: 0;
 `
 
-// const Icon = styled(ChevronRightIcon).attrs({
-//   width: null,
-//   height: null
-// })`
-//   color: ${lightGrey};
-//   width: ${rem(30)};
-// `
+const Icon = styled(ChevronRightIcon).attrs({
+  width: null,
+  height: null,
+})`
+  color: ${lightGrey};
+  width: ${rem(30)};
+`
 
 const NextPage = ({ title, to }) => (
   <Wrapper unstyled prefetch to={to}>
@@ -58,7 +56,7 @@ const NextPage = ({ title, to }) => (
     </div>
 
     <div>
-      {/*<Icon />*/}
+      <Icon />
     </div>
   </Wrapper>
 )

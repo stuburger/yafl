@@ -1,6 +1,5 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
-
 import rem from '../../utils/rem'
 import { navbarHeight } from '../../utils/sizes'
 import { paleGrey } from '../../utils/colors'
@@ -8,7 +7,7 @@ import { mobile } from '../../utils/media'
 import { CloseIcon, FoldIcon, ArrowIcon } from './NavIcons'
 import Link from '../Link'
 import NavLinks from './NavLinks'
-import Social from './Social'
+// import Social from './Social'
 import Logo from './Logo'
 import NavSeparator from './NavSeparator'
 import NavButton from './NavButton'
@@ -21,7 +20,7 @@ const Wrapper = styled.div`
     align-items: center;
     justify-content: space-between;
     height: ${rem(navbarHeight)};
-  `)}
+  `)};
 `
 
 const SecondaryMenu = styled.div`
@@ -30,13 +29,14 @@ const SecondaryMenu = styled.div`
   left: 0;
   right: 0;
 
-  ${p => p.open ? css`
-    height: ${rem(navbarHeight)};
-  ` : css`
-    height: 0;
-  `}
-
-  display: flex;
+  ${p =>
+    p.open
+      ? css`
+          height: ${rem(navbarHeight)};
+        `
+      : css`
+          height: 0;
+        `} display: flex;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
@@ -63,11 +63,12 @@ const LogoLink = styled(Link).attrs({
 
 const ArrowWrapper = styled.div`
   transition: transform 0.1s;
-
-  ${p => p.rotate && css`
-    transform-origin: 50% 55%;
-    transform: rotate(180deg);
-  `}
+  ${p =>
+    p.rotate &&
+    css`
+      transform-origin: 50% 55%;
+      transform: rotate(180deg);
+    `};
 `
 
 const SecondaryMenuItem = styled.div`
@@ -86,10 +87,7 @@ const MobileNavbar = props => {
   return (
     <Wrapper>
       {showSideNav !== false && (
-        <NavButton
-          active={!isSideFolded}
-          onClick={onSideToggle}
-        >
+        <NavButton active={!isSideFolded} onClick={onSideToggle}>
           {isSideFolded ? <FoldIcon /> : <CloseIcon />}
         </NavButton>
       )}
@@ -98,11 +96,8 @@ const MobileNavbar = props => {
         <Logo compact />
       </LogoLink>
 
-      <NavButton
-        onClick={onMobileNavToggle}
-        active={!isMobileNavFolded}
-      >
-        <ArrowWrapper rotate={!isMobileNavFolded}>
+      <NavButton onClick={onMobileNavToggle} active={!isMobileNavFolded}>
+        <ArrowWrapper rotate={isMobileNavFolded ? undefined : true}>
           <ArrowIcon />
         </ArrowWrapper>
       </NavButton>
@@ -110,9 +105,7 @@ const MobileNavbar = props => {
       <SecondaryMenu open={!isMobileNavFolded}>
         <NavLinks />
         <NavSeparator />
-        <SecondaryMenuItem>
-          <Social />
-        </SecondaryMenuItem>
+        <SecondaryMenuItem>{/*<Social /> */}</SecondaryMenuItem>
       </SecondaryMenu>
     </Wrapper>
   )

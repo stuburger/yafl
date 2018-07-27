@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { sidebarWidth, navbarHeight, codeWidth } from '../utils/sizes'
+import { sidebarWidth, navbarHeight } from '../utils/sizes'
 import styled from 'styled-components'
 import rem from 'polished/lib/helpers/rem'
 const prism = require('prismjs')
@@ -9,7 +9,6 @@ const Pre = styled.pre`
   left: auto;
 	bottom: 0;
 	margin: 0;
-	width: ${rem(codeWidth)}
   top: ${rem(navbarHeight)};
   left: ${rem(sidebarWidth)};
   box-sizing: border-box;

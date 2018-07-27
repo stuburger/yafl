@@ -4393,9 +4393,15 @@ hoek@4.x.x:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/hoek/-/hoek-4.2.1.tgz#9634502aa12c445dd5a7c5734b572bb8738aacbb"
 
-hoist-non-react-statics@^2.5.0, hoist-non-react-statics@^2.5.5:
+hoist-non-react-statics@^2.5.0:
   version "2.5.5"
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.5.5.tgz#c5903cf409c0dfd908f388e619d86b9c1174cb47"
+
+hoist-non-react-statics@^3.0.0-rc.1:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.0.0.tgz#7e2c2804aa81af3d11d261f13d23153625c68b84"
+  dependencies:
+    react-is "^16.3.2"
 
 homedir-polyfill@^1.0.1:
   version "1.0.1"
@@ -5944,6 +5950,12 @@ obuf@^1.0.0, obuf@^1.1.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/obuf/-/obuf-1.1.2.tgz#09bea3343d41859ebd446292d11c9d4db619084e"
 
+octicons@^7.0.1:
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/octicons/-/octicons-7.4.0.tgz#0be0082ed75b81e680800ef978bf47078b670091"
+  dependencies:
+    object-assign "^4.1.1"
+
 on-finished@~2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/on-finished/-/on-finished-2.3.0.tgz#20f1336481b083cd75337992a16971aa2d906947"
@@ -6828,7 +6840,7 @@ react-hot-loader@^4.1.0:
     react-lifecycles-compat "^3.0.4"
     shallowequal "^1.0.2"
 
-react-is@^16.3.1:
+react-is@^16.3.1, react-is@^16.3.2:
   version "16.4.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.4.1.tgz#d624c4650d2c65dbd52c72622bbf389435d9776e"
 
@@ -6842,6 +6854,12 @@ react-markings@^1.3.0:
   dependencies:
     commonmark "^0.27.0"
     commonmark-react-renderer "^4.3.3"
+
+react-octicons-svg@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react-octicons-svg/-/react-octicons-svg-2.0.0.tgz#897e3c018a45bbb1e1ea362a467d7505b13ff225"
+  dependencies:
+    octicons "^7.0.1"
 
 react-router-dom@^4.1.1:
   version "4.3.1"
@@ -8684,9 +8702,9 @@ y18n@^4.0.0:
   resolved "https://registry.yarnpkg.com/y18n/-/y18n-4.0.0.tgz#95ef94f85ecc81d007c264e190a120f0a3c8566b"
 
 "yafl@file:..":
-  version "0.0.7"
+  version "0.0.10-alpha2"
   dependencies:
-    hoist-non-react-statics "^2.5.5"
+    hoist-non-react-statics "^3.0.0-rc.1"
     invariant "^2.2.4"
     lodash.defaultsdeep "^4.6.0"
     lodash.get "^4.4.2"

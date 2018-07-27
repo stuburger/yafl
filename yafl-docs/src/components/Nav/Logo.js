@@ -15,7 +15,7 @@ const Logo = styled.div`
     width: ${rem(100)};
     height: ${rem(30)};
   ` : css`
-    background-image: url(/static/nav-logo.png);
+    // background-image: url(/static/nav-logo.png);
     width: ${rem(164)};
     height: ${rem(40)};
   `}

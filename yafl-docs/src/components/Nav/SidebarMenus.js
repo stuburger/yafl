@@ -35,21 +35,26 @@ const SubSection = styled.h5`
 `
 
 class Folder extends Component {
-  state = {
-    isOpen: false,
+  constructor(props) {
+    super(props)
+    this.state = { isOpen: false  }
+  }
+
+  static getDerivedStateFromProps(ps, np) {
+    return ps.isOpen !== np.isOpenDefault ? { isOpen: np.isOpenDefault } : null
   }
 
   toggleSubSections = () => {
     this.setState({ isOpen: !this.state.isOpen })
   }
 
-  componentWillMount() {
-    this.setState({ isOpen: this.props.isOpenDefault })
-  }
+  // componentWillMount() {
+  //   this.setState({ isOpen: this.props.isOpenDefault })
+  // }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({ isOpen: nextProps.isOpenDefault })
-  }
+  // componentWillReceiveProps(nextProps) {
+  //   this.setState({ isOpen: nextProps.isOpenDefault })
+  // }
 
   render() {
     // eslint-disable-next-line
@@ -57,48 +62,43 @@ class Folder extends Component {
     const { isOpen } = this.state
 
     return typeof children === 'function'
-      ? children({ rootProps: props, toggleSubSections: this.toggleSubSections, isOpen })
+      ? children({
+          rootProps: props,
+          toggleSubSections: this.toggleSubSections,
+          isOpen,
+        })
       : null
   }
 }
 
 export const DocsSidebarMenu = ({ onRouteChange }) => (
   <MenuInner>
-    {
-      pages.map(({ title, pathname, sections }) => (
-          <Folder
-            key={title}
-            isOpenDefault={
-              typeof window !== 'undefined' &&
-                (window.location.pathname === `/docs/${pathname}`)
-            }
-          >
-            {({
-              rootProps,
-              toggleSubSections,
-              isOpen,
-            }) => (
-              <Section {...rootProps} onClick={onRouteChange}>
-                <SectionTitle onClick={toggleSubSections}>
-                  <Link to={`/docs/${pathname}`}>
-                    {title}
-                  </Link>
-                </SectionTitle>
+    {pages.map(({ title, pathname, sections }) => (
+      <Folder
+        key={title}
+        isOpenDefault={
+          typeof window !== 'undefined' &&
+          window.location.pathname === `/docs/${pathname}`
+        }
+      >
+        {({ rootProps, toggleSubSections, isOpen }) => (
+          <Section {...rootProps} onClick={onRouteChange}>
+            <SectionTitle onClick={toggleSubSections}>
+              <Link to={`/docs/${pathname}`}>{title}</Link>
+            </SectionTitle>
 
-                {
-                  isOpen && sections.map(({ title }) => (
-                    <SubSection key={title}>
-                      <StyledLink to={`/docs/${pathname}#${titleToDash(title)}`}>
-                        {title}
-                      </StyledLink>
-                    </SubSection>
-                  ))
-                }
-                </Section>
-            )}
-          </Folder>
-      ))
-    }
+            {isOpen &&
+              sections.map(({ title }) => (
+                <SubSection key={title}>
+                  <StyledLink to={`/docs/${pathname}#${titleToDash(title)}`}>
+                    {title}
+                  </StyledLink>
+                </SubSection>
+              ))}
+          </Section>
+        )}
+      </Folder>
+    ))}
   </MenuInner>
 )
 
@@ -108,59 +108,53 @@ function getSectionPath(parentPathname, title) {
 
 function isFolderOpen(currentHref, { pathname, title, sections }) {
   return (
-    sections.reduce((sum, v) => (
-      sum || window.location.to.endsWith(getSectionPath(pathname, v.title))
-    ), false) ||
-    window.location.to.endsWith(pathname || '#' + titleToDash(title))
+    sections.reduce(
+      (sum, v) =>
+        sum || window.location.to.endsWith(getSectionPath(pathname, v.title)),
+      false
+    ) || window.location.to.endsWith(pathname || '#' + titleToDash(title))
   )
 }
 
 export const SimpleSidebarMenu = ({ onRouteChange, pages = [] }) => (
   <MenuInner>
-    {
-      pages.map(({ title, pathname, sections, to }) => {
-        if (!sections) {
-          return (
-            <TopLevelLink key={title}>
-              <StyledLink to={pathname || '#' + (to || titleToDash(title))}>
-                {title}
-              </StyledLink>
-            </TopLevelLink>
-          )
-        }
-
+    {pages.map(({ title, pathname, sections, to }) => {
+      if (!sections) {
         return (
-          <Folder
-            key={title}
-            isOpenDefault={
-              typeof window !== 'undefined' &&
-                isFolderOpen(window.location.to, { title, pathname, sections })
-            }
-          >
-            {({
-              rootProps,
-              toggleSubSections,
-              isOpen,
-            }) => (
-              <Section {...rootProps} onClick={onRouteChange}>
-                <SectionTitle onClick={toggleSubSections}>
-                  <Link to={pathname || '#' + titleToDash(title)}>
-                    {title}
-                  </Link>
-                </SectionTitle>
+          <TopLevelLink key={title}>
+            <StyledLink to={pathname || '#' + (to || titleToDash(title))}>
+              {title}
+            </StyledLink>
+          </TopLevelLink>
+        )
+      }
 
-                {isOpen && sections.map(({ title }) => (
+      return (
+        <Folder
+          key={title}
+          isOpenDefault={
+            typeof window !== 'undefined' &&
+            isFolderOpen(window.location.to, { title, pathname, sections })
+          }
+        >
+          {({ rootProps, toggleSubSections, isOpen }) => (
+            <Section {...rootProps} onClick={onRouteChange}>
+              <SectionTitle onClick={toggleSubSections}>
+                <Link to={pathname || '#' + titleToDash(title)}>{title}</Link>
+              </SectionTitle>
+
+              {isOpen &&
+                sections.map(({ title }) => (
                   <SubSection key={title}>
                     <StyledLink unstyled to={getSectionPath(pathname, title)}>
                       {title}
                     </StyledLink>
                   </SubSection>
                 ))}
-              </Section>
-            )}
-          </Folder>
-        )
-      })
-    }
+            </Section>
+          )}
+        </Folder>
+      )
+    })}
   </MenuInner>
 )

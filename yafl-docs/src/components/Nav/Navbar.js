@@ -8,7 +8,7 @@ import { headerFont } from '../../utils/fonts'
 import { mobile } from '../../utils/media'
 import Link from '../Link'
 import NavLinks from './NavLinks'
-import Social from './Social'
+// import Social from './Social'
 import Logo from './Logo'
 import MobileNavbar from './MobileNavbar'
 
@@ -84,7 +84,7 @@ class Navbar extends PureComponent {
           </StartWrapper>
 
           <EndWrapper>
-            <Social />
+            {/*<Social /> */}
           </EndWrapper>
         </NormalNavbar>
 
