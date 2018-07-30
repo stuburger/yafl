@@ -10,10 +10,28 @@
       "pathname": "api",
       "sections": [
         {
-          "title": "Form Component"
+					"title": "<Form />",
+					"pathname": "form"
         },
         {
-          "title": "Field Component"
+          "title": "<Field />",
+					"pathname": "field"
+        },
+        {
+          "title": "<Section />",
+					"pathname": "section"
+        },
+        {
+          "title": "<Repeat />",
+					"pathname": "repeat"
+        },
+        {
+          "title": "connect",
+					"pathname": "connect"
+        },
+        {
+          "title": "createFormContext",
+					"pathname": "create-form-context"
         }
       ]
     },

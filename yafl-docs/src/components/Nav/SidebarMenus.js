@@ -73,14 +73,14 @@ export const DocsSidebarMenu = ({ onRouteChange }) => (
         }
       >
         {({ rootProps, toggleSubSections, isOpen }) => (
-					<Section {...rootProps} onClick={onRouteChange}>
+          <Section {...rootProps} onClick={onRouteChange}>
             <SectionTitle onClick={toggleSubSections}>
               <Link to={`/${pathname}`}>{title}</Link>
             </SectionTitle>
             {isOpen &&
-              sections.map(({ title }) => (
+              sections.map(({ title, pathname: sectionPathname }) => (
                 <SubSection key={title}>
-                  <StyledLink to={`/${pathname}/${titleToDash(title)}`}>
+                  <StyledLink to={`/${pathname}/${sectionPathname}`}>
                     {title}
                   </StyledLink>
                 </SubSection>
@@ -92,17 +92,17 @@ export const DocsSidebarMenu = ({ onRouteChange }) => (
   </MenuInner>
 )
 
-function getSectionPath(parentPathname, title) {
-  return `${parentPathname || ''}#${titleToDash(title)}`
+function getSectionPath(parentPathname, sectionPathname) {
+  return `${parentPathname || ''}/${sectionPathname}`
 }
 
 function isFolderOpen(currentHref, { pathname, title, sections }) {
   return (
     sections.reduce(
       (sum, v) =>
-        sum || window.location.to.endsWith(getSectionPath(pathname, v.title)),
+        sum || window.location.to.endsWith(getSectionPath(pathname, v.pathname)),
       false
-    ) || window.location.to.endsWith(pathname || '#' + titleToDash(title))
+    ) || window.location.to.endsWith(pathname || '/' + titleToDash(title))
   )
 }
 
@@ -112,7 +112,7 @@ export const SimpleSidebarMenu = ({ onRouteChange, pages = [] }) => (
       if (!sections) {
         return (
           <TopLevelLink key={title}>
-            <StyledLink to={pathname || '#' + (to || titleToDash(title))}>
+            <StyledLink to={pathname || '/' + (to || titleToDash(title))}>
               {title}
             </StyledLink>
           </TopLevelLink>
@@ -130,7 +130,7 @@ export const SimpleSidebarMenu = ({ onRouteChange, pages = [] }) => (
           {({ rootProps, toggleSubSections, isOpen }) => (
             <Section {...rootProps} onClick={onRouteChange}>
               <SectionTitle onClick={toggleSubSections}>
-                <Link to={pathname || '#' + titleToDash(title)}>{title}</Link>
+                <Link to={pathname || '/' + titleToDash(title)}>{title}</Link>
               </SectionTitle>
 
               {isOpen &&
