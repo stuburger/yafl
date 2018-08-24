@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Form should render correctly 1`] = `
-<form>
+<form
+  onSubmit={[Function]}
+>
   <div>
     <label>
       First Name
@@ -112,67 +114,65 @@ exports[`Form should render correctly 1`] = `
   </div>
   <pre>
     {
-  "yafl": {
-    "formValue": {
-      "firstName": "John",
-      "lastName": "Woodcock",
-      "age": 30,
-      "contact": {
-        "tel": "983838333",
-        "email": "asdf@testing.com"
-      },
-      "friends": [
-        "stuart",
-        "oumar"
-      ]
+  "formValue": {
+    "firstName": "John",
+    "lastName": "Woodcock",
+    "age": 30,
+    "contact": {
+      "tel": "983838333",
+      "email": "asdf@testing.com"
     },
-    "errorCount": 0,
-    "defaultValue": {
-      "firstName": "",
-      "lastName": "",
-      "age": 0,
-      "contact": {
-        "tel": "",
-        "email": "asdf@testing.com"
-      }
-    },
-    "formIsDirty": true,
-    "formIsValid": true,
-    "initialValue": {
-      "firstName": "John",
-      "lastName": "Woodcock",
-      "age": 30,
-      "contact": {
-        "tel": "983838333"
-      },
-      "friends": [
-        "stuart",
-        "oumar"
-      ]
-    },
-    "initialMount": true,
-    "errors": {},
-    "touched": {},
-    "visited": {},
-    "activeField": null,
-    "submitCount": 0,
-    "components": {},
-    "branchProps": {},
-    "sharedProps": {},
-    "path": [],
-    "value": {
-      "firstName": "John",
-      "lastName": "Woodcock",
-      "age": 30,
-      "contact": {
-        "tel": "983838333",
-        "email": "asdf@testing.com"
-      },
-      "friends": [
-        "stuart",
-        "oumar"
-      ]
+    "friends": [
+      "stuart",
+      "oumar"
+    ]
+  },
+  "errorCount": 0,
+  "defaultValue": {
+    "firstName": "",
+    "lastName": "",
+    "age": 0,
+    "contact": {
+      "tel": "",
+      "email": "asdf@testing.com"
     }
+  },
+  "formIsDirty": true,
+  "formIsValid": true,
+  "initialValue": {
+    "firstName": "John",
+    "lastName": "Woodcock",
+    "age": 30,
+    "contact": {
+      "tel": "983838333"
+    },
+    "friends": [
+      "stuart",
+      "oumar"
+    ]
+  },
+  "initialMount": true,
+  "errors": {},
+  "touched": {},
+  "visited": {},
+  "activeField": null,
+  "submitCount": 0,
+  "components": {},
+  "branchProps": {},
+  "sharedProps": {},
+  "path": [],
+  "value": {
+    "firstName": "John",
+    "lastName": "Woodcock",
+    "age": 30,
+    "contact": {
+      "tel": "983838333",
+      "email": "asdf@testing.com"
+    },
+    "friends": [
+      "stuart",
+      "oumar"
+    ]
   }
 }
   </pre>

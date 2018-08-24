@@ -35,10 +35,10 @@ function TextInput(props: any) {
   )
 }
 
-const TestForm = connect(({ submit, children, ...props }: any) => (
-  <form onSubmit={submit}>
+const TestForm = connect(({ yafl, children, ...props }) => (
+  <form onSubmit={yafl.submit}>
     {children}
-    <pre>{JSON.stringify(props, null, 2)}</pre>
+    <pre>{JSON.stringify(yafl, null, 2)}</pre>
   </form>
 ))
 
