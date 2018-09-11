@@ -1,6 +1,6 @@
 {
   "name": "yafl",
-  "version": "0.0.13-alpha1",
+  "version": "0.0.13-alpha2",
   "description": "Yet another form library for React",
   "main": "lib/yafl.js",
   "module": "lib/yafl.esm.js",
@@ -36,7 +36,6 @@
     "invariant": "^2.2.4",
     "lodash.defaultsdeep": "^4.6.0",
     "lodash.get": "^4.4.2",
-    "lodash.set": "^4.3.2",
     "object-path-immutable": "^3.0.0",
     "prop-types": "^15.6.2",
     "react-fast-compare": "^2.0.2",
