@@ -36,7 +36,7 @@ function createField(Provider: React.Provider<any>) {
     private path: Path
     constructor(props: InnerFieldProps<F, T>) {
       super(props)
-
+      validateName(props.name)
       this.path = props.path.concat(props.name)
       this.onBlur = this.onBlur.bind(this)
       this.onFocus = this.onFocus.bind(this)
@@ -174,9 +174,13 @@ function createField(Provider: React.Provider<any>) {
       if (component && typeof component !== 'string') {
         const Component = component
         return <Component ref={forwardRef} {...props} />
-      } else if (render) {
+      }
+
+      if (render) {
         return render(props)
-      } else if (typeof component === 'string') {
+      }
+
+      if (typeof component === 'string') {
         if (components[component]) {
           const Component = components[component]
           return <Component ref={forwardRef} {...props} />
@@ -184,12 +188,13 @@ function createField(Provider: React.Provider<any>) {
         const { input, meta, ...rest } = props
         return React.createElement(component, { ...input, ...rest, ref: forwardRef })
       }
+
       return <FieldSink path={props.meta.path} {...props} />
     }
 
     render() {
       const { name, render, component, forwardProps, children, ...rest } = this.props
-      return <Provider value={rest}>{this._renderComponent()}</Provider>
+      return <Provider value={{ ...rest, path: this.path }}>{this._renderComponent()}</Provider>
     }
   }
 }
@@ -247,7 +252,6 @@ export default function<F extends object>(
     }
 
     render() {
-      validateName(this.props.name)
       return <Consumer>{this._render}</Consumer>
     }
   }

@@ -37,6 +37,7 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     private path: Path
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
+      validateName(props.name)
       this.path = props.path.concat(props.name)
       this.pop = this.pop.bind(this)
       this.push = this.push.bind(this)
@@ -178,7 +179,6 @@ export default function<F extends object>(
     }
 
     render() {
-      validateName(this.props.name)
       return <Consumer>{this._render}</Consumer>
     }
   }
