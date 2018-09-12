@@ -1,4 +1,5 @@
 export * from './checkType'
+export { default as get } from './get'
 export { default as noop } from './noop'
 export { default as incl } from './includes'
 export { default as toStrPath } from './path'
