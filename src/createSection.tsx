@@ -26,8 +26,10 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
 function createForkProvider<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
   return class ForkProvider<T> extends React.Component<ForkProviderConfig<F, T>> {
     unmounted = false
+    private path: Path
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
+      this.path = props.path.concat(props.name)
       this.setValue = this.setValue.bind(this)
       this.unregisterField = this.unregisterField.bind(this)
     }
@@ -42,19 +44,19 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     }
 
     componentWillUnmount() {
-      this.unregisterField(this.props.path)
+      this.unregisterField(this.path)
       this.unmounted = true
     }
 
     setValue(value: T | SetFieldValueFunc<T>): void {
-      const { path, setValue, value: prev } = this.props
-      setValue(path, typeof value === 'function' ? value(prev) : value, false)
+      const { setValue, value: prev } = this.props
+      setValue(this.path, typeof value === 'function' ? value(prev) : value, false)
     }
 
     render() {
-      const { name, children, unregisterField, ...props } = this.props
+      const { name, children, unregisterField, path, ...props } = this.props
       return (
-        <Provider value={{ ...props, unregisterField: this.unregisterField }}>
+        <Provider value={{ ...props, path: this.path, unregisterField: this.unregisterField }}>
           {typeof children === 'function'
             ? children(props.value, {
                 setValue: this.setValue
