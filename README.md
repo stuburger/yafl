@@ -1,7 +1,7 @@
 # Yet. Another. Form. Library.
 
 [![Build Status](https://travis-ci.org/stuburger/yafl.svg?branch=master)](https://travis-ci.org/stuburger/yafl)
-[![gzip size](http://img.badgesize.io/https://unpkg.com/yafl@0.0.12/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl@0.0.12/lib/yafl.umd.production.js)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/yafl@0.0.13-alpha4/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl@0.0.13-alpha4/lib/yafl.umd.production.js)
 
 YAFL - Fun, flexible forms in React.
 

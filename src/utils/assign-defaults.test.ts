@@ -17,8 +17,9 @@ describe('assign-defaults', () => {
   })
 
   test('array values should be copied correctly', () => {
-    expect(assignDefaults([], [1, 2, 3])).toEqual([1, 2, 3])
+    expect(assignDefaults([1], [1, 2, 3])).toEqual([1, 2, 3])
     expect(assignDefaults({}, { a: [1, 2, 3] })).toEqual({ a: [1, 2, 3] })
+    expect(assignDefaults({ a: [1, 2, 3] }, { a: [4, 5, 6, 7] })).toEqual({ a: [1, 2, 3, 7] })
   })
 
   test('should clone when an empty object is passed as the first arg.', () => {
