@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/stuburger/yafl.svg?branch=master)](https://travis-ci.org/stuburger/yafl)
 [![gzip size](http://img.badgesize.io/https://unpkg.com/yafl@0.0.13-alpha4/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl@0.0.13-alpha4/lib/yafl.umd.production.js)
+[![license](https://badgen.now.sh/badge/license/MIT)](./LICENSE)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 YAFL - Fun, flexible forms in React.
 
