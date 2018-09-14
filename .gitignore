@@ -4,6 +4,7 @@
 .rpt2_cache
 
 lib
+yafl-docs
 compiled
 *.log
 coverage
