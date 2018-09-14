@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as PropTypes from 'prop-types'
-import get from 'lodash.get'
-import defaultsDeep from 'lodash.defaultsdeep'
-import { noop, isObject, toStrPath, constructFrom } from './utils'
+import { get, noop, isObject, toStrPath, constructFrom, assignDefaults } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -126,7 +124,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       }
 
       if (updateDerivedState || !isEqual(ps.defaultValue, np.defaultValue)) {
-        state.formValue = defaultsDeep({}, state.formValue, state.defaultValue)
+        state.formValue = assignDefaults({}, state.formValue, state.defaultValue)
       }
 
       return updateDerivedState ? state : null

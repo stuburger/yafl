@@ -1,7 +1,7 @@
 # Yet. Another. Form. Library.
 
 [![Build Status](https://travis-ci.org/stuburger/yafl.svg?branch=master)](https://travis-ci.org/stuburger/yafl)
-[![gzip size](http://img.badgesize.io/https://unpkg.com/yafl@0.0.7/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl@0.0.7/lib/yafl.umd.production.js)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/yafl@0.0.13-alpha4/lib/yafl.umd.production.js?compression=gzip)](https://unpkg.com/yafl@0.0.13-alpha4/lib/yafl.umd.production.js)
 
 YAFL - Fun, flexible forms in React.
 
@@ -153,7 +153,7 @@ class ExampleForm extends Component {
       - [`path?: Path`](#path-path)
     - [Example](#example-2)
     - [How to stop validating a Field on first failure](#how-to-stop-validating-a-field-on-first-failure)
-  - [`connect<T>(Component: React.ComponentType<T>)`](#connecttcomponent-reactcomponenttypet)
+  - [`connect<T, F>(Component: React.ComponentType<T & { yafl: FormProps<F> }>)`](#connectt-fcomponent-reactcomponenttypet---yafl-formpropsf-)
     - [Example](#example-3)
 - [Managing your own state](#managing-your-own-state)
 - [Top Level API](#top-level-api)
@@ -173,7 +173,7 @@ I didn't build Yafl because I saw the need for yet another form library. Instead
 
 ### Philosophy
 
-Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out of the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use. At the start of Yafl's development, the decision was made to leave as much of the implementation of your form up to you, the developer. Yafl aims to provide the tools to build forms without caring too much about the specific use case. 
+Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out of the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use. At the start of Yafl's development, the decision was made to leave as much of the implementation of your form up to you, the developer. Yafl aims to provide the tools to build forms without caring too much about the specific use case.
 
 ### Why use YAFL?
 
@@ -309,7 +309,7 @@ Specify a component to render. If a string is provided then Yafl will attempt to
 
 If you want to gain access to your rendered component you can use the forwardRef prop. As you might expect, `forwardRef` does not work with stateless function components.
 
-> **Why you might need this: `forwardRef`** 
+> **Why you might need this: `forwardRef`**
 >
 > Any time you need to access the functions of a rendered component from within a parent. Common uses cases cited in the [React](https://reactjs.org/docs/refs-and-the-dom.html) docs include, but are not limited to:
 > - Managing focus, text selection, or media playback.
@@ -517,7 +517,7 @@ Any number of values can be passed to - and forwarded by - the `<ForwardProps />
 >**Why you might need this: `<ForwardProps />`**
 >
 > - Passing any common values that you might need available on all of your Fields.
-> - For things like theming, etc 
+> - For things like theming, etc
 > - See the section on [Managing your own state](#managing-your-own-state) for more information on why this component might be useful
 
 
@@ -551,7 +551,7 @@ Override the `path` for a Validator. By default the `path` is determined by what
 >
 > This is useful assign errors that belong to the domain of a Section, Repeat, at the Form level. Using the `path` prop is also for simply displaying general errors with a custom path or key.
 
-#### Example 
+#### Example
 
 Here's an example:
 
@@ -686,7 +686,7 @@ render() {
 }
 ```
 
-### `connect<T>(Component: React.ComponentType<T>)`
+### `connect<T, F>(Component: React.ComponentType<T & { yafl: FormProps<F> }>)`
 
 Use the connect higher order component to connect any component to the Yafl context.
 
@@ -785,7 +785,7 @@ Again, the important thing to notice here is that while the values can be of `an
 
 **Yafl** only exports a single function:
 
-##### `createFormContext` 
+##### `createFormContext`
 
 `createFormContext` returns all of the same components as those exported by Yafl.
 

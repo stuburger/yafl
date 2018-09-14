@@ -7,7 +7,8 @@ import {
   InputProps,
   FieldConfig,
   FieldMeta,
-  SetFieldValueFunc
+  SetFieldValueFunc,
+  Path
 } from './sharedTypes'
 import { toStrPath, validateName, branchByName } from './utils'
 import isEqual from 'react-fast-compare'
@@ -32,8 +33,11 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
 // React.Provider<FormProvider<F, any>>
 function createField(Provider: React.Provider<any>) {
   return class FieldConsumer<T, F extends object> extends React.Component<InnerFieldProps<F, T>> {
+    private path: Path
     constructor(props: InnerFieldProps<F, T>) {
       super(props)
+      validateName(props.name)
+      this.path = props.path.concat(props.name)
       this.onBlur = this.onBlur.bind(this)
       this.onFocus = this.onFocus.bind(this)
       this.onChange = this.onChange.bind(this)
@@ -58,26 +62,26 @@ function createField(Provider: React.Provider<any>) {
     }
 
     registerField(): void {
-      this.props.registerField(this.props.path)
+      this.props.registerField(this.path)
     }
 
     unregisterField(): void {
-      this.props.unregisterField(this.props.path)
+      this.props.unregisterField(this.path)
     }
 
     setValue(value: T | SetFieldValueFunc<T>, touchField = true): void {
-      const { path, setValue, value: prev } = this.props
-      setValue(path, typeof value === 'function' ? value(prev) : value, touchField)
+      const { setValue, value: prev } = this.props
+      setValue(this.path, typeof value === 'function' ? value(prev) : value, touchField)
     }
 
     touchField(touched: boolean): void {
-      const { touchField, path } = this.props
-      touchField(path, touched)
+      const { touchField } = this.props
+      touchField(this.path, touched)
     }
 
     visitField(visited: boolean): void {
-      const { visitField, path } = this.props
-      visitField(path, visited)
+      const { visitField } = this.props
+      visitField(this.path, visited)
     }
 
     onChange(e: React.ChangeEvent<any>) {
@@ -92,13 +96,13 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onFocus(e: React.FocusEvent<any>): void {
-      const { path, setActiveField, sharedProps, forwardProps } = this.props
+      const { setActiveField, sharedProps, forwardProps } = this.props
       const onFocus = this.props.onFocus || sharedProps.onFocus
       if (typeof onFocus === 'function') {
         onFocus(e, this.collectProps(), forwardProps)
       }
       if (e.isDefaultPrevented()) return
-      setActiveField(toStrPath(path))
+      setActiveField(toStrPath(this.path))
     }
 
     onBlur(e: React.FocusEvent<any>) {
@@ -119,7 +123,7 @@ function createField(Provider: React.Provider<any>) {
     collectMetaProps(): FieldMeta<F, T> {
       const p = this.props
       return {
-        path: toStrPath(p.path),
+        path: toStrPath(this.path),
         errors: (p.errors || []) as any,
         visited: !!p.visited,
         touched: !!p.touched,
@@ -129,7 +133,7 @@ function createField(Provider: React.Provider<any>) {
         initialValue: p.initialValue,
         defaultValue: p.defaultValue,
         isValid: ((p.errors || []) as any).length === 0,
-        isActive: p.activeField !== null && p.activeField === toStrPath(p.path),
+        isActive: p.activeField !== null && p.activeField === toStrPath(this.path),
         isDirty: p.formIsDirty && p.initialValue === p.value,
         submit: p.submit,
         formValue: p.formValue,
@@ -170,9 +174,13 @@ function createField(Provider: React.Provider<any>) {
       if (component && typeof component !== 'string') {
         const Component = component
         return <Component ref={forwardRef} {...props} />
-      } else if (render) {
+      }
+
+      if (render) {
         return render(props)
-      } else if (typeof component === 'string') {
+      }
+
+      if (typeof component === 'string') {
         if (components[component]) {
           const Component = components[component]
           return <Component ref={forwardRef} {...props} />
@@ -180,12 +188,13 @@ function createField(Provider: React.Provider<any>) {
         const { input, meta, ...rest } = props
         return React.createElement(component, { ...input, ...rest, ref: forwardRef })
       }
+
       return <FieldSink path={props.meta.path} {...props} />
     }
 
     render() {
       const { name, render, component, forwardProps, children, ...rest } = this.props
-      return <Provider value={rest}>{this._renderComponent()}</Provider>
+      return <Provider value={{ ...rest, path: this.path }}>{this._renderComponent()}</Provider>
     }
   }
 }
@@ -212,6 +221,7 @@ export default function<F extends object>(
     _render(ip: FormProvider<F1, any>) {
       const {
         name,
+        path,
         parse,
         render,
         children,
@@ -226,6 +236,7 @@ export default function<F extends object>(
       return (
         <FieldConsumer<T, F1>
           key={name}
+          path={path}
           forwardRef={forwardRef}
           parse={parse}
           onFocus={onFocus}
@@ -241,7 +252,6 @@ export default function<F extends object>(
     }
 
     render() {
-      validateName(this.props.name)
       return <Consumer>{this._render}</Consumer>
     }
   }

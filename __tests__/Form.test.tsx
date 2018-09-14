@@ -1,6 +1,6 @@
 import * as React from 'react'
 // import { Form, Section, Field, Repeat, Gizmo } from '../index'
-import { createFormContext } from '../src/index'
+import { createFormContext } from '../src'
 const { Form, Section, Field, Repeat, connect } = createFormContext()
 import renderer from 'react-test-renderer'
 const initialValue = {
@@ -35,10 +35,10 @@ function TextInput(props: any) {
   )
 }
 
-const TestForm = connect(({ submit, children, ...props }: any) => (
-  <form onSubmit={submit}>
+const TestForm = connect(({ yafl, children, ...props }) => (
+  <form onSubmit={yafl.submit}>
     {children}
-    <pre>{JSON.stringify(props, null, 2)}</pre>
+    <pre>{JSON.stringify(yafl, null, 2)}</pre>
   </form>
 ))
 

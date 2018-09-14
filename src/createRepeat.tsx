@@ -34,8 +34,11 @@ const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
 function createForkProvider<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
   return class ForkProvider<T> extends React.Component<ForkProviderConfig<F, T>> {
     unmounted = false
+    private path: Path
     constructor(props: ForkProviderConfig<F, T>) {
       super(props)
+      validateName(props.name)
+      this.path = props.path.concat(props.name)
       this.pop = this.pop.bind(this)
       this.push = this.push.bind(this)
       this.swap = this.swap.bind(this)
@@ -59,77 +62,77 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
     componentWillUnmount() {
       // no need to unregister child Fields since calling unregister on the section
       // will also unregister all of its children
-      this.unregisterField(this.props.path)
+      this.unregisterField(this.path)
       this.unmounted = true
     }
 
     setValue(value: T[] | SetFieldValueFunc<T[]>): void {
-      const { path, setValue, value: prev } = this.props
-      setValue(path, typeof value === 'function' ? value(prev) : value, false)
+      const { setValue, value: prev } = this.props
+      setValue(this.path, typeof value === 'function' ? value(prev) : value, false)
     }
 
     push(...items: T[]) {
-      const { setValue, value, path } = this.props
+      const { setValue, value } = this.props
       const arr = [...value]
       const ret = arr.push(...items)
-      setValue(path, arr, false)
+      setValue(this.path, arr, false)
       return ret
     }
 
     pop() {
-      const { setValue, path, value } = this.props
+      const { setValue, value } = this.props
       const nextValue = [...value]
       const popped = nextValue.pop()
-      setValue(path, nextValue, false)
+      setValue(this.path, nextValue, false)
       return popped
     }
 
     insert(index: number, ...items: T[]) {
-      const { setValue, value, path } = this.props
+      const { setValue, value } = this.props
       const nextValue = [...value]
       nextValue.splice(index, 0, ...items)
-      setValue(path, nextValue, false)
+      setValue(this.path, nextValue, false)
       return nextValue.length
     }
 
     remove(index: number) {
-      const { setValue, value, path } = this.props
+      const { setValue, value } = this.props
       const nextValue = [...value]
       const ret = nextValue.splice(index, 1)
-      setValue(path, nextValue, false)
+      setValue(this.path, nextValue, false)
       return ret[0]
     }
 
     shift() {
-      const { setValue, value, path } = this.props
+      const { setValue, value } = this.props
       const nextValue = [...value]
       const temp = nextValue[0]
-      setValue(path, nextValue.splice(1), false)
+      setValue(this.path, nextValue.splice(1), false)
       return temp
     }
 
     swap(i1: number, i2: number) {
-      const { setValue, value, path } = this.props
+      const { setValue, value } = this.props
       invariant(i1 >= 0, `Array index out of bounds: ${i1}`)
       invariant(i2 >= 0, `Array index out of bounds: ${i2}`)
       const arr = [...value]
       arr[i1] = [arr[i2], (arr[i2] = arr[i1])][0]
-      setValue(path, arr, false)
+      setValue(this.path, arr, false)
     }
 
     unshift(...items: T[]) {
-      const { setValue, value, path } = this.props
+      const { setValue, value } = this.props
       const arr = [...value]
       const ret = arr.unshift(...items)
-      setValue(path, arr, false)
+      setValue(this.path, arr, false)
       return ret
     }
 
     render() {
-      const { name, children, unregisterField, ...props } = this.props
+      const { name, children, unregisterField, path, ...props } = this.props
 
       return (
-        <Provider value={{ ...props, unregisterField: this.unregisterField }}>
+        <Provider value={{ ...props, path: this.path, unregisterField: this.unregisterField }}>
           {typeof children === 'function'
             ? children(props.value, {
                 push: this.push,
@@ -176,7 +179,6 @@ export default function<F extends object>(
     }
 
     render() {
-      validateName(this.props.name)
       return <Consumer>{this._render}</Consumer>
     }
   }

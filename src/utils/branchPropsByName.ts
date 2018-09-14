@@ -17,7 +17,6 @@ export default <F extends object, T, R>(
   const result: any = baseBranchProps(name, props, keysToSplit)
   result.name = name
   result.value = result.value === undefined ? valueFallback : result.value
-  result.path = props.path.concat(name)
   result.branchProps = isObject(props.branchProps)
     ? Object.keys(props.branchProps).reduce(
         (ret: any, key: string) => {
