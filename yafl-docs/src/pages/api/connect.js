@@ -1,33 +1,19 @@
 import React from 'react'
-import styled from 'styled-components'
+// import styled from 'styled-components'
 import DocsLayout from '../../components/DocsLayout'
-// import NextPage from '../../../components/NextPage'
-// import md from 'react-markings'
-import CodeSnippet from '../../components/CodeSnippet'
-import BasicForm from '../../examples/SimpleForm'
-import rem from '../../utils/rem'
+import NextPage from '../../components/NextPage'
+import md from 'react-markings'
+import '../../components/custom.css'
 
-const BasicFormCode = require('!raw-loader!../../examples/SimpleForm.js')
+const Connect = () => md`
+## \`connect<T, F>(Component: React.ComponentType<T & { yafl: FormProps<F> }>)\`
 
-const Yafl = styled.div`
-  max-width: 500px;
-  margin: 40px auto;
-  border-radius: 5px;
-  padding: ${rem(10)} ${rem(50)};
+Use the \`connect\` higher order component to connect any component to the Yafl context.
 `
 
-const Wrapped = () => (
-  <Yafl className="yafl">
-    <BasicForm />
-  </Yafl>
-)
-
 export default () => (
-  <DocsLayout
-    title="API Reference"
-    description="The Form Component"
-  >
-    <Wrapped title="Basic Usage" />
-    <CodeSnippet js={BasicFormCode} />
+  <DocsLayout title="connect()" description="Connecting components">
+    <Connect />
+    <NextPage to="/api/create-form-context" title="createFormContext()" />
   </DocsLayout>
 )

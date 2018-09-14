@@ -6,7 +6,7 @@
       "sections": []
     },
     {
-      "title": "API Reference",
+      "title": "Topics",
       "pathname": "api",
       "sections": [
         {
@@ -24,6 +24,14 @@
         {
           "title": "<Repeat />",
 					"pathname": "repeat"
+        },
+        {
+          "title": "<ForwardProps />",
+					"pathname": "forward-props"
+        },
+        {
+          "title": "<Validator />",
+					"pathname": "validator"
         },
         {
           "title": "connect",
