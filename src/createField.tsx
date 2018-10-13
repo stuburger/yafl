@@ -10,7 +10,7 @@ import {
   SetFieldValueFunc,
   Path
 } from './sharedTypes'
-import { toStrPath, validateName, branchByName } from './utils'
+import { toStrPath, validateName, branchByName, isSetFunc } from './utils'
 import isEqual from 'react-fast-compare'
 import { branchableProps } from './defaults'
 import FieldSink from './FieldSink'
@@ -71,7 +71,7 @@ function createField(Provider: React.Provider<any>) {
 
     setValue(value: T | SetFieldValueFunc<T>, touchField = true): void {
       const { setValue, value: prev } = this.props
-      setValue(this.path, typeof value === 'function' ? value(prev) : value, touchField)
+      setValue(this.path, isSetFunc(value) ? value(prev) : value, touchField)
     }
 
     touchField(touched: boolean): void {

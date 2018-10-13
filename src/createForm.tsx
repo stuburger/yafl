@@ -16,6 +16,12 @@ import {
 
 const startingPath: Path = []
 
+function childrenIsFunc<F extends object>(
+  children: Function | React.ReactNode
+): children is ((props: FormProps<F>) => React.ReactNode) {
+  return typeof children === 'function'
+}
+
 function whenEnabled(func: any, defaultFunc = noop) {
   return (...params: any[]) => {
     if (!this.state.initialMount || this.props.disabled) {
@@ -337,7 +343,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             unregisterField: this.unregisterField
           }}
         >
-          {typeof children === 'function' ? children(props) : children}
+          {childrenIsFunc<F>(children) ? children(props) : children}
         </Provider>
       )
     }

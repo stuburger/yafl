@@ -290,8 +290,8 @@ export interface FormProvider<F extends object, T = F> {
   formValue: F
   branchProps: any
   initialMount: boolean
-  touched: BooleanTree<T>
-  visited: BooleanTree<T>
+  touched: BooleanTree<any>
+  visited: BooleanTree<any>
   activeField: string | null
   components: ComponentTypes<F>
   submitCount: number

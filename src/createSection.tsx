@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as PropTypes from 'prop-types'
-import { validateName, branchByName } from './utils'
+import { validateName, branchByName, isSetFunc } from './utils'
 import isEqual from 'react-fast-compare'
 import { Name, FormProvider, Path, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
 import { branchableProps } from './defaults'
@@ -8,6 +8,12 @@ import { branchableProps } from './defaults'
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
   name: Name
   children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
+}
+
+function childrenIsFunc<T>(
+  children: Function | React.ReactNode
+): children is ((value: T, utils: SectionHelpers<T>) => React.ReactNode) {
+  return typeof children === 'function'
 }
 
 const listenForProps: (keyof ForkProviderConfig<any, any>)[] = [
@@ -51,14 +57,15 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 
     setValue(value: T | SetFieldValueFunc<T>): void {
       const { setValue, value: prev } = this.props
-      setValue(this.path, typeof value === 'function' ? value(prev) : value, false)
+      setValue(this.path, isSetFunc(value) ? value(prev) : value, false)
     }
 
     render() {
       const { name, children, unregisterField, path, ...props } = this.props
+
       return (
         <Provider value={{ ...props, path: this.path, unregisterField: this.unregisterField }}>
-          {typeof children === 'function'
+          {childrenIsFunc<T>(children)
             ? children(props.value, {
                 setValue: this.setValue
               })
