@@ -123,7 +123,8 @@ class ExampleForm extends Component {
   - [`<Field />`](#field-)
     - [Configuration](#configuration-1)
       - [`name: string | number`](#name-string--number)
-      - [`parse?: (value: any) => T`](#parse-value-any--t)
+      - [`watch?: (formValue: F) => any`](#watch-formvalue-f--any)
+      - [`validate?: ((value: T, formValue: F) => string | void) | (Array<(value: T, formValue: F) => string | void)>`](#validate-value-t-formvalue-f--string--void--arrayvalue-t-formvalue-f--string--void)
       - [`render?: (props: FieldProps<F, T>) => React.ReactNode`](#render-props-fieldpropsf-t--reactreactnode)
       - [`component?: React.ComponentType<FieldProps<F, T>> | string`](#component-reactcomponenttypefieldpropsf-t--string)
       - [`forwardRef?: React.Ref<any>`](#forwardref-reactrefany)
@@ -286,13 +287,13 @@ Field components are the bread and butter of any form library and Yafl's Field's
 
 Name your field! Providing a number usually indicates that this Field appears in an array.
 
-##### `parse?: (value: any) => T`
+##### `watch?: (formValue: F) => any`
 
-Transforms a Field's value before setting it.
+The `<Field />` component makes use of shouldComponentUpdate for improved performance on large forms. By default a Field will only watch for changes to values specific to it. This ensures that updates to the `formValue` do not cause every field to rerender unnecessarily, but it also means that if you do what a Field to listen to updates to the `formValue` (or any part of the `formValue`) then you have to opt in by 'watching' those changes.
 
-> **Why you might need this: `parse`**
->
-> This prop is useful for when you need to convert a value from one type to another. A common use case is converting string values that have been typed into a text input into number types.
+##### `validate?: ((value: T, formValue: F) => string | void) | (Array<(value: T, formValue: F) => string | void)>`
+
+A validation function or array of functions that can be used to validate a field
 
 ##### `render?: (props: FieldProps<F, T>) => React.ReactNode`
 

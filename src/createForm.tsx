@@ -22,7 +22,7 @@ function childrenIsFunc<F extends object>(
   return typeof children === 'function'
 }
 
-function whenEnabled(func: any, defaultFunc = noop) {
+function whenEnabled(func: Function, defaultFunc = noop) {
   return (...params: any[]) => {
     if (!this.state.initialMount || this.props.disabled) {
       return defaultFunc(...params)
@@ -173,7 +173,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     registerError(path: Path, error: string) {
       this.setState(({ errors, errorCount }) => {
-        const curr = get(errors, path as string[], [])
+        const curr = get(errors, path, [])
         const errs = Array.isArray(curr) ? [...curr, error] : [error]
         return {
           errorCount: errorCount + 1,
@@ -184,7 +184,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     unregisterError(path: Path, error: string) {
       this.setState(({ errors, errorCount }) => {
-        const curr: string[] = get(errors, path as string[], [])
+        const curr: string[] = get(errors, path, [])
         const next = curr.filter(x => x !== error)
         return {
           errors: next.length

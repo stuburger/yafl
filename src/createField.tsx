@@ -10,15 +10,15 @@ import {
   SetFieldValueFunc,
   Path
 } from './sharedTypes'
-import { toStrPath, validateName, branchByName, isSetFunc } from './utils'
+import { toStrPath, validateName, branchByName, isSetFunc, toArray } from './utils'
 import isEqual from 'react-fast-compare'
 import { branchableProps } from './defaults'
 import FieldSink from './FieldSink'
+import createValidator, { ValidatorProps } from './createValidator'
 
 const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'name',
   'value',
-  'parse',
   'errors',
   'render',
   'touched',
@@ -30,8 +30,13 @@ const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
   'forwardProps'
 ]
 
+const watchDefault = () => false
+
 // React.Provider<FormProvider<F, any>>
-function createField(Provider: React.Provider<any>) {
+function createField(
+  Provider: React.Provider<any>,
+  Validator: React.ComponentType<ValidatorProps>
+) {
   return class FieldConsumer<T, F extends object> extends React.Component<InnerFieldProps<F, T>> {
     private path: Path
     constructor(props: InnerFieldProps<F, T>) {
@@ -54,7 +59,12 @@ function createField(Provider: React.Provider<any>) {
     }
 
     shouldComponentUpdate(np: InnerFieldProps<F, T>) {
-      return listenForProps.some(key => !isEqual(np[key], this.props[key]))
+      const { formValue: prev, watch: watchPrev = watchDefault } = this.props
+      const { formValue, watch = watchDefault } = np
+      return (
+        !isEqual(watch(formValue), watchPrev(prev)) ||
+        listenForProps.some(key => !isEqual(np[key], this.props[key]))
+      )
     }
 
     componentWillUnmount() {
@@ -85,14 +95,23 @@ function createField(Provider: React.Provider<any>) {
     }
 
     onChange(e: React.ChangeEvent<any>) {
-      const { parse, sharedProps, forwardProps } = this.props
+      const { sharedProps, forwardProps } = this.props
       const onChange = this.props.onChange || sharedProps.onChange
       if (typeof onChange === 'function') {
         onChange(e, this.collectProps(), forwardProps)
       }
       if (e.isDefaultPrevented()) return
-      const { value } = e.target
-      this.setValue(parse ? parse(value) : value)
+      const { value: val, type, checked } = e.target
+
+      let value = val
+      if (/number|range/.test(type)) {
+        const par = parseFloat(value)
+        value = isNaN(par) ? '' : par
+      } else if (isCheckInput(type)) {
+        value = checked
+      }
+
+      this.setValue(value)
     }
 
     onFocus(e: React.FocusEvent<any>): void {
@@ -148,10 +167,10 @@ function createField(Provider: React.Provider<any>) {
     }
 
     collectInputProps(): InputProps {
-      const { name, value } = this.props
+      const { value, name, forwardProps: fp } = this.props
       return {
-        value,
         name: name.toString(),
+        value: isCheckInput(fp.type) ? fp.value : value,
         onFocus: this.onFocus,
         onBlur: this.onBlur,
         onChange: this.onChange
@@ -193,8 +212,21 @@ function createField(Provider: React.Provider<any>) {
     }
 
     render() {
-      const { name, render, component, forwardProps, children, ...rest } = this.props
-      return <Provider value={{ ...rest, path: this.path }}>{this._renderComponent()}</Provider>
+      const { name, render, component, forwardProps, validate = [], children, ...rest } = this.props
+      const { value, formValue } = this.props
+      const validators = toArray(validate)
+
+      return (
+        <Provider value={{ ...rest, path: this.path }}>
+          {this._renderComponent()}
+          {validators.reduceRight<React.ReactNode>(
+            (ret, test) => (
+              <Validator msg={test(value, formValue)}>{ret}</Validator>
+            ),
+            null
+          )}
+        </Provider>
+      )
     }
   }
 }
@@ -203,7 +235,8 @@ export default function<F extends object>(
   Provider: React.Provider<FormProvider<any, any>>,
   Consumer: React.Consumer<FormProvider<any, any>>
 ) {
-  const FieldConsumer = createField(Provider)
+  const Validator = createValidator(Consumer)
+  const FieldConsumer = createField(Provider, Validator)
 
   return class Field<T, F1 extends object = F> extends React.PureComponent<FieldConfig<F1, T>> {
     static propTypes = {
@@ -221,30 +254,30 @@ export default function<F extends object>(
     _render(ip: FormProvider<F1, any>) {
       const {
         name,
-        path,
-        parse,
         render,
         children,
         component,
+        watch,
         onBlur,
         onChange,
         onFocus,
         forwardRef,
+        validate,
         ...forwardProps
       } = this.props
 
       return (
         <FieldConsumer<T, F1>
           key={name}
-          path={path}
+          watch={watch}
           forwardRef={forwardRef}
-          parse={parse}
           onFocus={onFocus}
           onBlur={onBlur}
           onChange={onChange}
           render={render}
           children={children}
           component={component}
+          validate={validate}
           forwardProps={{ ...ip.sharedProps, ...forwardProps }}
           {...branchByName(name, ip, branchableProps)}
         />
@@ -255,4 +288,8 @@ export default function<F extends object>(
       return <Consumer>{this._render}</Consumer>
     }
   }
+}
+
+const isCheckInput = (type?: string): type is 'radio' | 'checkbox' => {
+  return type === 'radio' || type === 'checkbox'
 }

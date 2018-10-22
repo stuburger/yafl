@@ -1,6 +1,7 @@
 export type Name = string | number
 export type Path = Name[]
 
+export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 export type BooleanTree<T> = { [K in keyof T]?: T[K] extends object ? BooleanTree<T[K]> : boolean }
 
 export type FormErrors<T extends object> = {
@@ -88,8 +89,9 @@ export interface InputProps<T = any> {
 export interface FieldConfig<F extends object, T = any> {
   name: Name
   forwardRef?: React.Ref<any>
-  parse?: (value: any) => T
+  watch?: (value: F) => any
   render?: (state: FieldProps<F, T>) => React.ReactNode
+  validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
   component?: React.ComponentType<FieldProps<F, T>> | string
   onChange?: (e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
   onBlur?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
@@ -162,8 +164,9 @@ export interface InnerFieldProps<F extends object, T = any> extends FormProvider
   formValue: F
   value: T
   initialValue: T
-  parse?: (value: any) => T
+  watch?: (value: F) => any
   forwardRef: React.Ref<any>
+  validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>> | string
   onChange?: (
@@ -183,6 +186,12 @@ export interface InnerFieldProps<F extends object, T = any> extends FormProvider
   ) => void
   branchProps: { [key: string]: any }
   forwardProps: { [key: string]: any }
+}
+
+export type ValidationResult = string | void | undefined
+
+export interface FieldValidator<T, F extends object> {
+  (value: T, formValue: F): ValidationResult
 }
 
 export interface FormState<F extends object> {
@@ -359,39 +368,6 @@ export interface FormProps<F extends object> extends FormMeta<F> {
    */
   errors: FormErrors<F>
   [key: string]: any
-}
-
-export interface GizmoConfig<F extends object> {
-  render?: (props: FormProps<F>) => React.ReactNode
-  component?: React.ComponentType<FormProps<F>>
-  [key: string]: any
-}
-
-export interface GeneralComponentConfig<F extends object> extends GizmoConfig<F> {
-  type: string
-  formValue: F
-  defaultValue: F
-  initialValue: F
-  initialMount: boolean
-  touched: BooleanTree<F>
-  visited: BooleanTree<F>
-  activeField: string | null
-  errorCount: number
-  submitCount: number
-  formIsValid: boolean
-  formIsDirty: boolean
-  errors: FormErrors<F>
-  submit: (() => void)
-  resetForm: (() => void)
-  clearForm: (() => void)
-  forgetState: (() => void)
-  components: ComponentTypes<F>
-  setActiveField: ((path: string | null) => void)
-  setValue: ((path: Path, value: any, setTouched?: boolean) => void)
-  setFormValue: (set: SetFormValueFunc<F>) => void
-  setFormTouched: (set: SetFormTouchedFunc<F>) => void
-  setFormVisited: (set: SetFormVisitedFunc<F>) => void
-  forwardProps: { [key: string]: any }
 }
 
 /* @internal */

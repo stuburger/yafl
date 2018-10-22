@@ -3,7 +3,9 @@ import * as PropTypes from 'prop-types'
 import { Path, FormProvider } from './sharedTypes'
 import invariant from 'invariant'
 
-export type InnerValidatorProps = FormProvider<any> & ValidatorProps
+export type InnerValidatorProps = FormProvider<any> & {
+  msg: string
+}
 
 export class InnerError extends React.Component<InnerValidatorProps> {
   componentDidMount() {
@@ -29,22 +31,27 @@ export class InnerError extends React.Component<InnerValidatorProps> {
 }
 
 export interface ValidatorProps {
-  msg: string
-  path?: Path
-  invalid?: boolean
+  msg?: string | null | void
+  path?: Path | null
 }
 
-export default function createValidator(Consumer: React.Consumer<FormProvider<any, any>>) {
+const stringOrNumber = PropTypes.oneOfType([
+  PropTypes.string.isRequired,
+  PropTypes.number.isRequired
+]).isRequired
+
+export default function createValidator(
+  Consumer: React.Consumer<FormProvider<any, any>>
+): React.ComponentType<ValidatorProps> {
   return class Validator extends React.PureComponent<ValidatorProps> {
     static propTypes = {
       msg: PropTypes.string,
-      invalid: PropTypes.bool,
-      path: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])
+      path: PropTypes.arrayOf(stringOrNumber)
     }
 
     render() {
-      const { msg, path, invalid, children } = this.props
-      return invalid || ((invalid === undefined || invalid === null) && typeof msg === 'string') ? (
+      const { msg, path, children } = this.props
+      return typeof msg === 'string' ? (
         <Consumer>
           {props => <InnerError key={msg + path} {...props} msg={msg} path={path || props.path} />}
         </Consumer>
