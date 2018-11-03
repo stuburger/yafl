@@ -1,6 +1,6 @@
 {
   "name": "yafl",
-  "version": "1.0.0-ctx-2",
+  "version": "1.0.0-ctx-3",
   "description": "Yet another form library for React",
   "main": "lib/yafl.js",
   "module": "lib/yafl.esm.js",

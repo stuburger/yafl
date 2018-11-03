@@ -228,6 +228,7 @@ export default function<F extends object>(context: React.Context<FormProvider<an
 
   return class Field<T, F1 extends object = F> extends React.PureComponent<FieldConfig<F1, T>> {
     context!: FormProvider<F, any>
+    path: Path
 
     static contextType = context
 
@@ -238,16 +239,11 @@ export default function<F extends object>(context: React.Context<FormProvider<an
       component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node])
     }
 
-    constructor(props: FieldConfig<F1, T>) {
-      super(props)
+    constructor(props: FieldConfig<F1, T>, context: FormProvider<F, any>) {
+      super(props, context)
       validateName(props.name)
+      this.path = context.path.concat(props.name)
       this.context.registerField(this.path)
-    }
-
-    get path(): Path {
-      const { path } = this.context
-      const { name } = this.props
-      return path.concat(name)
     }
 
     componentWillUnmount() {

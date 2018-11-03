@@ -70,6 +70,7 @@ export default function<F extends object>(context: React.Context<FormProvider<F>
 
   return class Section<T extends object> extends React.PureComponent<SectionConfig<T>, never> {
     unmounted = false
+    path: Path
     context!: FormProvider<F, any>
 
     static propTypes = {
@@ -79,16 +80,11 @@ export default function<F extends object>(context: React.Context<FormProvider<F>
 
     static contextType = context
 
-    constructor(props: SectionConfig<T>) {
-      super(props)
+    constructor(props: SectionConfig<T>, context: FormProvider<F, any>) {
+      super(props, context)
       validateName(props.name)
+      this.path = context.path.concat(props.name)
       this.unregisterField = this.unregisterField.bind(this)
-    }
-
-    get path(): Path {
-      const { path } = this.context
-      const { name } = this.props
-      return path.concat(name)
     }
 
     unregisterField(path: Path) {

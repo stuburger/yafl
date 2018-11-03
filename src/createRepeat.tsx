@@ -137,6 +137,7 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
 
   return class Repeat<T extends object> extends React.PureComponent<RepeatConfig<T>> {
     unmounted = false
+    path: Path
     context!: FormProvider<F, any>
 
     static contextType = context
@@ -147,16 +148,11 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
       children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
     }
 
-    constructor(props: RepeatConfig<T>) {
-      super(props)
+    constructor(props: RepeatConfig<T>, context: FormProvider<F, any>) {
+      super(props, context)
       validateName(props.name)
+      this.path = context.path.concat(props.name)
       this.unregisterField = this.unregisterField.bind(this)
-    }
-
-    get path(): Path {
-      const { path } = this.context
-      const { name } = this.props
-      return path.concat(name)
     }
 
     unregisterField(path: Path) {
