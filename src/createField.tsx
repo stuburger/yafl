@@ -38,6 +38,7 @@ function createField(
   Validator: React.ComponentType<ValidatorProps>
 ) {
   return class FieldConsumer<T, F extends object> extends React.Component<InnerFieldProps<F, T>> {
+    stringPath: string
     constructor(props: InnerFieldProps<F, T>) {
       super(props)
       this.onBlur = this.onBlur.bind(this)
@@ -50,6 +51,7 @@ function createField(
       this.collectMetaProps = this.collectMetaProps.bind(this)
       this._renderComponent = this._renderComponent.bind(this)
       this.collectInputProps = this.collectInputProps.bind(this)
+      this.stringPath = toStrPath(props.path)
     }
 
     shouldComponentUpdate(np: InnerFieldProps<F, T>) {
@@ -97,13 +99,13 @@ function createField(
     }
 
     onFocus(e: React.FocusEvent<any>): void {
-      const { path, setActiveField, sharedProps, forwardProps } = this.props
+      const { setActiveField, sharedProps, forwardProps } = this.props
       const onFocus = this.props.onFocus || sharedProps.onFocus
       if (typeof onFocus === 'function') {
         onFocus(e, this.collectProps(), forwardProps)
       }
       if (e.isDefaultPrevented()) return
-      setActiveField(toStrPath(path))
+      setActiveField(this.stringPath)
     }
 
     onBlur(e: React.FocusEvent<any>) {
@@ -123,9 +125,8 @@ function createField(
 
     collectMetaProps(): FieldMeta<F, T> {
       const p = this.props
-      const path = toStrPath(p.path)
       return {
-        path,
+        path: this.stringPath,
         errors: (p.errors || []) as any,
         visited: !!p.visited,
         touched: !!p.touched,
@@ -135,7 +136,7 @@ function createField(
         initialValue: p.initialValue,
         defaultValue: p.defaultValue,
         isValid: ((p.errors || []) as any).length === 0,
-        isActive: p.activeField !== null && p.activeField === path,
+        isActive: p.activeField === this.stringPath,
         isDirty: p.formIsDirty && p.initialValue === p.value,
         submit: p.submit,
         formValue: p.formValue,
