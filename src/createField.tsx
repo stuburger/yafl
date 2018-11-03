@@ -271,6 +271,7 @@ export default function<F extends object>(context: React.Context<FormProvider<an
       return (
         <FieldConsumer<T, F1>
           key={name}
+          name={name}
           watch={watch}
           forwardRef={forwardRef}
           onFocus={onFocus}
