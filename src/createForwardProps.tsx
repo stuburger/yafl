@@ -4,10 +4,8 @@ import { FormProvider, FormConfig, PropForwarderConfig } from './sharedTypes'
 import { isObject } from './utils'
 import invariant from 'invariant'
 
-export default function<F extends object>(
-  Provider: React.Provider<FormProvider<F, F>>,
-  Consumer: React.Consumer<FormProvider<F, F>>
-) {
+export default function<F extends object>(context: React.Context<FormProvider<F, F>>) {
+  const { Provider, Consumer } = context
   return class ForwardProps extends React.Component<PropForwarderConfig<F>> {
     static propTypes = {
       mode: PropTypes.oneOf(['default', 'branch']),

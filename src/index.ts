@@ -13,12 +13,12 @@ export function createFormContext<F extends object>() {
   const context = React.createContext<FormProvider<F>>(getDefaultProviderValue())
   const { Provider, Consumer } = context
   return {
-    Form: createForm<F>(Provider),
-    Section: createSection<F>(Provider, Consumer),
-    Repeat: createRepeat<F>(Provider, Consumer),
-    Field: createField<F>(Provider, Consumer),
-    Validator: createValidator(Consumer),
-    ForwardProps: createForwardProps(Provider, Consumer),
+    Form: createForm<F>(context),
+    Section: createSection<F>(context),
+    Repeat: createRepeat<F>(context),
+    Field: createField<F>(context),
+    Validator: createValidator(context),
+    ForwardProps: createForwardProps(context),
     connect: createConnect<F>(Consumer),
     FormContextProvider: Provider,
     FormContextConsumer: Consumer

@@ -38,11 +38,8 @@ function createField(
   Validator: React.ComponentType<ValidatorProps>
 ) {
   return class FieldConsumer<T, F extends object> extends React.Component<InnerFieldProps<F, T>> {
-    private path: Path
     constructor(props: InnerFieldProps<F, T>) {
       super(props)
-      validateName(props.name)
-      this.path = props.path.concat(props.name)
       this.onBlur = this.onBlur.bind(this)
       this.onFocus = this.onFocus.bind(this)
       this.onChange = this.onChange.bind(this)
@@ -50,12 +47,9 @@ function createField(
       this.touchField = this.touchField.bind(this)
       this.visitField = this.visitField.bind(this)
       this.collectProps = this.collectProps.bind(this)
-      this.registerField = this.registerField.bind(this)
-      this.unregisterField = this.unregisterField.bind(this)
       this.collectMetaProps = this.collectMetaProps.bind(this)
       this._renderComponent = this._renderComponent.bind(this)
       this.collectInputProps = this.collectInputProps.bind(this)
-      this.registerField()
     }
 
     shouldComponentUpdate(np: InnerFieldProps<F, T>) {
@@ -67,31 +61,19 @@ function createField(
       )
     }
 
-    componentWillUnmount() {
-      this.unregisterField()
-    }
-
-    registerField(): void {
-      this.props.registerField(this.path)
-    }
-
-    unregisterField(): void {
-      this.props.unregisterField(this.path)
-    }
-
     setValue(value: T | SetFieldValueFunc<T>, touchField = true): void {
-      const { setValue, value: prev } = this.props
-      setValue(this.path, isSetFunc(value) ? value(prev) : value, touchField)
+      const { path, setValue, value: prev } = this.props
+      setValue(path, isSetFunc(value) ? value(prev) : value, touchField)
     }
 
     touchField(touched: boolean): void {
-      const { touchField } = this.props
-      touchField(this.path, touched)
+      const { path, touchField } = this.props
+      touchField(path, touched)
     }
 
     visitField(visited: boolean): void {
-      const { visitField } = this.props
-      visitField(this.path, visited)
+      const { path, visitField } = this.props
+      visitField(path, visited)
     }
 
     onChange(e: React.ChangeEvent<any>) {
@@ -115,13 +97,13 @@ function createField(
     }
 
     onFocus(e: React.FocusEvent<any>): void {
-      const { setActiveField, sharedProps, forwardProps } = this.props
+      const { path, setActiveField, sharedProps, forwardProps } = this.props
       const onFocus = this.props.onFocus || sharedProps.onFocus
       if (typeof onFocus === 'function') {
         onFocus(e, this.collectProps(), forwardProps)
       }
       if (e.isDefaultPrevented()) return
-      setActiveField(toStrPath(this.path))
+      setActiveField(toStrPath(path))
     }
 
     onBlur(e: React.FocusEvent<any>) {
@@ -141,8 +123,9 @@ function createField(
 
     collectMetaProps(): FieldMeta<F, T> {
       const p = this.props
+      const path = toStrPath(p.path)
       return {
-        path: toStrPath(this.path),
+        path,
         errors: (p.errors || []) as any,
         visited: !!p.visited,
         touched: !!p.touched,
@@ -152,7 +135,7 @@ function createField(
         initialValue: p.initialValue,
         defaultValue: p.defaultValue,
         isValid: ((p.errors || []) as any).length === 0,
-        isActive: p.activeField !== null && p.activeField === toStrPath(this.path),
+        isActive: p.activeField !== null && p.activeField === path,
         isDirty: p.formIsDirty && p.initialValue === p.value,
         submit: p.submit,
         formValue: p.formValue,
@@ -212,12 +195,20 @@ function createField(
     }
 
     render() {
-      const { name, render, component, forwardProps, validate = [], children, ...rest } = this.props
+      const {
+        name,
+        render,
+        component,
+        forwardProps,
+        validate = [],
+        children,
+        ...props
+      } = this.props
       const { value, formValue } = this.props
       const validators = toArray(validate)
 
       return (
-        <Provider value={{ ...rest, path: this.path }}>
+        <Provider value={props}>
           {this._renderComponent()}
           {validators.reduceRight<React.ReactNode>(
             (ret, test) => (
@@ -231,14 +222,16 @@ function createField(
   }
 }
 
-export default function<F extends object>(
-  Provider: React.Provider<FormProvider<any, any>>,
-  Consumer: React.Consumer<FormProvider<any, any>>
-) {
-  const Validator = createValidator(Consumer)
-  const FieldConsumer = createField(Provider, Validator)
+export default function<F extends object>(context: React.Context<FormProvider<any, any>>) {
+  const Validator = createValidator(context)
+  const FieldConsumer = createField(context.Provider, Validator)
 
   return class Field<T, F1 extends object = F> extends React.PureComponent<FieldConfig<F1, T>> {
+    context!: FormProvider<F, any>
+    path: Path
+
+    static contextType = context
+
     static propTypes = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       type: PropTypes.string,
@@ -248,10 +241,18 @@ export default function<F extends object>(
 
     constructor(props: FieldConfig<F1, T>) {
       super(props)
-      this._render = this._render.bind(this)
+      validateName(props.name)
+      this.path = this.context.path.concat(props.name)
+      this.context.registerField(this.path)
     }
 
-    _render(ip: FormProvider<F1, any>) {
+    componentWillUnmount() {
+      this.context.unregisterField(this.path)
+    }
+
+    _render(ip: FormProvider<F1, any>) {}
+
+    render() {
       const {
         name,
         render,
@@ -265,6 +266,7 @@ export default function<F extends object>(
         validate,
         ...forwardProps
       } = this.props
+      const context = this.context
 
       return (
         <FieldConsumer<T, F1>
@@ -278,14 +280,10 @@ export default function<F extends object>(
           children={children}
           component={component}
           validate={validate}
-          forwardProps={{ ...ip.sharedProps, ...forwardProps }}
-          {...branchByName(name, ip, branchableProps)}
+          forwardProps={{ ...context.sharedProps, ...forwardProps }}
+          {...branchByName(name, context, branchableProps)}
         />
       )
-    }
-
-    render() {
-      return <Consumer>{this._render}</Consumer>
     }
   }
 }

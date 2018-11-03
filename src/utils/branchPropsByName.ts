@@ -15,7 +15,6 @@ export default <F extends object, T, R>(
   valueFallback?: any
 ): R => {
   const result: any = baseBranchProps(name, props, keysToSplit)
-  result.name = name
   result.value = result.value === undefined ? valueFallback : result.value
   result.branchProps = isObject(props.branchProps)
     ? Object.keys(props.branchProps).reduce(
