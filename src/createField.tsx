@@ -272,6 +272,7 @@ export default function<F extends object>(context: React.Context<FormProvider<an
         <FieldConsumer<T, F1>
           key={name}
           name={name}
+          path={this.path}
           watch={watch}
           forwardRef={forwardRef}
           onFocus={onFocus}
