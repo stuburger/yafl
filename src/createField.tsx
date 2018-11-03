@@ -250,8 +250,6 @@ export default function<F extends object>(context: React.Context<FormProvider<an
       this.context.unregisterField(this.path)
     }
 
-    _render(ip: FormProvider<F1, any>) {}
-
     render() {
       const {
         name,
@@ -271,8 +269,6 @@ export default function<F extends object>(context: React.Context<FormProvider<an
       return (
         <FieldConsumer<T, F1>
           key={name}
-          name={name}
-          path={this.path}
           watch={watch}
           forwardRef={forwardRef}
           onFocus={onFocus}
@@ -284,6 +280,8 @@ export default function<F extends object>(context: React.Context<FormProvider<an
           validate={validate}
           forwardProps={{ ...context.sharedProps, ...forwardProps }}
           {...branchByName(name, context, branchableProps)}
+          name={name}
+          path={this.path}
         />
       )
     }

@@ -173,6 +173,8 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
         <InnerComponent<T>
           key={name}
           {...branchByName(name, this.context, branchableProps, fallback)}
+          path={this.path}
+          unregisterField={this.unregisterField}
         >
           {children}
         </InnerComponent>
