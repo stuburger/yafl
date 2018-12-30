@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Form should render correctly 1`] = `
+exports[`<Form /> snapshot should match previous snapshot 1`] = `
 <form
   onSubmit={[Function]}
 >
@@ -13,7 +13,6 @@ exports[`Form should render correctly 1`] = `
       onBlur={[Function]}
       onChange={[Function]}
       onFocus={[Function]}
-      value="John"
     />
   </div>
   <div>
@@ -25,7 +24,7 @@ exports[`Form should render correctly 1`] = `
       onBlur={[Function]}
       onChange={[Function]}
       onFocus={[Function]}
-      value="983838333"
+      value="07934449898"
     />
   </div>
   <div>
@@ -37,7 +36,6 @@ exports[`Form should render correctly 1`] = `
       onBlur={[Function]}
       onChange={[Function]}
       onFocus={[Function]}
-      value="asdf@testing.com"
     />
   </div>
   <div>
@@ -64,91 +62,54 @@ exports[`Form should render correctly 1`] = `
       value="print making"
     />
   </div>
-  <div>
-    <label>
-      Type of hobby
-    </label>
-    <input
-      name="type"
-      onBlur={[Function]}
-      onChange={[Function]}
-      onFocus={[Function]}
-      value="new"
-    />
-  </div>
-  <div>
-    <label>
-      Name of hobby
-    </label>
-    <input
-      name="name"
-      onBlur={[Function]}
-      onChange={[Function]}
-      onFocus={[Function]}
-      value="new"
-    />
-  </div>
-  <div>
-    <label>
-      Type of hobby
-    </label>
-    <input
-      name="type"
-      onBlur={[Function]}
-      onChange={[Function]}
-      onFocus={[Function]}
-      value="new"
-    />
-  </div>
-  <div>
-    <label>
-      Name of hobby
-    </label>
-    <input
-      name="name"
-      onBlur={[Function]}
-      onChange={[Function]}
-      onFocus={[Function]}
-      value="new"
-    />
-  </div>
   <pre>
     {
   "formValue": {
-    "firstName": "John",
-    "lastName": "Woodcock",
-    "age": 30,
+    "name": "Stuart Bourhill",
+    "age": 0,
     "contact": {
-      "tel": "983838333",
-      "email": "asdf@testing.com"
+      "tel": "07934449898",
+      "address": {
+        "code": "SW9 1EF",
+        "street": "adsfa"
+      }
     },
-    "friends": [
-      "stuart",
-      "oumar"
+    "hobbies": [
+      {
+        "type": "art",
+        "name": "print making"
+      }
     ]
   },
   "errorCount": 0,
   "defaultValue": {
-    "firstName": "",
-    "lastName": "",
+    "name": "",
     "age": 0,
     "contact": {
       "tel": "",
-      "email": "asdf@testing.com"
-    }
+      "address": {
+        "code": "",
+        "street": ""
+      }
+    },
+    "hobbies": []
   },
-  "formIsDirty": true,
+  "formIsDirty": false,
   "formIsValid": true,
   "initialValue": {
-    "firstName": "John",
-    "lastName": "Woodcock",
-    "age": 30,
+    "name": "Stuart Bourhill",
     "contact": {
-      "tel": "983838333"
+      "tel": "07934449898",
+      "address": {
+        "code": "SW9 1EF",
+        "street": "adsfa"
+      }
     },
-    "friends": [
-      "stuart",
-      "oumar"
+    "hobbies": [
+      {
+        "type": "art",
+        "name": "print making"
+      }
     ]
   },
   "initialMount": true,
@@ -156,24 +117,7 @@ exports[`Form should render correctly 1`] = `
   "touched": {},
   "visited": {},
   "activeField": null,
-  "submitCount": 0,
-  "components": {},
-  "branchProps": {},
-  "sharedProps": {},
-  "path": [],
-  "value": {
-    "firstName": "John",
-    "lastName": "Woodcock",
-    "age": 30,
-    "contact": {
-      "tel": "983838333",
-      "email": "asdf@testing.com"
-    },
-    "friends": [
-      "stuart",
-      "oumar"
-    ]
-  }
+  "submitCount": 0
 }
   </pre>
 </form>

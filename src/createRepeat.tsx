@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as PropTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import isEqual from 'react-fast-compare'
 import { validateName, branchByName } from './utils'
 import { branchableProps } from './defaults'
-import invariant from 'invariant'
+import warning from 'tiny-warning'
 import { FormProvider, ArrayHelpers, Path, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
 
 export interface InnerRepeatConfig<F extends object, T> extends FormProvider<F, T[]> {
@@ -105,8 +105,10 @@ function createForkProvider<F extends object>(Provider: React.Provider<FormProvi
 
     swap(i1: number, i2: number) {
       const { path, setValue, value } = this.props
-      invariant(i1 >= 0, `Array index out of bounds: ${i1}`)
-      invariant(i2 >= 0, `Array index out of bounds: ${i2}`)
+      if (process.env.NODE_ENV !== 'production') {
+        warning(i1 >= 0, `Array index out of bounds: ${i1}`)
+        warning(i2 >= 0, `Array index out of bounds: ${i2}`)
+      }
       const arr = [...value]
       arr[i1] = [arr[i2], (arr[i2] = arr[i1])][0]
       setValue(path, arr, false)
@@ -142,7 +144,7 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
 
     static contextType = context
 
-    static propTypes = {
+    static propTypes /* remove-proptypes */ = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       fallback: PropTypes.array,
       children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
@@ -150,7 +152,9 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
 
     constructor(props: RepeatConfig<T>, context: FormProvider<F, any>) {
       super(props, context)
-      validateName(props.name)
+      if (process.env.NODE_ENV !== 'production') {
+        validateName(props.name)
+      }
       this.path = context.path.concat(props.name)
       this.unregisterField = this.unregisterField.bind(this)
     }

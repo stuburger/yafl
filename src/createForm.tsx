@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as PropTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import { get, noop, isObject, toStrPath, constructFrom, assignDefaults } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
@@ -34,7 +34,7 @@ function whenEnabled(func: Function, defaultFunc = noop) {
 export default function<F extends object>(context: React.Context<FormProvider<F, F>>) {
   const { Provider } = context
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
-    static propTypes = {
+    static propTypes /* remove-proptypes */ = {
       onSubmit: PropTypes.func.isRequired,
       children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
       initialValue: PropTypes.object,
@@ -94,6 +94,7 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
       this.collectFormProps = this.collectFormProps.bind(this)
       this.state = {
         initialMount: false,
+        startingValue: {} as F,
         formValue: {} as F,
         activeField: null,
         touched: {},
@@ -121,6 +122,7 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
 
       if (willLoad || (!np.disableReinitialize && intialValueChanged)) {
         const value = np.initialValue || ({} as F)
+        // state.initialValue is used above to calculate `intialValueChanged`
         state.formValue = state.initialValue = value
         if (!np.rememberStateOnReinitialize) {
           state.submitCount = 0
@@ -132,6 +134,7 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
 
       if (updateDerivedState || !isEqual(ps.defaultValue, np.defaultValue)) {
         state.formValue = assignDefaults({}, state.formValue, state.defaultValue)
+        state.startingValue = state.formValue
       }
 
       return updateDerivedState ? state : null
@@ -285,11 +288,11 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
     }
 
     collectFormProps(): FormProps<F> {
-      const { formValue, errorCount, initialMount, ...state } = this.state
+      const { formValue, errorCount, initialMount, startingValue, ...state } = this.state
       const defaultValue = this.state.defaultValue || ({} as F)
       const initialValue = this.state.initialValue || ({} as F)
       const formIsValid = !initialMount || errorCount === 0
-      const formIsDirty = initialMount && !isEqual(initialValue, formValue)
+      const formIsDirty = initialMount && !isEqual(startingValue, formValue)
       return {
         formValue,
         errorCount,

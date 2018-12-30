@@ -5,10 +5,12 @@ export interface Noop {
   (): never
 }
 
-export function noop(): never {
-  throw new Error(
-    'A Consumer component can only appear inside a <Form /> (Provider) component that belongs to the same context.'
-  )
+export function noop(): never | void {
+  if (process.env.NODE_ENV !== 'production') {
+    throw new Error(
+      'A Consumer component can only appear inside a <Form /> (Provider) component that belongs to the same context.'
+    )
+  }
 }
 
 export const branchableProps: (keyof FormProvider<any>)[] = [

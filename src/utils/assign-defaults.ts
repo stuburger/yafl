@@ -6,7 +6,11 @@ function baseAssign(target: any, source: any) {
   return sourceKeys.reduce((ret: any, key: any) => {
     if (target[key] === undefined) {
       if (isObject(source[key])) {
-        ret[key] = baseAssign(Array.isArray(source[key]) ? [] : {}, source[key])
+        if (source[key] instanceof Date) {
+          ret[key] = source[key]
+        } else {
+          ret[key] = baseAssign(Array.isArray(source[key]) ? [] : {}, source[key])
+        }
       } else {
         ret[key] = source[key]
       }

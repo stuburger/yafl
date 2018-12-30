@@ -25,15 +25,4 @@ export function createFormContext<F extends object>() {
   }
 }
 
-export const {
-  Form,
-  Section,
-  Field,
-  Repeat,
-  Validator,
-  ForwardProps,
-  connect,
-  FormContextProvider,
-  FormContextConsumer
-} = createFormContext<any>()
 export * from './sharedTypes'

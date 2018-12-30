@@ -51,4 +51,11 @@ describe('assign-defaults', () => {
   test('should return an empty object when the first arg is null.', () => {
     expect(assignDefaults(null)).toEqual({})
   })
+
+  test('should assign date objects', () => {
+    const date1 = new Date()
+    const date2 = new Date()
+    const defaultValue = { a: date1 }
+    expect(assignDefaults({ b: date2 }, defaultValue)).toEqual({ a: date1, b: date2 })
+  })
 })

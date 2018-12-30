@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as PropTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import {
   FormProvider,
   InnerFieldProps,
@@ -233,7 +233,7 @@ export default function<F extends object>(context: React.Context<FormProvider<an
 
     static contextType = context
 
-    static propTypes = {
+    static propTypes /* remove-proptypes */ = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       type: PropTypes.string,
       render: PropTypes.func,
@@ -242,7 +242,9 @@ export default function<F extends object>(context: React.Context<FormProvider<an
 
     constructor(props: FieldConfig<F1, T>, context: FormProvider<F, any>) {
       super(props, context)
-      validateName(props.name)
+      if (process.env.NODE_ENV !== 'production') {
+        validateName(props.name)
+      }
       this.path = context.path.concat(props.name)
       this.context.registerField(this.path)
     }

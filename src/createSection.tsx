@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as PropTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import { validateName, branchByName, isSetFunc } from './utils'
 import eq from 'react-fast-compare'
 import { Name, FormProvider, Path, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
@@ -73,7 +73,7 @@ export default function<F extends object>(context: React.Context<FormProvider<F>
     path: Path
     context!: FormProvider<F, any>
 
-    static propTypes = {
+    static propTypes /* remove-proptypes */ = {
       name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
     }
@@ -82,7 +82,9 @@ export default function<F extends object>(context: React.Context<FormProvider<F>
 
     constructor(props: SectionConfig<T>, context: FormProvider<F, any>) {
       super(props, context)
-      validateName(props.name)
+      if (process.env.NODE_ENV !== 'production') {
+        validateName(props.name)
+      }
       this.path = context.path.concat(props.name)
       this.unregisterField = this.unregisterField.bind(this)
     }

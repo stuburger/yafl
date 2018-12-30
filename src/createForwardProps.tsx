@@ -1,13 +1,13 @@
 import * as React from 'react'
-import * as PropTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import { FormProvider, FormConfig, PropForwarderConfig } from './sharedTypes'
 import { isObject } from './utils'
-import invariant from 'invariant'
+import warning from 'tiny-warning'
 
 export default function<F extends object>(context: React.Context<FormProvider<F, F>>) {
   const { Provider, Consumer } = context
   return class ForwardProps extends React.Component<PropForwarderConfig<F>> {
-    static propTypes = {
+    static propTypes /* remove-proptypes */ = {
       mode: PropTypes.oneOf(['default', 'branch']),
       children: PropTypes.node
     }
@@ -23,10 +23,12 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
       const value = { ...ip }
       const { children, mode, ...rest } = this.props
       if (mode === 'branch') {
-        invariant(
-          Object.keys(rest).every(key => isObject(rest[key])),
-          'When using mode="branch" on the <ForwardProps /> component, all additional props must be of type object'
-        )
+        if (process.env.NODE_ENV !== 'production') {
+          warning(
+            Object.keys(rest).every(key => isObject(rest[key])),
+            'When using mode="branch" on the <ForwardProps /> component, all additional props must be of type object'
+          )
+        }
         value.branchProps = { ...value.branchProps, ...rest }
       } else {
         value.sharedProps = { ...value.sharedProps, ...rest }

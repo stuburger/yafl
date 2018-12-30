@@ -69,7 +69,7 @@ export interface SetFormTouchedFunc<T extends object> {
 }
 
 export type ComponentTypes<F extends object> = {
-  [key: string]: React.ComponentType<FieldProps<F, any>> | React.ComponentType<FormProps<F>>
+  [key: string]: React.ComponentType<FieldProps<F, any>>
 }
 
 export interface InputProps<T = any> {
@@ -203,7 +203,18 @@ export interface FormState<F extends object> {
   initialMount: boolean
   touched: BooleanTree<F>
   visited: BooleanTree<F>
+  /**
+   * Used to determine if the intialValue did change. This is so that we can *'reset'*
+   * the form declaritively when `props.intialValue` changes.
+   */
   initialValue: F | null
+  /**
+   * Used to calculate the `formIsDirty` flag and contains the
+   * value of the form after after the inital render i.e. once `initialValue`
+   * has be merged with `defaultValue`. This is necessary because `initialValue`
+   * needs to be left *as is* in order to determine when the form should be re-initialized.
+   */
+  startingValue: F
   activeField: string | null
 }
 
@@ -373,12 +384,15 @@ export interface FormProps<F extends object> extends FormMeta<F> {
 /* @internal */
 export interface Person {
   name: string
-  surname: string
   age: number
-  gender: string
   contact: Contact
-  contacts: Contact[]
-  favorites: string[]
+  hobbies: Hobby[]
+}
+
+/* @internal */
+export interface Hobby {
+  name: string
+  type: string
 }
 
 /* @internal */

@@ -1,17 +1,33 @@
 import commonjs from 'rollup-plugin-commonjs'
-import filesize from 'rollup-plugin-filesize'
+import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import replace from 'rollup-plugin-replace'
 import resolve from 'rollup-plugin-node-resolve'
 import sourceMaps from 'rollup-plugin-sourcemaps'
 import { uglify } from 'rollup-plugin-uglify'
+import babel from 'rollup-plugin-babel'
 import pkg from './package.json'
 
 const input = './compiled/index.js'
-const external = ['react', 'react-native']
+const external = id => !id.startsWith('.') && !id.startsWith('/')
+
+const babelOptions = {
+  exclude: /node_modules/,
+  plugins: [
+    [
+      'transform-react-remove-prop-types',
+      {
+        mode: 'remove',
+        removeImport: true
+      }
+    ],
+    'annotate-pure-calls',
+    'dev-expression'
+  ]
+}
 
 const rollupUmd = ({ env }) => ({
   input,
-  external,
+  external: ['react', 'react-native'],
   output: {
     name: 'yafl',
     format: 'umd',
@@ -26,8 +42,8 @@ const rollupUmd = ({ env }) => ({
 
   plugins: [
     resolve(),
+    babel(babelOptions),
     replace({
-      exclude: 'node_modules/**',
       'process.env.NODE_ENV': JSON.stringify(env)
     }),
     commonjs({
@@ -49,7 +65,7 @@ const rollupUmd = ({ env }) => ({
       }
     }),
     sourceMaps(),
-    env === 'production' && filesize(),
+    env === 'production' && sizeSnapshot(),
     env === 'production' &&
       uglify({
         output: { comments: false },
@@ -65,7 +81,7 @@ const rollupUmd = ({ env }) => ({
 
 const rollupCjs = ({ env }) => ({
   input,
-  external: external.concat(Object.keys(pkg.dependencies)),
+  external,
   output: [
     {
       file: `./lib/${pkg.name}.cjs.${env}.js`,
@@ -80,7 +96,7 @@ const rollupCjs = ({ env }) => ({
       'process.env.NODE_ENV': JSON.stringify(env)
     }),
     sourceMaps(),
-    filesize()
+    sizeSnapshot()
   ]
 })
 
@@ -91,7 +107,7 @@ export default [
   rollupCjs({ env: 'development' }),
   {
     input,
-    external: external.concat(Object.keys(pkg.dependencies)),
+    external,
     output: [
       {
         file: pkg.module,
@@ -104,6 +120,6 @@ export default [
         sourcemap: true
       }
     ],
-    plugins: [resolve(), sourceMaps(), filesize()]
+    plugins: [resolve(), babel(babelOptions), sourceMaps(), sizeSnapshot()]
   }
 ]
