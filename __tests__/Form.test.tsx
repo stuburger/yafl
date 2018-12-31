@@ -2,9 +2,11 @@ import * as React from 'react'
 import { cleanup } from 'react-testing-library'
 import { Person, Hobby } from '../src'
 import renderer from 'react-test-renderer'
-import { createFormRenderer } from './helpers'
+import { createFormRenderer, createDataSetter } from './helpers'
+import { assignDefaults } from '../src/utils'
 
 type B = { x?: any[]; y?: Date }
+
 type Thing = { a?: number; b?: B }
 const { renderForm, Field } = createFormRenderer<Thing>()
 
@@ -16,6 +18,7 @@ function TextInput(props: any) {
     </div>
   )
 }
+
 const personData: Person = {
   name: 'Stuart Bourhill',
   age: undefined!,
@@ -100,6 +103,51 @@ describe('<Form />', () => {
       }
     }
 
+    describe('when overriding the initial values of touched, visited, and submitCount', () => {
+      const overrides: any = {
+        initialSubmitCount: 21,
+        initialTouched: { a: true },
+        initialVisited: {
+          b: {
+            x: [true],
+            y: true
+          }
+        }
+      }
+
+      const { getFormProps, getRenderCount } = renderForm(
+        { initialValue, defaultValue, ...overrides },
+        <Field<number>
+          name="a"
+          component={TextInput}
+          validate={value => {
+            if (value < 15) {
+              return 'number too small'
+            }
+            return
+          }}
+        />
+      )
+      const { submitCount, touched, visited, errors, errorCount, formIsValid } = getFormProps()
+
+      it('should only render twice (once before cDM, and once for setting initialMount)', () => {
+        expect(getRenderCount()).toEqual(2)
+      })
+
+      it(`should set submitCount, touched and visited as supplied by initialSubmitCount,
+        initialTouched and initialVisited, respectively`, () => {
+        expect(submitCount).toEqual(overrides.initialSubmitCount)
+        expect(touched).toEqual(overrides.initialTouched)
+        expect(visited).toEqual(overrides.initialVisited)
+      })
+
+      it('should set errors according to field validation supplied', () => {
+        expect(errors).toEqual({ a: ['number too small'] })
+        expect(errorCount).toEqual(1)
+        expect(formIsValid).toEqual(false)
+      })
+    })
+
     describe('render prop initial values', () => {
       it('supplies the correct values for the forms render props', () => {
         const submitMk = jest.fn()
@@ -121,6 +169,7 @@ describe('<Form />', () => {
         expect(props.errorCount).toEqual(0)
         expect(props.formIsDirty).toEqual(false)
         expect(props.initialMount).toEqual(true)
+        expect(props.formIsValid).toEqual(true)
         expect(props.submitCount).toEqual(0)
         expect(props.touched).toEqual({})
         expect(props.visited).toEqual({})
@@ -148,112 +197,112 @@ describe('<Form />', () => {
       })
     })
 
-    describe('FormProps.submit', () => {
-      it('calls the submit function', () => {
-        const submitMk = jest.fn()
-        const onSubmit = (formValue: Thing) => {
-          submitMk(formValue)
-        }
-        const { getFormProps, getRenderCount } = renderForm({
-          initialValue,
-          defaultValue,
-          onSubmit
-        })
-        expect(getRenderCount()).toEqual(2)
-
-        const { submit } = getFormProps()
-        submit()
-        expect(getRenderCount()).toEqual(3)
-        expect(submitMk).toBeCalledTimes(1)
-      })
-
-      describe('when submitUnregisteredValues is false', () => {
-        it('should call submit with the only registered fields', () => {
+    describe('FormMeta functions', () => {
+      describe('submit', () => {
+        it('calls the submit function', () => {
           const submitMk = jest.fn()
           const onSubmit = (formValue: Thing) => {
             submitMk(formValue)
-          }
-          const { getFormProps, getRenderCount } = renderForm(
-            {
-              initialValue,
-              defaultValue,
-              onSubmit
-            },
-            <Field name="a" component="input" />
-          )
-
-          expect(getRenderCount()).toEqual(2)
-          const { submit } = getFormProps()
-          submit()
-          expect(getRenderCount()).toEqual(3)
-          expect(submitMk).toHaveBeenCalledWith({ a: 12 })
-        })
-      })
-
-      describe('when submitUnregisteredValues is true', () => {
-        it('should call submit with the whole formValue', () => {
-          const expectedStartingValue = {
-            a: 12,
-            b: { x: [{ name: 'Munk Jones' }], y: date }
-          }
-          const submitMk = jest.fn()
-          const onSubmit = (formValue: Thing) => {
-            submitMk(formValue)
-          }
-          const { getFormProps } = renderForm({
-            initialValue,
-            defaultValue,
-            onSubmit,
-            submitUnregisteredValues: true
-          })
-
-          const { submit } = getFormProps()
-          submit()
-          const { submitCount } = getFormProps()
-          expect(submitCount).toEqual(1)
-          expect(submitMk).toHaveBeenCalledWith(expectedStartingValue)
-        })
-      })
-
-      describe('when onSubmit returns nothing', () => {
-        it('should update submitCount', () => {
-          const { getFormProps } = renderForm()
-          const { submit } = getFormProps()
-          submit()
-          const { submitCount } = getFormProps()
-          expect(submitCount).toEqual(1)
-        })
-      })
-
-      describe('when onSubmit returns false', () => {
-        it('should not update submitCount', () => {
-          const submitMk = jest.fn()
-
-          const onSubmit = (formValue: Thing) => {
-            submitMk(formValue)
-            return false
           }
           const { getFormProps, getRenderCount } = renderForm({
             initialValue,
             defaultValue,
             onSubmit
           })
-
           expect(getRenderCount()).toEqual(2)
+
           const { submit } = getFormProps()
-
           submit()
+          expect(getRenderCount()).toEqual(3)
+          expect(submitMk).toBeCalledTimes(1)
+        })
 
-          const { submitCount } = getFormProps()
+        describe('when submitUnregisteredValues is false', () => {
+          it('should call submit with the only registered fields', () => {
+            const submitMk = jest.fn()
+            const onSubmit = (formValue: Thing) => {
+              submitMk(formValue)
+            }
+            const { getFormProps, getRenderCount } = renderForm(
+              {
+                initialValue,
+                defaultValue,
+                onSubmit
+              },
+              <Field name="a" component="input" />
+            )
 
-          expect(submitMk).toHaveBeenCalledTimes(1)
-          expect(submitCount).toEqual(0)
-          expect(getRenderCount()).toEqual(2)
+            expect(getRenderCount()).toEqual(2)
+            const { submit } = getFormProps()
+            submit()
+            expect(getRenderCount()).toEqual(3)
+            expect(submitMk).toHaveBeenCalledWith({ a: 12 })
+          })
+        })
+
+        describe('when submitUnregisteredValues is true', () => {
+          it('should call submit with the whole formValue', () => {
+            const expectedStartingValue = {
+              a: 12,
+              b: { x: [{ name: 'Munk Jones' }], y: date }
+            }
+            const submitMk = jest.fn()
+            const onSubmit = (formValue: Thing) => {
+              submitMk(formValue)
+            }
+            const { getFormProps } = renderForm({
+              initialValue,
+              defaultValue,
+              onSubmit,
+              submitUnregisteredValues: true
+            })
+
+            const { submit } = getFormProps()
+            submit()
+            const { submitCount } = getFormProps()
+            expect(submitCount).toEqual(1)
+            expect(submitMk).toHaveBeenCalledWith(expectedStartingValue)
+          })
+        })
+
+        describe('when onSubmit returns nothing', () => {
+          it('should update submitCount', () => {
+            const { getFormProps } = renderForm()
+            const { submit } = getFormProps()
+            submit()
+            const { submitCount } = getFormProps()
+            expect(submitCount).toEqual(1)
+          })
+        })
+
+        describe('when onSubmit returns false', () => {
+          it('should not update submitCount', () => {
+            const submitMk = jest.fn()
+
+            const onSubmit = (formValue: Thing) => {
+              submitMk(formValue)
+              return false
+            }
+            const { getFormProps, getRenderCount } = renderForm({
+              initialValue,
+              defaultValue,
+              onSubmit
+            })
+
+            expect(getRenderCount()).toEqual(2)
+            const { submit } = getFormProps()
+
+            submit()
+
+            const { submitCount } = getFormProps()
+
+            expect(submitMk).toHaveBeenCalledTimes(1)
+            expect(submitCount).toEqual(0)
+            expect(getRenderCount()).toEqual(2)
+          })
         })
       })
-    })
 
-    describe('FormMeta functions', () => {
       describe('setFormValue', () => {
         it('should set the form value as supplied, but not set touched or visited', () => {
           const { renderForm } = createFormRenderer<Person>()
@@ -286,8 +335,8 @@ describe('<Form />', () => {
         })
       })
 
-      describe('setFormTouched, setFormVisited', () => {
-        it('should set touched and visited as supplied', () => {
+      describe('setFormTouched', () => {
+        it('should set touched as supplied', () => {
           const { renderForm } = createFormRenderer<Person>()
           const { getFormProps, getRenderCount } = renderForm({
             initialValue: personData,
@@ -296,13 +345,208 @@ describe('<Form />', () => {
 
           expect(getRenderCount()).toEqual(2)
 
-          const { setFormTouched, setFormVisited } = getFormProps()
+          const { setFormTouched } = getFormProps()
           setFormTouched(touched => ({ ...touched, age: true }))
-          setFormVisited(visited => ({ ...visited, contact: { tel: true } }))
-          const { touched, visited } = getFormProps()
+          const { touched } = getFormProps()
           expect(touched).toEqual({ age: true })
+          expect(getRenderCount()).toEqual(3)
+        })
+      })
+
+      describe('setFormVisited', () => {
+        it('should set visited as supplied', () => {
+          const { renderForm } = createFormRenderer<Person>()
+          const { getFormProps, getRenderCount } = renderForm({
+            initialValue: personData,
+            defaultValue: defaultPerson
+          })
+
+          expect(getRenderCount()).toEqual(2)
+
+          const { setFormVisited } = getFormProps()
+          setFormVisited(visited => ({ ...visited, contact: { tel: true } }))
+          const { visited } = getFormProps()
           expect(visited).toEqual({ contact: { tel: true } })
-          expect(getRenderCount()).toEqual(4)
+          expect(getRenderCount()).toEqual(3)
+        })
+      })
+
+      describe('resetForm', () => {
+        describe('When initial values are supplied for touched, visited and submitCount', () => {
+          it('should reset touched, visited and submitCount to supplied initialValues', () => {
+            const { renderForm } = createFormRenderer<Person>()
+            const overrides = {
+              initialSubmitCount: 4,
+              initialTouched: {
+                age: true
+              },
+              initialVisited: {
+                age: true
+              }
+            }
+            const { getFormProps, getRenderCount } = renderForm({
+              initialValue: personData,
+              defaultValue: defaultPerson,
+              ...overrides
+            })
+
+            expect(getRenderCount()).toEqual(2)
+
+            const p = getFormProps()
+            expect(p.touched).toEqual({ age: true })
+            expect(p.visited).toEqual({ age: true })
+
+            p.resetForm()
+
+            const p2 = getFormProps()
+
+            expect(p2.submitCount).toEqual(overrides.initialSubmitCount)
+            expect(p2.touched).toEqual(overrides.initialTouched)
+            expect(p2.visited).toEqual(overrides.initialVisited)
+            expect(p2.formValue).toEqual(assignDefaults({}, personData, defaultPerson)) // starting value
+          })
+        })
+
+        describe('When no initial values are supplied for touched, visited and submitCount', () => {
+          it('should reset touched and visited to default initialValues', () => {
+            const { renderForm } = createFormRenderer<Person>()
+
+            const { getFormProps, getRenderCount } = renderForm({
+              initialValue: personData,
+              defaultValue: defaultPerson
+            })
+
+            expect(getRenderCount()).toEqual(2)
+
+            const p = getFormProps()
+            expect(p.touched).toEqual({})
+            expect(p.visited).toEqual({})
+
+            p.resetForm()
+
+            const p2 = getFormProps()
+
+            expect(p2.submitCount).toEqual(0)
+            expect(p2.touched).toEqual({})
+            expect(p2.visited).toEqual({})
+            expect(p2.formValue).toEqual(assignDefaults({}, personData, defaultPerson)) // starting value
+          })
+        })
+      })
+
+      describe('clearForm', () => {
+        const { renderForm } = createFormRenderer<Person>()
+        const overrides = {
+          initialSubmitCount: 4,
+          initialTouched: {
+            age: true,
+            name: true
+          },
+          initialVisited: {
+            age: true,
+            name: true
+          }
+        }
+        const { getFormProps, getRenderCount } = renderForm({
+          initialValue: personData,
+          defaultValue: defaultPerson,
+          ...overrides
+        })
+
+        expect(getRenderCount()).toEqual(2)
+
+        const p = getFormProps()
+        expect(p.touched).toEqual({ age: true, name: true })
+        expect(p.visited).toEqual({ age: true, name: true })
+
+        p.clearForm() // clear the form
+
+        const { submitCount, touched, visited } = getFormProps()
+
+        it('should clear touched and visited', () => {
+          expect(touched).toEqual({})
+          expect(visited).toEqual({})
+        })
+
+        it('should reset submitCount', () => {
+          expect(submitCount).toEqual(0)
+        })
+
+        it('should set `formValue` to `defaultValue`', () => {
+          const { formValue } = getFormProps()
+          expect(formValue).toEqual(defaultPerson)
+        })
+      })
+
+      describe('forgetState', () => {
+        const { renderForm } = createFormRenderer<Person>()
+        const overrides = {
+          initialSubmitCount: 4,
+          initialTouched: {
+            age: true,
+            name: true
+          },
+          initialVisited: {
+            age: true,
+            name: true
+          }
+        }
+        const { getFormProps, getRenderCount } = renderForm({
+          initialValue: personData,
+          defaultValue: defaultPerson,
+          ...overrides
+        })
+
+        expect(getRenderCount()).toEqual(2)
+
+        const p = getFormProps()
+
+        const formValueBeforeForgetState = p.formValue
+
+        expect(p.touched).toEqual({ age: true, name: true })
+        expect(p.visited).toEqual({ age: true, name: true })
+
+        p.forgetState() // forget the values of submitCount, touched and visited
+
+        it('should clear touched and visited', () => {
+          const { touched, visited } = getFormProps()
+          expect(touched).toEqual({})
+          expect(visited).toEqual({})
+        })
+
+        it('should reset submitCount', () => {
+          const { submitCount } = getFormProps()
+          expect(submitCount).toEqual(0)
+        })
+
+        it('should not reset or alter formValue in any way', () => {
+          const { formValue } = getFormProps()
+          expect(formValue).toEqual(formValueBeforeForgetState)
+        })
+      })
+    })
+  })
+
+  describe('FormConfig: what happens when the props passed to the <Form /> component change', () => {
+    const { renderForm } = createDataSetter<Person>()
+    describe('asynchronously setting initialValue to imitate async api calls', () => {
+      it('should have correct initialValue and defaultValue', () => {
+        const { getFormProps } = renderForm({ defaultValue: defaultPerson })
+        const { initialValue, defaultValue } = getFormProps()
+        expect(initialValue).toEqual({})
+        expect(defaultValue).toEqual(defaultPerson)
+      })
+
+      describe('when initialValue is finally set', () => {
+        it('should set the formValue', () => {
+          const { getFormProps, setFormConfig } = renderForm({ defaultValue: defaultPerson })
+          const p = getFormProps()
+          expect(p.initialValue).toEqual({})
+          expect(p.defaultValue).toEqual(defaultPerson)
+          setFormConfig({ initialValue: personData })
+          const { initialValue, formValue } = getFormProps()
+          expect(initialValue).toEqual(personData)
+          expect(formValue).toEqual(assignDefaults({}, personData, defaultPerson))
         })
       })
     })

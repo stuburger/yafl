@@ -92,6 +92,7 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
       this.unregisterError = this.unregisterError.bind(this)
       this.incSubmitCount = this.incSubmitCount.bind(this)
       this.collectFormProps = this.collectFormProps.bind(this)
+
       this.state = {
         initialMount: false,
         startingValue: {} as F,
@@ -125,9 +126,11 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
         // state.initialValue is used above to calculate `intialValueChanged`
         state.formValue = state.initialValue = value
         if (!np.rememberStateOnReinitialize) {
-          state.submitCount = 0
-          state.touched = {}
-          state.visited = {}
+          // in the current implementation the form will be reset to the values supplied in `overrides`
+          const { initialSubmitCount = 0, initialTouched = {}, initialVisited = {} } = np
+          state.submitCount = initialSubmitCount
+          state.touched = initialTouched
+          state.visited = initialVisited
         }
         updateDerivedState = true
       }
@@ -271,11 +274,12 @@ export default function<F extends object>(context: React.Context<FormProvider<F,
     }
 
     resetForm() {
-      this.setState(({ initialValue }) => ({
-        formValue: initialValue || ({} as F),
-        submitCount: 0,
-        touched: {},
-        visited: {}
+      const { initialSubmitCount = 0, initialTouched = {}, initialVisited = {} } = this.props
+      this.setState(({ startingValue }) => ({
+        formValue: startingValue || ({} as F),
+        submitCount: initialSubmitCount,
+        touched: initialTouched,
+        visited: initialVisited
       }))
     }
 

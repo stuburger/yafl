@@ -411,6 +411,9 @@ export interface FormConfig<T extends object> {
   initialValue?: T
   defaultValue?: T
   disabled?: boolean
+  initialSubmitCount?: number
+  initialTouched?: BooleanTree<T>
+  initialVisited?: BooleanTree<T>
   children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)
   submitUnregisteredValues?: boolean
   persistFieldState?: boolean
