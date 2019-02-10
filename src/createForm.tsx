@@ -18,7 +18,7 @@ const startingPath: Path = []
 
 function childrenIsFunc<F extends object>(
   children: Function | React.ReactNode
-): children is ((props: FormProps<F>) => React.ReactNode) {
+): children is (props: FormProps<F>) => React.ReactNode {
   return typeof children === 'function'
 }
 
