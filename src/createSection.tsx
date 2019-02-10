@@ -8,12 +8,6 @@ export interface ForkProviderConfig<F extends object, T> extends FormProvider<F,
   children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
 }
 
-function childrenIsFunc<T>(
-  children: Function | React.ReactNode
-): children is (value: T, utils: SectionHelpers<T>) => React.ReactNode {
-  return typeof children === 'function'
-}
-
 export interface SectionConfig<T> {
   name: Name
   fallback?: T
@@ -40,8 +34,8 @@ export default function<F extends object>(ctx: React.Context<FormProvider<F, any
     }, [b.value])
 
     return (
-      <ctx.Provider key={name} value={b}>
-        {childrenIsFunc<T>(children) ? children(b.value, { setValue }) : children}
+      <ctx.Provider key={name} value={{ ...b, path }}>
+        {typeof children === 'function' ? children(b.value, { setValue }) : children}
       </ctx.Provider>
     )
   }
