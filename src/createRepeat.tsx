@@ -1,188 +1,115 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
-import isEqual from 'react-fast-compare'
 import { validateName, branchByName } from './utils'
 import { branchableProps } from './defaults'
 import warning from 'tiny-warning'
-import { FormProvider, ArrayHelpers, Path, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
+import { FormProvider, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
 
-export interface InnerRepeatConfig<F extends object, T> extends FormProvider<F, T[]> {
-  children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)
-}
+function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any>>) {
+  function RepeatController<T extends object>(props: RepeatConfig<T>) {
+    const { children, name, fallback } = props
+    const yafl = React.useContext<FormProvider<F, T[]>>(ctx)
 
-function childrenIsFunc<T>(
-  children: Function | React.ReactNode
-): children is ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode) {
-  return typeof children === 'function'
-}
+    const path = yafl.path.concat(name)
+    React.useEffect(() => {
+      yafl.registerField(path)
+      return () => yafl.unregisterField(path)
+    }, [])
 
-const listenForProps: (keyof InnerRepeatConfig<any, any>)[] = [
-  'value',
-  'errors',
-  'touched',
-  'visited',
-  'children',
-  'errorCount',
-  'submitCount',
-  'branchProps',
-  'sharedProps',
-  'activeField'
-]
+    const b = branchByName<F, T[], FormProvider<F, T[]>>(name, yafl, branchableProps, fallback)
 
-function createForkProvider<F extends object>(Provider: React.Provider<FormProvider<F, any>>) {
-  return class InnerRepeat<T> extends React.Component<InnerRepeatConfig<F, T>> {
-    helpers: ArrayHelpers<T>
-    constructor(props: InnerRepeatConfig<F, T>) {
-      super(props)
-      this.pop = this.pop.bind(this)
-      this.push = this.push.bind(this)
-      this.swap = this.swap.bind(this)
-      this.shift = this.shift.bind(this)
-      this.insert = this.insert.bind(this)
-      this.remove = this.remove.bind(this)
-      this.unshift = this.unshift.bind(this)
-      this.setValue = this.setValue.bind(this)
-      this.helpers = {
-        pop: this.pop,
-        push: this.push,
-        swap: this.swap,
-        shift: this.shift,
-        insert: this.insert,
-        remove: this.remove,
-        unshift: this.unshift,
-        setValue: this.setValue
-      }
-    }
+    const deps = [b.value]
 
-    shouldComponentUpdate(np: InnerRepeatConfig<F, T>) {
-      return listenForProps.some(key => !isEqual(np[key], this.props[key]))
-    }
+    const setValue = React.useCallback((value: T[] | SetFieldValueFunc<T[]>): void => {
+      yafl.setValue(path, typeof value === 'function' ? value(b.value) : value, false)
+    }, deps)
 
-    setValue(value: T[] | SetFieldValueFunc<T[]>): void {
-      const { path, setValue, value: prev } = this.props
-      setValue(path, typeof value === 'function' ? value(prev) : value, false)
-    }
-
-    push(...items: T[]) {
-      const { path, setValue, value } = this.props
-      const arr = [...value]
+    const push = React.useCallback((...items: T[]) => {
+      const arr = [...b.value]
       const ret = arr.push(...items)
-      setValue(path, arr, false)
+      yafl.setValue(path, arr, false)
       return ret
-    }
+    }, deps)
 
-    pop() {
-      const { path, setValue, value } = this.props
-      const nextValue = [...value]
+    const pop = React.useCallback(() => {
+      const nextValue = [...b.value]
       const popped = nextValue.pop()
-      setValue(path, nextValue, false)
+      yafl.setValue(path, nextValue, false)
       return popped
-    }
+    }, deps)
 
-    insert(index: number, ...items: T[]) {
-      const { path, setValue, value } = this.props
-      const nextValue = [...value]
+    const insert = React.useCallback((index: number, ...items: T[]) => {
+      const nextValue = [...b.value]
       nextValue.splice(index, 0, ...items)
-      setValue(path, nextValue, false)
+      yafl.setValue(path, nextValue, false)
       return nextValue.length
-    }
+    }, deps)
 
-    remove(index: number) {
-      const { path, setValue, value } = this.props
-      const nextValue = [...value]
+    const remove = React.useCallback((index: number) => {
+      const nextValue = [...b.value]
       const ret = nextValue.splice(index, 1)
-      setValue(path, nextValue, false)
+      yafl.setValue(path, nextValue, false)
       return ret[0]
-    }
+    }, deps)
 
-    shift() {
-      const { path, setValue, value } = this.props
-      const nextValue = [...value]
+    const shift = React.useCallback(() => {
+      const nextValue = [...b.value]
       const temp = nextValue[0]
-      setValue(path, nextValue.splice(1), false)
+      yafl.setValue(path, nextValue.splice(1), false)
       return temp
-    }
+    }, deps)
 
-    swap(i1: number, i2: number) {
-      const { path, setValue, value } = this.props
+    const swap = React.useCallback((i1: number, i2: number) => {
       if (process.env.NODE_ENV !== 'production') {
         warning(i1 >= 0, `Array index out of bounds: ${i1}`)
         warning(i2 >= 0, `Array index out of bounds: ${i2}`)
       }
-      const arr = [...value]
+      const arr = [...b.value]
       arr[i1] = [arr[i2], (arr[i2] = arr[i1])][0]
-      setValue(path, arr, false)
-    }
+      yafl.setValue(path, arr, false)
+    }, deps)
 
-    unshift(...items: T[]) {
-      const { path, setValue, value } = this.props
-      const arr = [...value]
+    const unshift = React.useCallback((...items: T[]) => {
+      const arr = [...b.value]
       const ret = arr.unshift(...items)
-      setValue(path, arr, false)
+      yafl.setValue(path, arr, false)
       return ret
-    }
+    }, deps)
 
-    render() {
-      const { children, ...props } = this.props
-
-      return (
-        <Provider value={props}>
-          {childrenIsFunc<T>(children) ? children(props.value, this.helpers) : children}
-        </Provider>
-      )
-    }
+    return (
+      <ctx.Provider value={{ ...b, path }}>
+        {typeof children === 'function'
+          ? children(b.value, {
+              pop,
+              push,
+              swap,
+              shift,
+              insert,
+              remove,
+              unshift,
+              setValue
+            })
+          : children}
+      </ctx.Provider>
+    )
   }
+
+  function Repeat<T extends object>(props: RepeatConfig<T>) {
+    if (process.env.NODE_ENV !== 'production') {
+      validateName(props.name)
+      React.useEffect(() => {
+        validateName(name)
+      }, [name])
+    }
+    return <RepeatController key={name} {...props} />
+  }
+
+  Repeat.propTypes /* remove-proptypes */ = {
+    name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
+  }
+
+  return Repeat
 }
 
-export default function<F extends object>(context: React.Context<FormProvider<F, any>>) {
-  const InnerComponent = createForkProvider<F>(context.Provider)
-
-  return class Repeat<T extends object> extends React.PureComponent<RepeatConfig<T>> {
-    unmounted = false
-    path: Path
-    context!: FormProvider<F, any>
-
-    static contextType = context
-
-    static propTypes /* remove-proptypes */ = {
-      name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      fallback: PropTypes.array,
-      children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
-    }
-
-    constructor(props: RepeatConfig<T>, context: FormProvider<F, any>) {
-      super(props, context)
-      if (process.env.NODE_ENV !== 'production') {
-        validateName(props.name)
-      }
-      this.path = context.path.concat(props.name)
-      this.unregisterField = this.unregisterField.bind(this)
-    }
-
-    unregisterField(path: Path) {
-      if (this.unmounted) return
-      this.context.unregisterField(path)
-    }
-
-    componentWillUnmount() {
-      // no need to unregister child Fields since calling unregister on the section
-      // will also unregister all of its children
-      this.unregisterField(this.path)
-      this.unmounted = true
-    }
-
-    render() {
-      const { children, name, fallback } = this.props
-      return (
-        <InnerComponent<T>
-          key={name}
-          {...branchByName(name, this.context, branchableProps, fallback)}
-          path={this.path}
-          unregisterField={this.unregisterField}
-        >
-          {children}
-        </InnerComponent>
-      )
-    }
-  }
-}
+export default createRepeat
