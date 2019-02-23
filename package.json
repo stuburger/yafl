@@ -1,6 +1,6 @@
 {
   "name": "yafl",
-  "version": "1.0.0-hooks-1",
+  "version": "1.0.0-hooks-2",
   "description": "Yet another form library for React",
   "main": "lib/yafl.js",
   "module": "lib/yafl.esm.js",
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
-    "@types/invariant": "^2.2.29",  
+    "@types/invariant": "^2.2.29",
     "@types/jest": "^24.0.0",
     "@types/node": "10.12.24",
     "@types/prop-types": "^15.5.8",
@@ -72,7 +72,7 @@
     "react-dom": "^16.8.1",
     "react-test-renderer": "^16.7.0",
     "react-testing-library": "^5.4.2",
-    
+
     "rimraf": "^2.6.2",
     "rollup": "^0.68.2",
     "rollup-plugin-babel": "^4.0.3",

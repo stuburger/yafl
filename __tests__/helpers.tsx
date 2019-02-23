@@ -7,7 +7,7 @@ export function createFormRenderer<T extends object>() {
   function noop(e: T, props: FormProps<T>) {}
   function renderForm(props: Partial<FormConfig<T>> = {}, ui: React.ReactNode = null) {
     let injected: FormProps<T>
-    const { onSubmit = noop, initialValue } = props
+    const { onSubmit = noop } = props
     return {
       getFormProps(): FormProps<T> {
         return injected

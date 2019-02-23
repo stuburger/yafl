@@ -89,7 +89,6 @@ export interface InputProps<T = any> {
 export interface FieldConfig<F extends object, T = any> {
   name: Name
   forwardRef?: React.Ref<any>
-  watch?: (value: F) => any
   render?: (state: FieldProps<F, T>) => React.ReactNode
   validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
   component?: React.ComponentType<FieldProps<F, T>> | string
@@ -159,32 +158,15 @@ export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
   setTouched: (value: boolean) => void
 }
 
-export interface InnerFieldProps<F extends object, T = any> extends FormProvider<F, T> {
+export interface InnerFieldProps<F extends object, T = any> {
   name: Name
-  formValue: F
-  value: T
-  initialValue: T
-  watch?: (value: F) => any
-  forwardRef: React.Ref<any>
+  forwardRef?: React.Ref<any>
   validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
   render?: (state: FieldProps<F, T>) => React.ReactNode
   component?: React.ComponentType<FieldProps<F, T>> | string
-  onChange?: (
-    e: React.ChangeEvent<any>,
-    props: FieldProps<F, T>,
-    forwardProps: { [key: string]: any }
-  ) => void
-  onBlur?: (
-    e: React.FocusEvent<any>,
-    props: FieldProps<F, T>,
-    forwardProps: { [key: string]: any }
-  ) => void
-  onFocus?: (
-    e: React.FocusEvent<any>,
-    props: FieldProps<F, T>,
-    forwardProps: { [key: string]: any }
-  ) => void
-  branchProps: { [key: string]: any }
+  onChange?: (e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
+  onBlur?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
+  onFocus?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   forwardProps: { [key: string]: any }
 }
 
@@ -221,7 +203,7 @@ export interface FormState<F extends object> {
 export interface RepeatConfig<T> {
   name: Name
   fallback?: T[]
-  children: ((value: T[], utils: ArrayHelpers<T>) => React.ReactNode)
+  children: (value: T[], utils: ArrayHelpers<T>) => React.ReactNode
 }
 
 export interface ArrayHelpers<T> {
@@ -283,21 +265,9 @@ export interface SectionHelpers<T> {
 }
 
 export interface SharedFieldProps<F extends object> {
-  onChange?: <T = any>(
-    e: React.ChangeEvent<any>,
-    props: FieldProps<F, T>,
-    forwardProps: { [key: string]: any }
-  ) => void
-  onBlur?: <T = any>(
-    e: React.FocusEvent<any>,
-    props: FieldProps<F, T>,
-    forwardProps: { [key: string]: any }
-  ) => void
-  onFocus?: <T = any>(
-    e: React.FocusEvent<any>,
-    props: FieldProps<F, T>,
-    forwardProps: { [key: string]: any }
-  ) => void
+  onChange?: <T = any>(e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
+  onBlur?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
+  onFocus?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   [key: string]: any
 }
 
@@ -318,22 +288,22 @@ export interface FormProvider<F extends object, T = F> {
   formIsValid: boolean
   formIsDirty: boolean
   errors: FormErrors<F>
-  submit: (() => void)
-  resetForm: (() => void)
-  clearForm: (() => void)
-  forgetState: (() => void)
+  submit: () => void
+  resetForm: () => void
+  clearForm: () => void
+  forgetState: () => void
   sharedProps: SharedFieldProps<F>
-  setActiveField: ((path: string | null) => void)
-  touchField: ((path: Path, touched: boolean) => void)
-  visitField: ((path: Path, visited: boolean) => void)
-  registerError: ((path: Path, error: string) => void)
-  unregisterError: ((path: Path, error: string) => void)
+  setActiveField: (path: string | null) => void
+  touchField: (path: Path, touched: boolean) => void
+  visitField: (path: Path, visited: boolean) => void
+  registerError: (path: Path, error: string) => void
+  unregisterError: (path: Path, error: string) => void
   setFormValue: (setFunc: SetFormValueFunc<F>) => void
-  setValue: ((path: Path, value: any, setTouched?: boolean) => void)
+  setValue: (path: Path, value: any, setTouched?: boolean) => void
   setFormTouched: (setFunc: SetFormTouchedFunc<F>) => void
   setFormVisited: (setFunc: SetFormVisitedFunc<F>) => void
-  unregisterField: ((path: Path) => void)
-  registerField: ((path: Path) => void)
+  unregisterField: (path: Path) => void
+  registerField: (path: Path) => void
 }
 
 export interface FormProps<F extends object> extends FormMeta<F> {
