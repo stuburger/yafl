@@ -14,14 +14,15 @@ import { toStrPath, validateName, branchByName, isSetFunc, toArray } from './uti
 import { branchableProps } from './defaults'
 import FieldSink from './FieldSink'
 import createValidator from './createValidator'
+import { useSafeContext } from './useSafeContext'
 
-function createFieldController(context: React.Context<FormProvider<any, any>>) {
+function createFieldController(context: React.Context<FormProvider<any, any> | Symbol>) {
   const Validator = createValidator(context)
 
   type IFP<F extends object, T> = InnerFieldProps<F, T>
 
   function FieldController<T, F extends object>(props: IFP<F, T>): React.ReactElement<IFP<F, T>> {
-    const yafl = React.useContext(context)
+    const yafl = useSafeContext(context)
     const path = yafl.path.concat(props.name)
 
     React.useEffect(() => {
@@ -196,7 +197,7 @@ function useValidateName(name: Name) {
   }, [name])
 }
 
-export default function<F extends object>(context: React.Context<FormProvider<any, any>>) {
+export default function<F extends object>(context: React.Context<FormProvider<any, any> | Symbol>) {
   const FieldController = createFieldController(context)
 
   function Field<T, F1 extends object = F>(

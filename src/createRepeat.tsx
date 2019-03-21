@@ -4,11 +4,12 @@ import { validateName, branchByName } from './utils'
 import { branchableProps } from './defaults'
 import warning from 'tiny-warning'
 import { FormProvider, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
+import { useSafeContext } from './useSafeContext'
 
-function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any>>) {
+function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
   function RepeatController<T extends object>(props: RepeatConfig<T>) {
     const { children, name, fallback } = props
-    const yafl = React.useContext<FormProvider<F, T[]>>(ctx)
+    const yafl = useSafeContext<F, T[]>(ctx)
 
     const path = yafl.path.concat(name)
     React.useEffect(() => {

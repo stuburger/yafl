@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { validateName, branchByName, isSetFunc } from './utils'
 import { Name, FormProvider, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
 import { branchableProps } from './defaults'
+import { useSafeContext } from './useSafeContext'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
   children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
@@ -14,10 +15,10 @@ export interface SectionConfig<T> {
   children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
 }
 
-export default function<F extends object>(ctx: React.Context<FormProvider<F, any>>) {
+export default function<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
   function SectionController<T extends object>(props: SectionConfig<T>) {
     const { children, name, fallback } = props
-    const yafl = React.useContext<FormProvider<F, T>>(ctx)
+    const yafl = useSafeContext<F, T>(ctx)
 
     const path = yafl.path.concat(name)
     React.useEffect(() => {

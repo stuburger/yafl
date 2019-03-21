@@ -31,8 +31,7 @@ function whenEnabled(func: Function, defaultFunc = noop) {
   }
 }
 
-export default function<F extends object>(context: React.Context<FormProvider<F, F>>) {
-  const { Provider } = context
+export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
     static propTypes /* remove-proptypes */ = {
       onSubmit: PropTypes.func.isRequired,

@@ -2,6 +2,7 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import { Path, FormProvider } from './sharedTypes'
 import warning from 'tiny-warning'
+import { useSafeContext } from './useSafeContext'
 
 export type InnerValidatorProps = FormProvider<any> & {
   msg: string
@@ -28,9 +29,9 @@ export interface ValidatorProps {
   path: Path
 }
 
-export default function createValidator(context: React.Context<FormProvider<any>>) {
+export default function createValidator(ctx: React.Context<FormProvider<any, any> | Symbol>) {
   const Validator: React.FC<ValidatorProps> = props => {
-    const ctx = React.useContext(context)
+    const yafl = useSafeContext(ctx)
 
     const { path, msg, children = null } = props
 
@@ -45,7 +46,7 @@ export default function createValidator(context: React.Context<FormProvider<any>
     }
 
     if (typeof msg === 'string') {
-      return <InnerError key={msg + path} {...ctx} msg={msg} path={path} />
+      return <InnerError key={msg + path} {...yafl} msg={msg} path={path} />
     }
 
     return children as React.ReactElement<any>
