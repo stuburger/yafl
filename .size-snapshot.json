@@ -20,7 +20,7 @@
     "gzipped": 4854
   },
   "lib/yafl.esm.js": {
-    "bundled": 30250,
+    "bundled": 30238,
     "minified": 16404,
     "gzipped": 4780,
     "treeshaked": {
