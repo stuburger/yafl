@@ -7,8 +7,7 @@ import {
   InputProps,
   FieldConfig,
   FieldMeta,
-  SetFieldValueFunc,
-  Name
+  SetFieldValueFunc
 } from './sharedTypes'
 import { toStrPath, validateName, branchByName, isSetFunc, toArray } from './utils'
 import { branchableProps } from './defaults'
@@ -78,6 +77,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         input: collectInputProps(),
         meta: collectMetaProps(),
         ...b.branchProps,
+        ...b.sharedProps,
         ...forwardProps
       }
     }
@@ -191,12 +191,6 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
   return FieldController
 }
 
-function useValidateName(name: Name) {
-  React.useEffect(() => {
-    validateName(name)
-  }, [name])
-}
-
 export default function<F extends object>(context: React.Context<FormProvider<any, any> | Symbol>) {
   const FieldController = createFieldController(context)
 
@@ -204,7 +198,7 @@ export default function<F extends object>(context: React.Context<FormProvider<an
     props: FieldConfig<F1, T>
   ): React.ReactElement<FieldConfig<F1, T>> {
     if (process.env.NODE_ENV !== 'production') {
-      useValidateName(props.name)
+      validateName(props.name)
     }
 
     const {

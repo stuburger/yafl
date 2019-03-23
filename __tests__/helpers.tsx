@@ -3,9 +3,12 @@ import { render } from 'react-testing-library'
 import { createFormContext, FormProps, FormConfig } from '../src'
 
 export function createFormRenderer<T extends object>() {
-  const { Form, Section, Field, Repeat, useYaflContext } = createFormContext<T>()
+  const { Form, Section, Field, Repeat, ForwardProps, useYaflContext } = createFormContext<T>()
   function noop(e: T, props: FormProps<T>) {}
-  function renderForm(props: Partial<FormConfig<T>> = {}, ui: React.ReactNode = null) {
+  function renderForm(
+    props: Partial<FormConfig<T>> = {},
+    ui: React.ReactNode | ((props: FormProps<T>) => React.ReactNode) = null
+  ) {
     let injected: FormProps<T>
     const { onSubmit = noop } = props
     return {
@@ -16,7 +19,7 @@ export function createFormRenderer<T extends object>() {
         <Form onSubmit={onSubmit} {...props as any}>
           {props => {
             injected = props
-            return ui
+            return typeof ui === 'function' ? ui(props) : ui
           }}
         </Form>
       )
@@ -25,6 +28,7 @@ export function createFormRenderer<T extends object>() {
 
   return {
     Form,
+    ForwardProps,
     renderForm,
     Section,
     Field,

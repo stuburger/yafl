@@ -3,15 +3,8 @@ import { cleanup } from 'react-testing-library'
 import { Person, Hobby } from '../src'
 import renderer from 'react-test-renderer'
 import { createFormRenderer } from './helpers'
+import { TextInput } from './TextInput'
 
-function TextInput(props: any) {
-  return (
-    <div>
-      <label>{props.label}</label>
-      <input {...props.input} />
-    </div>
-  )
-}
 const personData: Person = {
   name: 'Stuart Bourhill',
   age: undefined!,

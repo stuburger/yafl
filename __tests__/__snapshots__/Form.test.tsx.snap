@@ -5,62 +5,112 @@ exports[`<Form /> snapshot should match previous snapshot 1`] = `
   onSubmit={[Function]}
 >
   <div>
-    <label>
+    <label
+      htmlFor="firstName"
+    >
       First Name
     </label>
     <input
+      id="firstName"
       name="firstName"
       onBlur={[Function]}
       onChange={[Function]}
       onFocus={[Function]}
     />
+    <pre
+      data-testid="extra_firstName"
+    >
+      {
+  "label": "First Name"
+}
+    </pre>
   </div>
   <div>
-    <label>
+    <label
+      htmlFor="tel"
+    >
       First Name
     </label>
     <input
+      id="tel"
       name="tel"
       onBlur={[Function]}
       onChange={[Function]}
       onFocus={[Function]}
       value="07934449898"
     />
+    <pre
+      data-testid="extra_tel"
+    >
+      {
+  "label": "First Name"
+}
+    </pre>
   </div>
   <div>
-    <label>
+    <label
+      htmlFor="email"
+    >
       Email Address
     </label>
     <input
+      id="email"
       name="email"
       onBlur={[Function]}
       onChange={[Function]}
       onFocus={[Function]}
     />
+    <pre
+      data-testid="extra_email"
+    >
+      {
+  "label": "Email Address"
+}
+    </pre>
   </div>
   <div>
-    <label>
+    <label
+      htmlFor="type"
+    >
       Type of hobby
     </label>
     <input
+      id="type"
       name="type"
       onBlur={[Function]}
       onChange={[Function]}
       onFocus={[Function]}
       value="art"
     />
+    <pre
+      data-testid="extra_type"
+    >
+      {
+  "label": "Type of hobby"
+}
+    </pre>
   </div>
   <div>
-    <label>
+    <label
+      htmlFor="name"
+    >
       Name of hobby
     </label>
     <input
+      id="name"
       name="name"
       onBlur={[Function]}
       onChange={[Function]}
       onFocus={[Function]}
       value="print making"
     />
+    <pre
+      data-testid="extra_name"
+    >
+      {
+  "label": "Name of hobby"
+}
+    </pre>
   </div>
   <pre>
     {

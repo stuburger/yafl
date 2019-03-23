@@ -98,11 +98,8 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
   function Repeat<T extends object>(props: RepeatConfig<T>) {
     if (process.env.NODE_ENV !== 'production') {
       validateName(props.name)
-      React.useEffect(() => {
-        validateName(name)
-      }, [name])
     }
-    return <RepeatController key={name} {...props} />
+    return <RepeatController key={props.name} {...props} />
   }
 
   Repeat.propTypes /* remove-proptypes */ = {

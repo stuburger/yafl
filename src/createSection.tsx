@@ -45,11 +45,8 @@ export default function<F extends object>(ctx: React.Context<FormProvider<F, any
   function Section<T extends object>(props: SectionConfig<T>) {
     if (process.env.NODE_ENV !== 'production') {
       validateName(props.name)
-      React.useEffect(() => {
-        validateName(name)
-      }, [name])
     }
-    return <SectionController key={name} {...props} />
+    return <SectionController key={props.name} {...props} />
   }
 
   Section.propTypes /* remove-proptypes */ = {

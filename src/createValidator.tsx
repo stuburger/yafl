@@ -1,17 +1,12 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import { Path, FormProvider } from './sharedTypes'
-import warning from 'tiny-warning'
 import { useSafeContext } from './useSafeContext'
+import { VALIDATOR_PATH_WARNING } from './warnings'
+import warning from 'tiny-warning'
 
 export type InnerValidatorProps = FormProvider<any> & {
   msg: string
-}
-
-function useWarning(condition: boolean, message: string) {
-  React.useEffect(() => {
-    warning(condition, message)
-  }, [condition, message])
 }
 
 export const InnerError: React.FC<InnerValidatorProps> = props => {
@@ -33,16 +28,10 @@ export default function createValidator(ctx: React.Context<FormProvider<any, any
   const Validator: React.FC<ValidatorProps> = props => {
     const yafl = useSafeContext(ctx)
 
-    const { path, msg, children = null } = props
+    const { path = [], msg, children = null } = props
 
     if (process.env.NODE_ENV !== 'production') {
-      useWarning(
-        path && path.length > 0,
-        "Invalid path. The 'path' prop on the Validator component is required when rendering a Validator " +
-          'outside of the component hierarchy of any Field, Section or Repeat components. ' +
-          'It is likely that you are seeing this message because you are ' +
-          'rendering a Validator as a direct child of your Form component.'
-      )
+      warning(path.length > 0, VALIDATOR_PATH_WARNING)
     }
 
     if (typeof msg === 'string') {
