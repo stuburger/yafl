@@ -12,12 +12,12 @@
   "./lib/yafl.cjs.development.js": {
     "bundled": 35558,
     "minified": 17554,
-    "gzipped": 5058
+    "gzipped": 5059
   },
   "lib/yafl.js": {
     "bundled": 30125,
     "minified": 16573,
-    "gzipped": 4778
+    "gzipped": 4779
   },
   "lib/yafl.esm.js": {
     "bundled": 29553,

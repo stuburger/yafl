@@ -488,8 +488,11 @@ describe('<Field />', () => {
         toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement
       })
 
-      const toggleFieldBtn = selectors.element('toggleBtn')
-      toggleFieldBtn.click()
+      // sets touched to true for this Field
+      selectors.element('fieldUnderTest').change('21')
+
+      // unmounting will unregister this Field which resets this Field's touched state
+      selectors.element('toggleBtn').click()
 
       const props = api.getFormProps()
       expect(props.touched.fieldUnderTest).toBeUndefined()
@@ -518,11 +521,95 @@ describe('<Field />', () => {
         toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement
       })
 
-      const toggleFieldBtn = selectors.element('toggleBtn')
-      toggleFieldBtn.click()
+      // this will set visited to true
+      selectors.element('fieldUnderTest').blur()
+
+      // unmounting the Field should unregister the field
+      selectors.element('toggleBtn').click()
 
       const props = api.getFormProps()
       expect(props.visited.fieldUnderTest).toBeUndefined()
+    })
+
+    it("changing a Field's name causes the field to be unregistered and reregistered", () => {
+      const { renderForm, Field } = createFormRenderer()
+      const initialValue = {
+        [TEST_FIELD_NAME]: 'wow',
+        other: 42
+      }
+      const api = renderForm(
+        { initialValue },
+        <Toggler initialValue>
+          {({ toggle, value }) => {
+            return (
+              <>
+                <button onClick={toggle}>Toggle</button>
+                <Field
+                  name={value ? TEST_FIELD_NAME : 'other'}
+                  label={value ? LABEL_SELECTOR : 'Other Label'}
+                  component={TextInput}
+                />
+              </>
+            )
+          }}
+        </Toggler>
+      )
+
+      const selectors = Selection.create({
+        [TEST_FIELD_NAME]: () => api.queryByLabelText(LABEL_SELECTOR) as HTMLInputElement,
+        other: () => api.queryByLabelText('Other Label') as HTMLInputElement,
+        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement
+      })
+
+      const input1 = selectors.element(TEST_FIELD_NAME)
+      const input2 = selectors.element('other')
+      // ensure that the field under test is initially in the dom
+
+      expect(input1.current.value).toBe('wow')
+      expect(input2.current).toBeFalsy()
+
+      // click toggle to change the name of the button
+      selectors.element('toggleBtn').click()
+
+      expect(input1.current).toBeFalsy()
+      expect(input2.current.value).toBe('42')
+    })
+
+    it('mounting a field for the first time registers the Field with the correct value', () => {
+      const { renderForm, Field } = createFormRenderer<{ [TEST_FIELD_NAME]: string }>()
+      const api = renderForm(
+        {
+          initialValue: {
+            [TEST_FIELD_NAME]: 'wow'
+          }
+        },
+        <Toggler initialValue={false}>
+          {({ toggle, value }) => {
+            return (
+              <>
+                <button onClick={toggle}>Toggle</button>
+                {value && (
+                  <Field name={TEST_FIELD_NAME} label={LABEL_SELECTOR} component={TextInput} />
+                )}
+              </>
+            )
+          }}
+        </Toggler>
+      )
+
+      const selectors = Selection.create({
+        [TEST_FIELD_NAME]: () => api.queryByLabelText(LABEL_SELECTOR) as HTMLInputElement,
+        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement
+      })
+
+      // ensure that the Field under test is initially nowhere to be seen
+      const input = selectors.element(TEST_FIELD_NAME)
+      expect(input.current).toBeFalsy()
+
+      // click toggle
+      selectors.element('toggleBtn').click()
+      // the Field should now be visible and should contain the correct value
+      expect(input.current.value).toBe('wow')
     })
   })
 })
