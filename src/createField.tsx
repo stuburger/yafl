@@ -47,7 +47,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         defaultValue: b.defaultValue,
         isValid: ((b.errors || []) as any).length === 0,
         isActive: b.activeField === stringPath,
-        isDirty: b.formIsDirty && b.initialValue === b.value,
+        isDirty: b.formIsDirty && b.initialValue !== b.value,
         submit: b.submit,
         formValue: b.formValue,
         resetForm: b.resetForm,

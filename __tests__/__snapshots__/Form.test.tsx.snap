@@ -24,6 +24,46 @@ exports[`<Form /> snapshot should match previous snapshot 1`] = `
   "label": "First Name"
 }
     </pre>
+    <span
+      data-testid="firstName_isValid"
+    >
+      true
+    </span>
+    <span
+      data-testid="firstName_isActive"
+    >
+      false
+    </span>
+    <span
+      data-testid="firstName_isDirty"
+    >
+      false
+    </span>
+    <span
+      data-testid="firstName_visited"
+    >
+      false
+    </span>
+    <span
+      data-testid="firstName_touched"
+    >
+      false
+    </span>
+    <span
+      data-testid="firstName_submitCount"
+    >
+      0
+    </span>
+    <span
+      data-testid="firstName_errors"
+    >
+      undefined
+    </span>
+    <span
+      data-testid="firstName_formValue"
+    >
+      {"name":"Stuart Bourhill","age":0,"contact":{"tel":"07934449898","address":{"code":"SW9 1EF","street":"adsfa"}},"hobbies":[{"type":"art","name":"print making"}]}
+    </span>
   </div>
   <div>
     <label
@@ -46,6 +86,46 @@ exports[`<Form /> snapshot should match previous snapshot 1`] = `
   "label": "First Name"
 }
     </pre>
+    <span
+      data-testid="tel_isValid"
+    >
+      true
+    </span>
+    <span
+      data-testid="tel_isActive"
+    >
+      false
+    </span>
+    <span
+      data-testid="tel_isDirty"
+    >
+      false
+    </span>
+    <span
+      data-testid="tel_visited"
+    >
+      false
+    </span>
+    <span
+      data-testid="tel_touched"
+    >
+      false
+    </span>
+    <span
+      data-testid="tel_submitCount"
+    >
+      0
+    </span>
+    <span
+      data-testid="tel_errors"
+    >
+      undefined
+    </span>
+    <span
+      data-testid="tel_formValue"
+    >
+      {"name":"Stuart Bourhill","age":0,"contact":{"tel":"07934449898","address":{"code":"SW9 1EF","street":"adsfa"}},"hobbies":[{"type":"art","name":"print making"}]}
+    </span>
   </div>
   <div>
     <label
@@ -67,6 +147,46 @@ exports[`<Form /> snapshot should match previous snapshot 1`] = `
   "label": "Email Address"
 }
     </pre>
+    <span
+      data-testid="email_isValid"
+    >
+      true
+    </span>
+    <span
+      data-testid="email_isActive"
+    >
+      false
+    </span>
+    <span
+      data-testid="email_isDirty"
+    >
+      false
+    </span>
+    <span
+      data-testid="email_visited"
+    >
+      false
+    </span>
+    <span
+      data-testid="email_touched"
+    >
+      false
+    </span>
+    <span
+      data-testid="email_submitCount"
+    >
+      0
+    </span>
+    <span
+      data-testid="email_errors"
+    >
+      undefined
+    </span>
+    <span
+      data-testid="email_formValue"
+    >
+      {"name":"Stuart Bourhill","age":0,"contact":{"tel":"07934449898","address":{"code":"SW9 1EF","street":"adsfa"}},"hobbies":[{"type":"art","name":"print making"}]}
+    </span>
   </div>
   <div>
     <label
@@ -89,6 +209,46 @@ exports[`<Form /> snapshot should match previous snapshot 1`] = `
   "label": "Type of hobby"
 }
     </pre>
+    <span
+      data-testid="type_isValid"
+    >
+      true
+    </span>
+    <span
+      data-testid="type_isActive"
+    >
+      false
+    </span>
+    <span
+      data-testid="type_isDirty"
+    >
+      false
+    </span>
+    <span
+      data-testid="type_visited"
+    >
+      false
+    </span>
+    <span
+      data-testid="type_touched"
+    >
+      false
+    </span>
+    <span
+      data-testid="type_submitCount"
+    >
+      0
+    </span>
+    <span
+      data-testid="type_errors"
+    >
+      undefined
+    </span>
+    <span
+      data-testid="type_formValue"
+    >
+      {"name":"Stuart Bourhill","age":0,"contact":{"tel":"07934449898","address":{"code":"SW9 1EF","street":"adsfa"}},"hobbies":[{"type":"art","name":"print making"}]}
+    </span>
   </div>
   <div>
     <label
@@ -111,6 +271,46 @@ exports[`<Form /> snapshot should match previous snapshot 1`] = `
   "label": "Name of hobby"
 }
     </pre>
+    <span
+      data-testid="name_isValid"
+    >
+      true
+    </span>
+    <span
+      data-testid="name_isActive"
+    >
+      false
+    </span>
+    <span
+      data-testid="name_isDirty"
+    >
+      false
+    </span>
+    <span
+      data-testid="name_visited"
+    >
+      false
+    </span>
+    <span
+      data-testid="name_touched"
+    >
+      false
+    </span>
+    <span
+      data-testid="name_submitCount"
+    >
+      0
+    </span>
+    <span
+      data-testid="name_errors"
+    >
+      undefined
+    </span>
+    <span
+      data-testid="name_formValue"
+    >
+      {"name":"Stuart Bourhill","age":0,"contact":{"tel":"07934449898","address":{"code":"SW9 1EF","street":"adsfa"}},"hobbies":[{"type":"art","name":"print making"}]}
+    </span>
   </div>
   <pre>
     {
