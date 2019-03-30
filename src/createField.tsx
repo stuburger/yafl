@@ -7,288 +7,236 @@ import {
   InputProps,
   FieldConfig,
   FieldMeta,
-  SetFieldValueFunc,
-  Path
+  SetFieldValueFunc
 } from './sharedTypes'
 import { toStrPath, validateName, branchByName, isSetFunc, toArray } from './utils'
-import isEqual from 'react-fast-compare'
 import { branchableProps } from './defaults'
 import FieldSink from './FieldSink'
-import createValidator, { ValidatorProps } from './createValidator'
+import createValidator from './createValidator'
+import { useSafeContext } from './useSafeContext'
 
-const listenForProps: (keyof InnerFieldProps<any, any>)[] = [
-  'name',
-  'value',
-  'errors',
-  'render',
-  'touched',
-  'visited',
-  'component',
-  'components',
-  'submitCount',
-  'branchProps',
-  'forwardProps'
-]
+function createFieldController(context: React.Context<FormProvider<any, any> | Symbol>) {
+  const Validator = createValidator(context)
 
-const watchDefault = () => false
+  type IFP<F extends object, T> = InnerFieldProps<F, T>
 
-// React.Provider<FormProvider<F, any>>
-function createField(
-  Provider: React.Provider<any>,
-  Validator: React.ComponentType<ValidatorProps>
-) {
-  return class FieldConsumer<T, F extends object> extends React.Component<InnerFieldProps<F, T>> {
-    stringPath: string
-    constructor(props: InnerFieldProps<F, T>) {
-      super(props)
-      this.onBlur = this.onBlur.bind(this)
-      this.onFocus = this.onFocus.bind(this)
-      this.onChange = this.onChange.bind(this)
-      this.setValue = this.setValue.bind(this)
-      this.touchField = this.touchField.bind(this)
-      this.visitField = this.visitField.bind(this)
-      this.collectProps = this.collectProps.bind(this)
-      this.collectMetaProps = this.collectMetaProps.bind(this)
-      this._renderComponent = this._renderComponent.bind(this)
-      this.collectInputProps = this.collectInputProps.bind(this)
-      this.stringPath = toStrPath(props.path)
-    }
+  function FieldController<T, F extends object>(props: IFP<F, T>): React.ReactElement<IFP<F, T>> {
+    const yafl = useSafeContext(context)
+    const path = yafl.path.concat(props.name)
 
-    shouldComponentUpdate(np: InnerFieldProps<F, T>) {
-      const { formValue: prev, watch: watchPrev = watchDefault } = this.props
-      const { formValue, watch = watchDefault } = np
-      return (
-        !isEqual(watch(formValue), watchPrev(prev)) ||
-        listenForProps.some(key => !isEqual(np[key], this.props[key]))
-      )
-    }
+    React.useEffect(() => {
+      yafl.registerField(path)
+      return () => yafl.unregisterField(path)
+    }, [])
 
-    setValue(value: T | SetFieldValueFunc<T>, touchField = true): void {
-      const { path, setValue, value: prev } = this.props
-      setValue(path, isSetFunc(value) ? value(prev) : value, touchField)
-    }
+    const b = branchByName<F, T, FormProvider<F, T>>(props.name, yafl, branchableProps)
 
-    touchField(touched: boolean): void {
-      const { path, touchField } = this.props
-      touchField(path, touched)
-    }
+    const stringPath = toStrPath(path)
+    const currentValue = b.value
 
-    visitField(visited: boolean): void {
-      const { path, visitField } = this.props
-      visitField(path, visited)
-    }
-
-    onChange(e: React.ChangeEvent<any>) {
-      const { sharedProps, forwardProps } = this.props
-      const onChange = this.props.onChange || sharedProps.onChange
-      if (typeof onChange === 'function') {
-        onChange(e, this.collectProps(), forwardProps)
-      }
-      if (e.isDefaultPrevented()) return
-      const { value: val, type, checked } = e.target
-
-      let value = val
-      if (/number|range/.test(type)) {
-        const par = parseFloat(value)
-        value = isNaN(par) ? '' : par
-      } else if (isCheckInput(type)) {
-        value = checked
-      }
-
-      this.setValue(value)
-    }
-
-    onFocus(e: React.FocusEvent<any>): void {
-      const { setActiveField, sharedProps, forwardProps } = this.props
-      const onFocus = this.props.onFocus || sharedProps.onFocus
-      if (typeof onFocus === 'function') {
-        onFocus(e, this.collectProps(), forwardProps)
-      }
-      if (e.isDefaultPrevented()) return
-      setActiveField(this.stringPath)
-    }
-
-    onBlur(e: React.FocusEvent<any>) {
-      const { sharedProps, visited, setActiveField, forwardProps } = this.props
-      const onBlur = this.props.onBlur || sharedProps.onBlur
-
-      if (typeof onBlur === 'function') {
-        onBlur(e, this.collectProps(), forwardProps)
-      }
-      if (e.isDefaultPrevented()) return
-      if (visited) {
-        setActiveField(null)
-      } else {
-        this.visitField(true)
-      }
-    }
-
-    collectMetaProps(): FieldMeta<F, T> {
-      const p = this.props
+    function collectMetaProps(): FieldMeta<F, T> {
       return {
-        path: this.stringPath,
-        errors: (p.errors || []) as any,
-        visited: !!p.visited,
-        touched: !!p.touched,
-        setValue: this.setValue,
-        setTouched: this.touchField,
-        setVisited: this.visitField,
-        initialValue: p.initialValue,
-        defaultValue: p.defaultValue,
-        isValid: ((p.errors || []) as any).length === 0,
-        isActive: p.activeField === this.stringPath,
-        isDirty: p.formIsDirty && p.initialValue === p.value,
-        submit: p.submit,
-        formValue: p.formValue,
-        resetForm: p.resetForm,
-        setFormValue: p.setFormValue,
-        submitCount: p.submitCount,
-        forgetState: p.forgetState,
-        setFormVisited: p.setFormVisited,
-        setFormTouched: p.setFormTouched,
-        clearForm: p.clearForm
+        path: stringPath,
+        errors: (b.errors || []) as any,
+        visited: !!b.visited,
+        touched: !!b.touched,
+        setValue: setValue,
+        setTouched: touchField,
+        setVisited: visitField,
+        initialValue: b.initialValue,
+        defaultValue: b.defaultValue,
+        isValid: ((b.errors || []) as any).length === 0,
+        isActive: b.activeField === stringPath,
+        isDirty: b.formIsDirty && b.initialValue !== b.value,
+        submit: b.submit,
+        formValue: b.formValue,
+        resetForm: b.resetForm,
+        setFormValue: b.setFormValue,
+        submitCount: b.submitCount,
+        forgetState: b.forgetState,
+        setFormVisited: b.setFormVisited,
+        setFormTouched: b.setFormTouched,
+        clearForm: b.clearForm
       }
     }
 
-    collectInputProps(): InputProps {
-      const { value, name, forwardProps: fp } = this.props
+    function collectInputProps(): InputProps {
+      const { forwardProps } = props
       return {
-        name: name.toString(),
-        value: isCheckInput(fp.type) ? fp.value : value,
-        onFocus: this.onFocus,
-        onBlur: this.onBlur,
-        onChange: this.onChange
+        name: props.name.toString(),
+        value: isCheckInput(forwardProps.type) ? forwardProps.value : b.value,
+        onFocus: onFocus,
+        onBlur: onBlur,
+        onChange: onChange
       }
     }
 
-    collectProps(): FieldProps<F, T> {
-      const { branchProps, forwardProps } = this.props
+    function collectProps(): FieldProps<F, T> {
+      const { forwardProps } = props
       return {
-        input: this.collectInputProps(),
-        meta: this.collectMetaProps(),
-        ...branchProps,
+        input: collectInputProps(),
+        meta: collectMetaProps(),
+        ...b.branchProps,
+        ...b.sharedProps,
         ...forwardProps
       }
     }
 
-    _renderComponent() {
-      const { render, component, components, forwardRef } = this.props
-      const props = this.collectProps()
-      if (component && typeof component !== 'string') {
-        const Component = component
-        return <Component ref={forwardRef} {...props} />
-      }
+    const setValue = React.useCallback(
+      (value: T | SetFieldValueFunc<T>, touchField = true): void => {
+        yafl.setValue(path, isSetFunc(value) ? value(currentValue) : value, touchField)
+      },
+      [currentValue]
+    )
 
-      if (render) {
-        return render(props)
-      }
+    const touchField = React.useCallback((touched: boolean): void => {
+      yafl.touchField(path, touched)
+    }, [])
 
-      if (typeof component === 'string') {
-        if (components[component]) {
-          const Component = components[component]
-          return <Component ref={forwardRef} {...props} />
+    const visitField = React.useCallback((visited: boolean): void => {
+      yafl.visitField(path, visited)
+    }, [])
+
+    const handleChange = props.onChange || b.sharedProps.onChange
+    const onChange = React.useCallback(
+      (e: React.ChangeEvent<any>) => {
+        if (typeof handleChange === 'function') {
+          handleChange(e, collectProps())
         }
-        const { input, meta, ...rest } = props
-        return React.createElement(component, { ...input, ...rest, ref: forwardRef })
-      }
+        if (e.isDefaultPrevented()) return
+        const { value: val, type, checked } = e.target
 
-      return <FieldSink path={props.meta.path} {...props} />
+        let value = val
+        if (/number|range/.test(type)) {
+          const par = parseFloat(value)
+          value = isNaN(par) ? '' : par
+        } else if (isCheckInput(type)) {
+          value = checked
+        }
+
+        setValue(value)
+      },
+      [handleChange]
+    )
+
+    const handleFocus = props.onFocus || b.sharedProps.onFocus
+    const onFocus = React.useCallback(
+      (e: React.FocusEvent<any>): void => {
+        if (typeof handleFocus === 'function') {
+          handleFocus(e, collectProps())
+        }
+        if (e.isDefaultPrevented()) return
+        yafl.setActiveField(stringPath)
+      },
+      [handleFocus]
+    )
+
+    const handleBlur = props.onBlur || b.sharedProps.onBlur
+    const onBlur = React.useCallback(
+      (e: React.FocusEvent<any>) => {
+        if (typeof handleBlur === 'function') {
+          handleBlur(e, collectProps())
+        }
+        if (e.isDefaultPrevented()) return
+        if (b.visited) {
+          yafl.setActiveField(null)
+        } else {
+          yafl.visitField(path, true)
+        }
+      },
+      [b.visited]
+    )
+
+    const { render, component, forwardRef } = props
+
+    let ret: React.ReactNode[] = []
+
+    const jam = collectProps()
+    if (component && typeof component !== 'string') {
+      const Component = component
+      ret = [<Component key="comp" ref={forwardRef} {...jam} />]
+    } else if (render) {
+      ret.push(render(jam))
+    } else if (typeof component === 'string') {
+      if (yafl.components[component]) {
+        const Component = yafl.components[component]
+        ret = [<Component key="comp" ref={forwardRef} {...jam} />]
+      } else {
+        const { input, meta, ...rest } = jam
+        ret = [React.createElement(component, { ...input, ...rest, ref: forwardRef, key: 'comp' })]
+      }
+    } else {
+      ret = [<FieldSink key="comp" path={jam.meta.path} {...jam} />]
     }
 
-    render() {
-      const {
-        name,
-        render,
-        component,
-        forwardProps,
-        validate = [],
-        children,
-        ...props
-      } = this.props
-      const { value, formValue } = this.props
-      const validators = toArray(validate)
-
-      return (
-        <Provider value={props}>
-          {this._renderComponent()}
+    const validators = toArray(props.validate)
+    if (validators.length > 0) {
+      ret.push(
+        <React.Fragment key="frag">
           {validators.reduceRight<React.ReactNode>(
             (ret, test) => (
-              <Validator msg={test(value, formValue)}>{ret}</Validator>
+              <Validator path={path} msg={test(currentValue, yafl.formValue)}>
+                {ret}
+              </Validator>
             ),
             null
           )}
-        </Provider>
+        </React.Fragment>
       )
     }
+
+    return <>{ret}</>
   }
+
+  return FieldController
 }
 
-export default function<F extends object>(context: React.Context<FormProvider<any, any>>) {
-  const Validator = createValidator(context)
-  const FieldConsumer = createField(context.Provider, Validator)
+export default function<F extends object>(context: React.Context<FormProvider<any, any> | Symbol>) {
+  const FieldController = createFieldController(context)
 
-  return class Field<T, F1 extends object = F> extends React.PureComponent<FieldConfig<F1, T>> {
-    context!: FormProvider<F, any>
-    path: Path
-
-    static contextType = context
-
-    static propTypes /* remove-proptypes */ = {
-      name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      type: PropTypes.string,
-      render: PropTypes.func,
-      component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node])
+  function Field<T, F1 extends object = F>(
+    props: FieldConfig<F1, T>
+  ): React.ReactElement<FieldConfig<F1, T>> {
+    if (process.env.NODE_ENV !== 'production') {
+      validateName(props.name)
     }
 
-    constructor(props: FieldConfig<F1, T>, context: FormProvider<F, any>) {
-      super(props, context)
-      if (process.env.NODE_ENV !== 'production') {
-        validateName(props.name)
-      }
-      this.path = context.path.concat(props.name)
-      this.context.registerField(this.path)
-    }
+    const {
+      name,
+      render,
+      onBlur,
+      onFocus,
+      onChange,
+      validate,
+      component,
+      forwardRef,
+      ...forwardProps
+    } = props
 
-    componentWillUnmount() {
-      this.context.unregisterField(this.path)
-    }
-
-    render() {
-      const {
-        name,
-        render,
-        children,
-        component,
-        watch,
-        onBlur,
-        onChange,
-        onFocus,
-        forwardRef,
-        validate,
-        ...forwardProps
-      } = this.props
-      const context = this.context
-
-      return (
-        <FieldConsumer<T, F1>
-          key={name}
-          watch={watch}
-          forwardRef={forwardRef}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          onChange={onChange}
-          render={render}
-          children={children}
-          component={component}
-          validate={validate}
-          forwardProps={{ ...context.sharedProps, ...forwardProps }}
-          {...branchByName(name, context, branchableProps)}
-          name={name}
-          path={this.path}
-        />
-      )
-    }
+    return (
+      <FieldController<T, F1>
+        key={name}
+        name={name}
+        render={render}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onChange={onChange}
+        validate={validate}
+        component={component}
+        forwardRef={forwardRef}
+        forwardProps={forwardProps}
+      />
+    )
   }
+
+  Field.propTypes /* remove-proptypes */ = {
+    name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    type: PropTypes.string,
+    render: PropTypes.func,
+    component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node])
+  }
+
+  return Field
 }
 
 const isCheckInput = (type?: string): type is 'radio' | 'checkbox' => {

@@ -287,10 +287,6 @@ Field components are the bread and butter of any form library and Yafl's Field's
 
 Name your field! Providing a number usually indicates that this Field appears in an array.
 
-##### `watch?: (formValue: F) => any`
-
-The `<Field />` component makes use of shouldComponentUpdate for improved performance on large forms. By default a Field will only watch for changes to values specific to it. This ensures that updates to the `formValue` do not cause every field to rerender unnecessarily, but it also means that if you do what a Field to listen to updates to the `formValue` (or any part of the `formValue`) then you have to opt in by 'watching' those changes.
-
 ##### `validate?: ((value: T, formValue: F) => string | void) | (Array<(value: T, formValue: F) => string | void)>`
 
 A validation function or array of functions that can be used to validate a field

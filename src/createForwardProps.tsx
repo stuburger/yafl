@@ -1,43 +1,39 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
-import { FormProvider, FormConfig, PropForwarderConfig } from './sharedTypes'
+import { FormProvider, PropForwarderConfig } from './sharedTypes'
 import { isObject } from './utils'
+import { useSafeContext } from './useSafeContext'
 import warning from 'tiny-warning'
+import { BRANCH_MODE_WARNING } from './warnings'
 
-export default function<F extends object>(context: React.Context<FormProvider<F, F>>) {
-  const { Provider, Consumer } = context
-  return class ForwardProps extends React.Component<PropForwarderConfig<F>> {
-    static propTypes /* remove-proptypes */ = {
-      mode: PropTypes.oneOf(['default', 'branch']),
-      children: PropTypes.node
-    }
-    static defaultProps = {
-      mode: 'default'
-    }
-    constructor(props: FormConfig<F>) {
-      super(props)
-      this._render = this._render.bind(this)
-    }
+function createForwardProps<F extends object>(context: React.Context<FormProvider<F, F> | Symbol>) {
+  const { Provider } = context
+  function ForwardProps(props: PropForwarderConfig<F>) {
+    const yafl = useSafeContext(context)
 
-    _render(ip: FormProvider<F, F>) {
-      const value = { ...ip }
-      const { children, mode, ...rest } = this.props
-      if (mode === 'branch') {
-        if (process.env.NODE_ENV !== 'production') {
-          warning(
-            Object.keys(rest).every(key => isObject(rest[key])),
-            'When using mode="branch" on the <ForwardProps /> component, all additional props must be of type object'
-          )
-        }
-        value.branchProps = { ...value.branchProps, ...rest }
-      } else {
-        value.sharedProps = { ...value.sharedProps, ...rest }
+    const value = { ...yafl }
+    const { children, mode, ...rest } = props
+    if (mode === 'branch') {
+      if (process.env.NODE_ENV !== 'production') {
+        warning(Object.keys(rest).every(key => isObject(rest[key])), BRANCH_MODE_WARNING)
       }
-      return <Provider value={value}>{children}</Provider>
+      value.branchProps = { ...value.branchProps, ...rest }
+    } else {
+      value.sharedProps = { ...value.sharedProps, ...rest }
     }
-
-    render() {
-      return <Consumer>{this._render}</Consumer>
-    }
+    return <Provider value={value}>{children}</Provider>
   }
+
+  ForwardProps.defaultProps = {
+    mode: 'default'
+  }
+
+  ForwardProps.propTypes /* remove-proptypes */ = {
+    mode: PropTypes.oneOf(['default', 'branch']),
+    children: PropTypes.node
+  }
+
+  return ForwardProps
 }
+
+export default createForwardProps
