@@ -1,7 +1,6 @@
 import { isString } from './checkType'
-import { Path } from '../sharedTypes'
 
-export default (path: Path | string): string => {
+export default (path: PathV2): string => {
   if (isString(path)) {
     return path
   } else if (Array.isArray(path) && path.every(x => isString(x) || Number.isInteger(x))) {

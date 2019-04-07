@@ -1,62 +1,54 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import {
-  FormProvider,
   InnerFieldProps,
   FieldProps,
   InputProps,
   FieldConfig,
   FieldMeta,
-  SetFieldValueFunc
+  SetFieldValueFunc,
+  CombinedContexts,
+  FormState
 } from './sharedTypes'
-import { toStrPath, validateName, branchByName, isSetFunc, toArray } from './utils'
+import { toStrPath, validateName, branchByName, isSetFunc, toArray, get } from './utils'
 import { branchableProps } from './defaults'
 import FieldSink from './FieldSink'
 import createValidator from './createValidator'
 import { useSafeContext } from './useSafeContext'
 
-function createFieldController(context: React.Context<FormProvider<any, any> | Symbol>) {
-  const Validator = createValidator(context)
+function createFieldController(ctx: CombinedContexts<any>) {
+  const Validator = createValidator(ctx)
 
   type IFP<F extends object, T> = InnerFieldProps<F, T>
 
   function FieldController<T, F extends object>(props: IFP<F, T>): React.ReactElement<IFP<F, T>> {
-    const yafl = useSafeContext(context)
-    const path = yafl.path.concat(props.name)
+    const [yafl, dispatch, config] = useSafeContext<F, T>(ctx)
 
+    const path: PathV2 = yafl.path.concat(props.name as string)
     React.useEffect(() => {
-      yafl.registerField(path)
-      return () => yafl.unregisterField(path)
+      dispatch({ type: 'register_field', payload: path })
+      return () => dispatch({ type: 'unregister_field', payload: path })
     }, [])
 
-    const b = branchByName<F, T, FormProvider<F, T>>(props.name, yafl, branchableProps)
+    const b = branchByName<F, T, FormState<F>>(props.name, yafl, branchableProps)
 
     const stringPath = toStrPath(path)
-    const currentValue = b.value
+    const currentValue = b.valueAtPath
 
+    const initialValue = get<T>(config.initialValue, path)
     function collectMetaProps(): FieldMeta<F, T> {
       return {
+        dispatch,
         path: stringPath,
         errors: (b.errors || []) as any,
         visited: !!b.visited,
         touched: !!b.touched,
-        setValue: setValue,
-        setTouched: touchField,
-        setVisited: visitField,
-        initialValue: b.initialValue,
-        defaultValue: b.defaultValue,
+        submitCount: yafl.submitCount,
+        initialValue,
         isValid: ((b.errors || []) as any).length === 0,
         isActive: b.activeField === stringPath,
-        isDirty: b.formIsDirty && b.initialValue !== b.value,
-        submit: b.submit,
-        formValue: b.formValue,
-        resetForm: b.resetForm,
-        setFormValue: b.setFormValue,
-        submitCount: b.submitCount,
-        forgetState: b.forgetState,
-        setFormVisited: b.setFormVisited,
-        setFormTouched: b.setFormTouched,
-        clearForm: b.clearForm
+        isDirty: initialValue !== b.valueAtPath,
+        formValue: b.value
       }
     }
 
@@ -64,7 +56,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
       const { forwardProps } = props
       return {
         name: props.name.toString(),
-        value: isCheckInput(forwardProps.type) ? forwardProps.value : b.value,
+        value: isCheckInput(forwardProps.type) ? forwardProps.value : b.valueAtPath,
         onFocus: onFocus,
         onBlur: onBlur,
         onChange: onChange
@@ -76,28 +68,27 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
       return {
         input: collectInputProps(),
         meta: collectMetaProps(),
-        ...b.branchProps,
-        ...b.sharedProps,
+        // ...b.branchProps,
+        // ...b.sharedProps,
         ...forwardProps
       }
     }
 
     const setValue = React.useCallback(
       (value: T | SetFieldValueFunc<T>, touchField = true): void => {
-        yafl.setValue(path, isSetFunc(value) ? value(currentValue) : value, touchField)
+        dispatch({
+          type: 'set_field_value',
+          payload: {
+            path,
+            setTouched: touchField,
+            val: isSetFunc(value) ? value(currentValue) : value
+          }
+        })
       },
       [currentValue]
     )
 
-    const touchField = React.useCallback((touched: boolean): void => {
-      yafl.touchField(path, touched)
-    }, [])
-
-    const visitField = React.useCallback((visited: boolean): void => {
-      yafl.visitField(path, visited)
-    }, [])
-
-    const handleChange = props.onChange || b.sharedProps.onChange
+    const handleChange = props.onChange // || b.sharedProps.onChange
     const onChange = React.useCallback(
       (e: React.ChangeEvent<any>) => {
         if (typeof handleChange === 'function') {
@@ -119,19 +110,19 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
       [handleChange]
     )
 
-    const handleFocus = props.onFocus || b.sharedProps.onFocus
+    const handleFocus = props.onFocus
     const onFocus = React.useCallback(
       (e: React.FocusEvent<any>): void => {
         if (typeof handleFocus === 'function') {
           handleFocus(e, collectProps())
         }
         if (e.isDefaultPrevented()) return
-        yafl.setActiveField(stringPath)
+        dispatch({ type: 'set_active_field', payload: path })
       },
       [handleFocus]
     )
 
-    const handleBlur = props.onBlur || b.sharedProps.onBlur
+    const handleBlur = props.onBlur // || b.sharedProps.onBlur
     const onBlur = React.useCallback(
       (e: React.FocusEvent<any>) => {
         if (typeof handleBlur === 'function') {
@@ -139,9 +130,9 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         }
         if (e.isDefaultPrevented()) return
         if (b.visited) {
-          yafl.setActiveField(null)
+          dispatch({ type: 'set_active_field', payload: null })
         } else {
-          yafl.visitField(path, true)
+          dispatch({ type: 'visit_field', payload: { path, visited: true } })
         }
       },
       [b.visited]
@@ -158,13 +149,8 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
     } else if (render) {
       ret.push(render(jam))
     } else if (typeof component === 'string') {
-      if (yafl.components[component]) {
-        const Component = yafl.components[component]
-        ret = [<Component key="comp" ref={forwardRef} {...jam} />]
-      } else {
-        const { input, meta, ...rest } = jam
-        ret = [React.createElement(component, { ...input, ...rest, ref: forwardRef, key: 'comp' })]
-      }
+      const { input, meta, ...rest } = jam
+      ret = [React.createElement(component, { ...input, ...rest, ref: forwardRef, key: 'comp' })]
     } else {
       ret = [<FieldSink key="comp" path={jam.meta.path} {...jam} />]
     }
@@ -175,7 +161,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         <React.Fragment key="frag">
           {validators.reduceRight<React.ReactNode>(
             (ret, test) => (
-              <Validator path={path} msg={test(currentValue, yafl.formValue)}>
+              <Validator path={path} msg={test(currentValue, yafl.value)}>
                 {ret}
               </Validator>
             ),
@@ -191,7 +177,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
   return FieldController
 }
 
-export default function<F extends object>(context: React.Context<FormProvider<any, any> | Symbol>) {
+export default function<F extends object>(context: CombinedContexts<F>) {
   const FieldController = createFieldController(context)
 
   function Field<T, F1 extends object = F>(

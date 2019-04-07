@@ -1,5 +1,5 @@
 import { isObject } from './checkType'
-import { Name, FormProvider } from '../sharedTypes'
+import { Name } from '../sharedTypes'
 
 const baseBranchProps = <T extends object>(name: Name, props: T, keysToSplit: (keyof T)[]) => {
   return keysToSplit.reduce<Partial<T>>((ret, key) => {
@@ -10,8 +10,8 @@ const baseBranchProps = <T extends object>(name: Name, props: T, keysToSplit: (k
 
 export default <F extends object, T, R>(
   name: Name,
-  props: FormProvider<F, T>,
-  keysToSplit: (keyof FormProvider<F, T>)[],
+  props: any, // FormState<F>,
+  keysToSplit: any, // (keyof FormState<F>)[],
   valueFallback?: any
 ): R => {
   const result: any = baseBranchProps(name, props, keysToSplit)

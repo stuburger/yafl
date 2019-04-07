@@ -1,5 +1,4 @@
 export type Name = string | number
-export type Path = Name[]
 
 export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 export type BooleanTree<T> = { [K in keyof T]?: T[K] extends object ? BooleanTree<T[K]> : boolean }
@@ -22,34 +21,34 @@ export interface FormMeta<T extends object> {
   /**
    * Clears all form state. formValue is reset to initialValue.
    */
-  resetForm: () => void
-  /**
-   * Calls the onSubmit function supplied to the Form component
-   */
-  submit: () => void
-  /**
-   * Resets submitCount, touched and visited. The form value is not reset.
-   */
-  forgetState: () => void
-  /**
-   * Clears all form state. formValue is reset to its defaultValue.
-   */
-  clearForm: () => void
-  /**
-   * Sets the form value imperatively.
-   * @param set A function that accepts the previous form value and returns the next form value.
-   */
-  setFormValue: (setValue: SetFormValueFunc<T>) => void
-  /**
-   * Sets the form's visited state imperatively.
-   * @param set A function that accepts the previous visited state and returns the next visited state.
-   */
-  setFormVisited: (set: SetFormVisitedFunc<T>) => void
-  /**
-   * Sets the form's touched state imperatively.
-   * @param set A function that accepts the previous touched state and returns the next touched state.
-   */
-  setFormTouched: (set: SetFormTouchedFunc<T>) => void
+  // resetForm: () => void
+  // /**
+  //  * Calls the onSubmit function supplied to the Form component
+  //  */
+  // submit: () => void
+  // /**
+  //  * Resets submitCount, touched and visited. The form value is not reset.
+  //  */
+  // forgetState: () => void
+  // /**
+  //  * Clears all form state. formValue is reset to its defaultValue.
+  //  */
+  // clearForm: () => void
+  // /**
+  //  * Sets the form value imperatively.
+  //  * @param set A function that accepts the previous form value and returns the next form value.
+  //  */
+  // setFormValue: (setValue: SetFormValueFunc<T>) => void
+  // /**
+  //  * Sets the form's visited state imperatively.
+  //  * @param set A function that accepts the previous visited state and returns the next visited state.
+  //  */
+  // setFormVisited: (set: SetFormVisitedFunc<T>) => void
+  // /**
+  //  * Sets the form's touched state imperatively.
+  //  * @param set A function that accepts the previous touched state and returns the next touched state.
+  //  */
+  // setFormTouched: (set: SetFormTouchedFunc<T>) => void
 }
 
 export interface SetFormValueFunc<T extends object> {
@@ -137,25 +136,9 @@ export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
    */
   initialValue: T
   /**
-   * The default value that this Field was initialized with.
+   * Used to dispatch a form Action
    */
-  defaultValue: T
-  /**
-   * Sets the value for this Field.
-   * @param value The value to set.
-   * @param touch Optionally specify if this Field should be touched when this function is called. Default is true.
-   */
-  setValue: (value: T | SetFieldValueFunc<T>, touch?: boolean) => void
-  /**
-   * Sets the visited state for this Field.
-   * @param value The boolean value to which this Field's visited state should be set.
-   */
-  setVisited: (value: boolean) => void
-  /**
-   * Sets the visited state for this Field.
-   * @param value The boolean value to which this Field's touched state should be set.
-   */
-  setTouched: (value: boolean) => void
+  dispatch: React.Dispatch<Action<F>>
 }
 
 export interface InnerFieldProps<F extends object, T = any> {
@@ -176,28 +159,22 @@ export interface FieldValidator<T, F extends object> {
   (value: T, formValue: F): ValidationResult
 }
 
-export interface FormState<F extends object> {
-  formValue: F
-  defaultValue: F
+export interface FormState<F extends object, T = any> {
+  path: PathV2
+  value: F
+
+  activeField: string | null
   errorCount: number
   submitCount: number
+
+  fieldRegister: string[]
+
+  initialValue?: F
+
+  valueAtPath: T
   errors: FormErrors<F>
-  initialMount: boolean
   touched: BooleanTree<F>
   visited: BooleanTree<F>
-  /**
-   * Used to determine if the intialValue did change. This is so that we can *'reset'*
-   * the form declaritively when `props.intialValue` changes.
-   */
-  initialValue: F | null
-  /**
-   * Used to calculate the `formIsDirty` flag and contains the
-   * value of the form after after the inital render i.e. once `initialValue`
-   * has be merged with `defaultValue`. This is necessary because `initialValue`
-   * needs to be left *as is* in order to determine when the form should be re-initialized.
-   */
-  startingValue: F
-  activeField: string | null
 }
 
 export interface RepeatConfig<T> {
@@ -271,41 +248,6 @@ export interface SharedFieldProps<F extends object> {
   [key: string]: any
 }
 
-export interface FormProvider<F extends object, T = F> {
-  path: Path
-  value: T
-  defaultValue: T
-  initialValue: T
-  errorCount: number
-  formValue: F
-  branchProps: any
-  initialMount: boolean
-  touched: BooleanTree<any>
-  visited: BooleanTree<any>
-  activeField: string | null
-  components: ComponentTypes<F>
-  submitCount: number
-  formIsValid: boolean
-  formIsDirty: boolean
-  errors: FormErrors<F>
-  submit: () => void
-  resetForm: () => void
-  clearForm: () => void
-  forgetState: () => void
-  sharedProps: SharedFieldProps<F>
-  setActiveField: (path: string | null) => void
-  touchField: (path: Path, touched: boolean) => void
-  visitField: (path: Path, visited: boolean) => void
-  registerError: (path: Path, error: string) => void
-  unregisterError: (path: Path, error: string) => void
-  setFormValue: (setFunc: SetFormValueFunc<F>) => void
-  setValue: (path: Path, value: any, setTouched?: boolean) => void
-  setFormTouched: (setFunc: SetFormTouchedFunc<F>) => void
-  setFormVisited: (setFunc: SetFormVisitedFunc<F>) => void
-  unregisterField: (path: Path) => void
-  registerField: (path: Path) => void
-}
-
 export interface FormProps<F extends object> extends FormMeta<F> {
   /**
    * Indicates if the Form has mounted. Field's are only registerd once initialMount becomes true.
@@ -377,20 +319,121 @@ export interface Address {
   street: string
 }
 
+export type IncSubmitCountAction = { type: 'inc_submit_count' }
+export type ForgetStateAction = { type: 'forget_state' }
+export type RegisterFieldAction = { type: 'register_field'; payload: PathV2 }
+export type UnregisterFieldAction = {
+  type: 'unregister_field'
+  payload: PathV2
+}
+
+export interface InitializeFormPayload<F extends object> {
+  value?: F
+  touched?: BooleanTree<any>
+  visited?: BooleanTree<any>
+  submitCount?: number
+}
+
+export type InitializeFormAction<F extends object> = {
+  type: 'initialize_form'
+  payload: InitializeFormPayload<F>
+}
+
+export type RegisterErrorAction = {
+  type: 'register_error'
+  payload: {
+    path: PathV2
+    error: string
+  }
+}
+
+export type UnregisterErrorAction = {
+  type: 'unregister_error'
+  payload: {
+    path: PathV2
+    error: string
+  }
+}
+
+export type ResetFormAction<F extends object> = {
+  type: 'reset_form'
+  payload: F
+}
+
+export type SetActiveFieldAction = {
+  type: 'set_active_field'
+  payload: PathV2 | null
+}
+
+export type TouchFieldAction = {
+  type: 'touch_field'
+  payload: {
+    path: PathV2
+    touched: boolean
+  }
+}
+
+export type VisitFieldAction = {
+  type: 'visit_field'
+  payload: {
+    path: PathV2
+    visited: boolean
+  }
+}
+
+export type SetFieldValueAction = {
+  type: 'set_field_value'
+  payload: {
+    path: PathV2
+    val: any
+    setTouched: boolean
+  }
+}
+
+export type SetFormValueAction<F extends object> = {
+  type: 'set_form_value'
+  payload: F
+}
+
+export type SetFormVisited<F extends object> = {
+  type: 'set_form_visited'
+  payload: BooleanTree<F>
+}
+
+export type SetFormTouched<F extends object> = {
+  type: 'set_form_touched'
+  payload: BooleanTree<F>
+}
+
+export type Action<F extends object> =
+  | RegisterFieldAction
+  | UnregisterFieldAction
+  | RegisterErrorAction
+  | UnregisterErrorAction
+  | IncSubmitCountAction
+  | ForgetStateAction
+  | ResetFormAction<F>
+  | SetFieldValueAction
+  | SetActiveFieldAction
+  | VisitFieldAction
+  | TouchFieldAction
+  | InitializeFormAction<F>
+  | SetFormValueAction<F>
+  | SetFormTouched<F>
+  | SetFormVisited<F>
+
 export interface FormConfig<T extends object> {
   initialValue?: T
-  defaultValue?: T
   disabled?: boolean
   initialSubmitCount?: number
   initialTouched?: BooleanTree<T>
   initialVisited?: BooleanTree<T>
-  children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)
+  children:
+    | React.ReactNode
+    | ((formState: FormState<T>, dispatch: React.Dispatch<Action<T>>) => React.ReactNode)
   submitUnregisteredValues?: boolean
-  persistFieldState?: boolean
-  disableReinitialize?: boolean
-  onSubmit?: (formValue: T, props: FormProps<T>) => boolean | void
+  onSubmit?: (formValue: FormState<T>, dispatch: React.Dispatch<Action<T>>) => boolean | void
   rememberStateOnReinitialize?: boolean
-  components?: ComponentTypes<T>
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
   onFormValueChange?: (prev: T, next: T) => void
 }
@@ -399,4 +442,10 @@ export interface PropForwarderConfig<T extends object> extends SharedFieldProps<
   children: React.ReactNode
   mode?: 'default' | 'branch'
   [key: string]: any
+}
+
+export interface CombinedContexts<F extends object> {
+  state: React.Context<FormState<F> | Symbol>
+  dispatch: React.Context<React.Dispatch<Action<F>>>
+  config: React.Context<FormConfig<F>>
 }

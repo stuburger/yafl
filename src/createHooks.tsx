@@ -1,8 +1,7 @@
-import * as React from 'react'
-import { FormProvider } from './sharedTypes'
+import { CombinedContexts } from './sharedTypes'
 import { useSafeContext } from './useSafeContext'
 
-function createHooks<F extends object>(context: React.Context<FormProvider<F> | Symbol>) {
+function createHooks<F extends object>(context: CombinedContexts<F>) {
   function useYaflContext() {
     return useSafeContext(context)
   }

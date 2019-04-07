@@ -1,10 +1,9 @@
-import { FormProvider } from './sharedTypes'
+import { FormState } from './sharedTypes'
 
-export const branchableProps: (keyof FormProvider<any>)[] = [
+export const branchableProps: (keyof FormState<any>)[] = [
   'touched',
   'visited',
   'errors',
-  'value',
-  'initialValue',
-  'defaultValue'
+  'valueAtPath',
+  'initialValue'
 ]

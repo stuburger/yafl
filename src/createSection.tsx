@@ -1,13 +1,9 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import { validateName, branchByName, isSetFunc } from './utils'
-import { Name, FormProvider, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
+import { Name, SectionHelpers, SetFieldValueFunc, CombinedContexts, FormState } from './sharedTypes'
 import { branchableProps } from './defaults'
 import { useSafeContext } from './useSafeContext'
-
-export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
-  children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
-}
 
 export interface SectionConfig<T> {
   name: Name
@@ -15,30 +11,33 @@ export interface SectionConfig<T> {
   children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
 }
 
-export default function<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
+export default function<F extends object>(ctx: CombinedContexts<F>) {
   function SectionController<T extends object>(props: SectionConfig<T>) {
     const { children, name, fallback } = props
-    const yafl = useSafeContext<F, T>(ctx)
+    const [yafl, dispatch] = useSafeContext<F, T>(ctx)
 
-    const path = yafl.path.concat(name)
+    const path: PathV2 = yafl.path.concat(name as string)
     React.useEffect(() => {
-      yafl.registerField(path)
-      return () => yafl.unregisterField(path)
+      dispatch({ type: 'register_field', payload: path })
+      return () => dispatch({ type: 'unregister_field', payload: path })
     }, [])
 
-    const b = branchByName<F, T, FormProvider<F, T>>(name, yafl, branchableProps, fallback)
+    const b = branchByName<F, T, FormState<F>>(name, yafl, branchableProps, fallback)
 
     const setValue = React.useCallback(
       (value: T | SetFieldValueFunc<T>): void => {
-        yafl.setValue(path, isSetFunc(value) ? value(b.value) : value, false)
+        dispatch({
+          type: 'set_field_value',
+          payload: { path, val: isSetFunc(value) ? value(b.valueAtPath) : value, setTouched: false }
+        })
       },
-      [b.value]
+      [b.valueAtPath]
     )
 
     return (
-      <ctx.Provider value={{ ...b, path }}>
-        {typeof children === 'function' ? children(b.value, { setValue }) : children}
-      </ctx.Provider>
+      <ctx.state.Provider value={{ ...b, path }}>
+        {typeof children === 'function' ? children(b.valueAtPath, { setValue }) : children}
+      </ctx.state.Provider>
     )
   }
 
