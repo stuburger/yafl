@@ -160,18 +160,11 @@ export interface FieldValidator<T, F extends object> {
 }
 
 export interface FormState<F extends object, T = any> {
+  value: T
   path: PathV2
-  value: F
-
   activeField: string | null
   errorCount: number
   submitCount: number
-
-  fieldRegister: string[]
-
-  initialValue?: F
-
-  valueAtPath: T
   errors: FormErrors<F>
   touched: BooleanTree<F>
   visited: BooleanTree<F>
@@ -239,13 +232,6 @@ export interface SectionHelpers<T> {
    * the previous value of the array and returns the next value.
    */
   setValue: (value: T | SetFieldValueFunc<T>) => void
-}
-
-export interface SharedFieldProps<F extends object> {
-  onChange?: <T = any>(e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
-  onBlur?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  onFocus?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  [key: string]: any
 }
 
 export interface FormProps<F extends object> extends FormMeta<F> {
@@ -335,7 +321,7 @@ export interface InitializeFormPayload<F extends object> {
 }
 
 export type InitializeFormAction<F extends object> = {
-  type: 'initialize_form'
+  type: 'set_form_state'
   payload: InitializeFormPayload<F>
 }
 
@@ -428,9 +414,7 @@ export interface FormConfig<T extends object> {
   initialSubmitCount?: number
   initialTouched?: BooleanTree<T>
   initialVisited?: BooleanTree<T>
-  children:
-    | React.ReactNode
-    | ((formState: FormState<T>, dispatch: React.Dispatch<Action<T>>) => React.ReactNode)
+  children: React.ReactNode | ((formState: FormState<T>, submit: () => void) => React.ReactNode)
   submitUnregisteredValues?: boolean
   onSubmit?: (formValue: FormState<T>, dispatch: React.Dispatch<Action<T>>) => boolean | void
   rememberStateOnReinitialize?: boolean
@@ -438,9 +422,8 @@ export interface FormConfig<T extends object> {
   onFormValueChange?: (prev: T, next: T) => void
 }
 
-export interface PropForwarderConfig<T extends object> extends SharedFieldProps<T> {
+export interface PropForwarderConfig {
   children: React.ReactNode
-  mode?: 'default' | 'branch'
   [key: string]: any
 }
 
@@ -448,4 +431,8 @@ export interface CombinedContexts<F extends object> {
   state: React.Context<FormState<F> | Symbol>
   dispatch: React.Context<React.Dispatch<Action<F>>>
   config: React.Context<FormConfig<F>>
+  register: React.Context<(path: PathV2) => void>
+  formValue: React.Context<F>
+  submit: React.Context<() => void>
+  branch: React.Context<any>
 }

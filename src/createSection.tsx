@@ -14,7 +14,7 @@ export interface SectionConfig<T> {
 export default function<F extends object>(ctx: CombinedContexts<F>) {
   function SectionController<T extends object>(props: SectionConfig<T>) {
     const { children, name, fallback } = props
-    const [yafl, dispatch] = useSafeContext<F, T>(ctx)
+    const { state: yafl, dispatch } = useSafeContext<F>(ctx)
 
     const path: PathV2 = yafl.path.concat(name as string)
     React.useEffect(() => {
@@ -28,15 +28,15 @@ export default function<F extends object>(ctx: CombinedContexts<F>) {
       (value: T | SetFieldValueFunc<T>): void => {
         dispatch({
           type: 'set_field_value',
-          payload: { path, val: isSetFunc(value) ? value(b.valueAtPath) : value, setTouched: false }
+          payload: { path, val: isSetFunc(value) ? value(b.value) : value, setTouched: false }
         })
       },
-      [b.valueAtPath]
+      [b.value]
     )
 
     return (
       <ctx.state.Provider value={{ ...b, path }}>
-        {typeof children === 'function' ? children(b.valueAtPath, { setValue }) : children}
+        {typeof children === 'function' ? children(b.value, { setValue }) : children}
       </ctx.state.Provider>
     )
   }

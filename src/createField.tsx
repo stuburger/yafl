@@ -15,6 +15,7 @@ import { branchableProps } from './defaults'
 import FieldSink from './FieldSink'
 import createValidator from './createValidator'
 import { useSafeContext } from './useSafeContext'
+import { setFieldValue, setActiveField } from './actionCreators'
 
 function createFieldController(ctx: CombinedContexts<any>) {
   const Validator = createValidator(ctx)
@@ -22,33 +23,33 @@ function createFieldController(ctx: CombinedContexts<any>) {
   type IFP<F extends object, T> = InnerFieldProps<F, T>
 
   function FieldController<T, F extends object>(props: IFP<F, T>): React.ReactElement<IFP<F, T>> {
-    const [yafl, dispatch, config] = useSafeContext<F, T>(ctx)
+    const { state: yafl, dispatch, config, register, formValue, branch } = useSafeContext<F>(ctx)
 
     const path: PathV2 = yafl.path.concat(props.name as string)
     React.useEffect(() => {
-      dispatch({ type: 'register_field', payload: path })
-      return () => dispatch({ type: 'unregister_field', payload: path })
+      register(path)
+      return () => register(path)
     }, [])
 
     const b = branchByName<F, T, FormState<F>>(props.name, yafl, branchableProps)
 
     const stringPath = toStrPath(path)
-    const currentValue = b.valueAtPath
+    const currentValue = b.value
 
     const initialValue = get<T>(config.initialValue, path)
     function collectMetaProps(): FieldMeta<F, T> {
       return {
         dispatch,
+        formValue,
+        initialValue,
         path: stringPath,
         errors: (b.errors || []) as any,
         visited: !!b.visited,
         touched: !!b.touched,
         submitCount: yafl.submitCount,
-        initialValue,
         isValid: ((b.errors || []) as any).length === 0,
         isActive: b.activeField === stringPath,
-        isDirty: initialValue !== b.valueAtPath,
-        formValue: b.value
+        isDirty: initialValue !== b.value
       }
     }
 
@@ -56,7 +57,7 @@ function createFieldController(ctx: CombinedContexts<any>) {
       const { forwardProps } = props
       return {
         name: props.name.toString(),
-        value: isCheckInput(forwardProps.type) ? forwardProps.value : b.valueAtPath,
+        value: isCheckInput(forwardProps.type) ? forwardProps.value : b.value,
         onFocus: onFocus,
         onBlur: onBlur,
         onChange: onChange
@@ -68,7 +69,7 @@ function createFieldController(ctx: CombinedContexts<any>) {
       return {
         input: collectInputProps(),
         meta: collectMetaProps(),
-        // ...b.branchProps,
+        ...branch,
         // ...b.sharedProps,
         ...forwardProps
       }
@@ -76,14 +77,8 @@ function createFieldController(ctx: CombinedContexts<any>) {
 
     const setValue = React.useCallback(
       (value: T | SetFieldValueFunc<T>, touchField = true): void => {
-        dispatch({
-          type: 'set_field_value',
-          payload: {
-            path,
-            setTouched: touchField,
-            val: isSetFunc(value) ? value(currentValue) : value
-          }
-        })
+        const nextVal = isSetFunc(value) ? value(currentValue) : value
+        dispatch(setFieldValue(path, nextVal, touchField))
       },
       [currentValue]
     )
@@ -117,7 +112,7 @@ function createFieldController(ctx: CombinedContexts<any>) {
           handleFocus(e, collectProps())
         }
         if (e.isDefaultPrevented()) return
-        dispatch({ type: 'set_active_field', payload: path })
+        dispatch(setActiveField(path))
       },
       [handleFocus]
     )

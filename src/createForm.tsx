@@ -1,6 +1,6 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
-import { get, toStrPath } from './utils'
+import { get, toStrPath, constructFrom } from './utils'
 import immutable from 'object-path-immutable'
 import {
   FormState,
@@ -17,10 +17,7 @@ function getInitialState(props: FormConfig<any>): FormState<any> {
     errors: {},
     errorCount: 0,
     activeField: null,
-    fieldRegister: [],
-    valueAtPath: props.initialValue,
     value: props.initialValue,
-    initialValue: props.initialValue,
     visited: props.initialVisited || {},
     touched: props.initialTouched || {},
     submitCount: props.initialSubmitCount || 0
@@ -29,21 +26,6 @@ function getInitialState(props: FormConfig<any>): FormState<any> {
 
 function reducer<F extends object>(state: FormState<F>, action: Action<F>): FormState<F> {
   switch (action.type) {
-    case 'register_field': {
-      return {
-        ...state,
-        fieldRegister: [...state.fieldRegister, toStrPath(action.payload)]
-      }
-    }
-    case 'unregister_field': {
-      const strPath = toStrPath(action.payload)
-      // I used to reset touched and visited for the specific field here,
-      // but I dont see why that clean up is necessary
-      return {
-        ...state,
-        fieldRegister: state.fieldRegister.filter(p => p !== strPath)
-      }
-    }
     case 'register_error': {
       const { path, error } = action.payload
       const curr = get(state.errors, path, [])
@@ -66,12 +48,11 @@ function reducer<F extends object>(state: FormState<F>, action: Action<F>): Form
         errorCount: state.errorCount - 1
       }
     }
-    case 'initialize_form': {
+    case 'set_form_state': {
       return {
         ...state,
         ...action.payload,
-        valueAtPath: action.payload.value,
-        initialValue: action.payload.value
+        value: action.payload.value
       }
     }
     case 'inc_submit_count': {
@@ -93,8 +74,7 @@ function reducer<F extends object>(state: FormState<F>, action: Action<F>): Form
         ...state,
         submitCount: 0,
         touched: {},
-        visited: {},
-        value: state.initialValue || ({} as F)
+        visited: {}
       }
     }
     case 'set_field_value': {
@@ -103,15 +83,13 @@ function reducer<F extends object>(state: FormState<F>, action: Action<F>): Form
       return {
         ...state,
         value: formValue,
-        valueAtPath: formValue,
         touched: setTouched ? immutable.set(state.touched, path, true) : state.touched
       }
     }
     case 'set_form_value': {
       return {
         ...state,
-        value: action.payload,
-        valueAtPath: action.payload
+        value: action.payload
       }
     }
     case 'set_active_field': {
@@ -156,25 +134,33 @@ function reducer<F extends object>(state: FormState<F>, action: Action<F>): Form
 
 export default function<F extends object>(ctx: CombinedContexts<F>) {
   function Form(props: FormConfig<F>) {
-    const [state, d] = React.useReducer<React.Reducer<FormState<F>, Action<F>>>(
+    const fieldRegisterRef = React.useRef<string[]>([])
+
+    const { disabled, children, initialValue, submitUnregisteredValues } = props
+
+    const [state, _dispatch] = React.useReducer<React.Reducer<FormState<F>, Action<F>>>(
       reducer,
       getInitialState(props)
     )
 
-    const { disabled, rememberStateOnReinitialize, initialValue, children } = props
-
     const dispatch = React.useCallback(
-      function dispatchIfEnabled(action: Action<F>) {
-        if (!disabled || action.type.includes('register')) {
-          // maybe remove includes() fieldRegister is stored in a ref
-          d(action)
-        }
+      (action: Action<F>) => {
+        if (!disabled) _dispatch(action)
       },
       [disabled]
     )
 
+    const registerField = React.useCallback((path: PathV2) => {
+      const p = toStrPath(path)
+      if (!fieldRegisterRef.current.includes(p)) {
+        fieldRegisterRef.current.push(p)
+      } else {
+        fieldRegisterRef.current.filter(x => x !== p)
+      }
+    }, [])
+
     useDeepCompareEffect<[F]>(
-      function formValueChanged(prev) {
+      prev => {
         const { onFormValueChange = () => {} } = props
         onFormValueChange(prev[0], state.value)
       },
@@ -184,35 +170,47 @@ export default function<F extends object>(ctx: CombinedContexts<F>) {
     useDeepCompareEffect(() => {
       const payload: InitializeFormPayload<F> = {}
 
-      if (!rememberStateOnReinitialize) {
-        payload.submitCount = 0
-        payload.touched = {}
-        payload.visited = {}
-      }
-
       payload.value = initialValue || ({} as F)
 
-      d({ type: 'initialize_form', payload })
+      if (!props.rememberStateOnReinitialize) {
+        payload.touched = props.initialTouched
+        payload.visited = props.initialVisited
+        payload.submitCount = props.initialSubmitCount
+      }
+
+      _dispatch({ type: 'set_form_state', payload })
     }, [initialValue])
 
-    // const submit = () => {
-    //   const { submitUnregisteredValues, onSubmit } = props
-    //   if (!onSubmit) return
-    //   const { value: formValue, fieldRegister } = state
-    //   const inc = submitUnregisteredValues
-    //     ? onSubmit(state, dispatch)
-    //     : onSubmit({ ...state, value: constructFrom(formValue, fieldRegister) }, dispatch)
-    //   if (inc !== false) {
-    //     dispatch({ type: 'inc_submit_count' })
-    //   }
-    // }
+    const { value: formValue } = state
+
+    const submit = React.useCallback(() => {
+      const { onSubmit } = props
+      if (!onSubmit) return
+      const inc = submitUnregisteredValues
+        ? onSubmit(state, dispatch)
+        : onSubmit(
+            { ...state, value: constructFrom(formValue, fieldRegisterRef.current) },
+            dispatch
+          )
+      if (inc !== false) {
+        dispatch({ type: 'inc_submit_count' })
+      }
+    }, [fieldRegisterRef.current, props.onSubmit, submitUnregisteredValues, state.value])
 
     return (
-      <ctx.dispatch.Provider value={dispatch}>
+      <ctx.config.Provider value={props}>
         <ctx.state.Provider value={state}>
-          {typeof children === 'function' ? children(state, dispatch) : children}
+          <ctx.dispatch.Provider value={dispatch}>
+            <ctx.submit.Provider value={submit}>
+              <ctx.register.Provider value={registerField}>
+                <ctx.formValue.Provider value={state.value}>
+                  {typeof children === 'function' ? children(state, submit) : children}
+                </ctx.formValue.Provider>
+              </ctx.register.Provider>
+            </ctx.submit.Provider>
+          </ctx.dispatch.Provider>
         </ctx.state.Provider>
-      </ctx.dispatch.Provider>
+      </ctx.config.Provider>
     )
   }
 
@@ -272,17 +270,4 @@ const setActiveField = (activeField: string | null) => {
     }
 
 
-    const registerError = (path: Path, error: string) => {
-      dispatch({
-        type: 'register_error',
-        payload: { path, error }
-      })
-    }
-
-    const unregisterError = (path: Path, error: string) => {
-      dispatch({
-        type: 'unregister_error',
-        payload: { path, error }
-      })
-    }
     */

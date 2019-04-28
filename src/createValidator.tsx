@@ -36,7 +36,7 @@ export default function createValidator(ctx: CombinedContexts<any>) {
       warning(path.length > 0, VALIDATOR_PATH_WARNING)
     }
 
-    const [, dispatch] = useSafeContext(ctx)
+    const { dispatch } = useSafeContext(ctx)
     if (typeof msg === 'string') {
       return <InnerError key={msg + path} msg={msg} path={path} dispatch={dispatch} />
     }
