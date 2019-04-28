@@ -23,7 +23,11 @@ function createFieldController(ctx: CombinedContexts<any>) {
   type IFP<F extends object, T> = InnerFieldProps<F, T>
 
   function FieldController<T, F extends object>(props: IFP<F, T>): React.ReactElement<IFP<F, T>> {
-    const { state: yafl, dispatch, config, register, formValue, branch } = useSafeContext<F>(ctx)
+    const { state: yafl, dispatch } = useSafeContext<F>(ctx)
+    const config = React.useContext(ctx.config)
+    const register = React.useContext(ctx.register)
+    const formValue = React.useContext(ctx.formValue)
+    const branch = React.useContext(ctx.branch)
 
     const path: PathV2 = yafl.path.concat(props.name as string)
     React.useEffect(() => {
