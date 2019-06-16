@@ -5,6 +5,5 @@ export const branchableProps: (keyof FormProvider<any>)[] = [
   'visited',
   'errors',
   'value',
-  'initialValue',
-  'defaultValue'
+  'initialValue'
 ]
