@@ -1,28 +1,28 @@
 {
   "./lib/yafl.umd.production.js": {
-    "bundled": 44974,
-    "minified": 17663,
-    "gzipped": 5518
+    "bundled": 42099,
+    "minified": 16504,
+    "gzipped": 5258
   },
   "./lib/yafl.cjs.production.js": {
-    "bundled": 32764,
-    "minified": 16122,
-    "gzipped": 4495
+    "bundled": 30123,
+    "minified": 14828,
+    "gzipped": 4222
   },
   "./lib/yafl.cjs.development.js": {
-    "bundled": 34405,
-    "minified": 17259,
-    "gzipped": 4985
+    "bundled": 31764,
+    "minified": 15965,
+    "gzipped": 4706
   },
   "lib/yafl.js": {
-    "bundled": 30196,
-    "minified": 16575,
-    "gzipped": 4807
+    "bundled": 27618,
+    "minified": 15281,
+    "gzipped": 4524
   },
   "lib/yafl.esm.js": {
-    "bundled": 29644,
-    "minified": 16055,
-    "gzipped": 4727,
+    "bundled": 27066,
+    "minified": 14761,
+    "gzipped": 4447,
     "treeshaked": {
       "rollup": {
         "code": 106,

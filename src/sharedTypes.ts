@@ -32,10 +32,6 @@ export interface FormMeta<T extends object> {
    */
   forgetState: () => void
   /**
-   * Clears all form state. formValue is reset to its defaultValue.
-   */
-  clearForm: () => void
-  /**
    * Sets the form value imperatively.
    * @param set A function that accepts the previous form value and returns the next form value.
    */
@@ -271,7 +267,6 @@ export interface FormProvider<F extends object, T = F> {
   errors: FormErrors<F>
   submit: () => void
   resetForm: () => void
-  clearForm: () => void
   forgetState: () => void
   sharedProps: SharedFieldProps<F>
   setActiveField: (path: string | null) => void

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
-import { get, noop, toStrPath, constructFrom, assignDefaults } from './utils'
+import { get, noop, toStrPath, constructFrom } from './utils'
 import isEqual from 'react-fast-compare'
 import immutable from 'object-path-immutable'
 import {
@@ -32,6 +32,8 @@ function whenEnabled(func: Function, defaultFunc = noop) {
 }
 
 export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {
+  type RFC = Required<FormConfig<F>>
+
   return class Form extends React.Component<FormConfig<F>, FormState<F>> {
     static propTypes /* remove-proptypes */ = {
       onSubmit: PropTypes.func.isRequired,
@@ -55,7 +57,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setValue = disabledGuard(this.setValue.bind(this))
       this.visitField = disabledGuard(this.visitField.bind(this))
       this.forgetState = disabledGuard(this.forgetState.bind(this))
-      this.clearForm = disabledGuard(this.clearForm.bind(this))
       this.touchField = disabledGuard(this.touchField.bind(this))
       this.setActiveField = disabledGuard(this.setActiveField.bind(this))
       this.resetForm = disabledGuard(this.resetForm.bind(this))
@@ -69,11 +70,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.incSubmitCount = this.incSubmitCount.bind(this)
       this.collectFormProps = this.collectFormProps.bind(this)
 
-      const { initialValue = {}, defaultValue = {} } = props
+      const { initialValue: formValue } = props as RFC
 
       this.state = {
+        formValue,
         initialMount: false,
-        formValue: assignDefaults({}, initialValue, defaultValue),
         activeField: null,
         touched: {},
         visited: {},
@@ -88,7 +89,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       rememberStateOnReinitialize: false,
       submitUnregisteredValues: false,
       initialValue: {},
-      defaultValue: {},
       initialTouched: {},
       initialVisited: {},
       initialSubmitCount: 0,
@@ -99,22 +99,17 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setState({ initialMount: true })
     }
 
-    shouldComponentUpdate(pp: FormConfig<F>, ps: FormState<F>) {
-      return ps !== this.state || !isEqual(pp, this.props)
-    }
-
     componentDidUpdate(pp: FormConfig<F>, ps: FormState<F>) {
       const {
         onFormValueChange,
         initialValue,
-        defaultValue,
         initialTouched,
         initialVisited,
         initialSubmitCount,
         onStateChange,
         disableReinitialize,
         rememberStateOnReinitialize
-      } = this.props as Required<FormConfig<F>>
+      } = this.props as RFC
 
       const { formValue } = this.state
 
@@ -127,8 +122,7 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       }
 
       if (!disableReinitialize && !isEqual(pp.initialValue, initialValue)) {
-        const formValue = assignDefaults({}, initialValue, defaultValue)
-        const update = { formValue } as FormState<F>
+        const update = { formValue: initialValue } as FormState<F>
 
         if (!rememberStateOnReinitialize) {
           update.touched = initialTouched
@@ -243,28 +237,15 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       this.setState({ activeField })
     }
 
-    clearForm() {
-      const { defaultValue = {} as F } = this.props
-      this.setState(() => ({
-        formValue: defaultValue
-      }))
-    }
-
     resetForm() {
-      const {
-        defaultValue = {},
-        initialValue = {},
-        initialVisited = {},
-        initialTouched = {},
-        initialSubmitCount = 0
-      } = this.props
+      const { initialValue, initialVisited, initialTouched, initialSubmitCount } = this.props as RFC
 
-      this.setState(() => ({
+      this.setState({
+        formValue: initialValue,
         visited: initialVisited,
         touched: initialTouched,
-        submitCount: initialSubmitCount,
-        formValue: assignDefaults({}, initialValue, defaultValue)
-      }))
+        submitCount: initialSubmitCount
+      })
     }
 
     forgetState() {
@@ -277,14 +258,13 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
 
     collectFormProps(): FormProps<F> {
       const { formValue, errorCount, initialMount, ...state } = this.state
-      const { initialValue = {} as F, defaultValue = {} as F } = this.props
-      const formIsValid = !initialMount || errorCount === 0
+      const { initialValue } = this.props as RFC
 
-      const startingValue = assignDefaults({}, initialValue, defaultValue)
-      const formIsDirty = initialMount && !isEqual(startingValue, formValue)
+      const formIsValid = !initialMount || errorCount === 0
+      const formIsDirty = initialMount && !isEqual(initialValue, formValue)
 
       return {
-        formValue: assignDefaults({}, formValue, defaultValue),
+        formValue,
         errorCount,
         formIsDirty,
         formIsValid,
@@ -297,7 +277,6 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         submitCount: state.submitCount,
         submit: this.submit,
         resetForm: this.resetForm,
-        clearForm: this.clearForm,
         forgetState: this.forgetState,
         setFormTouched: this.setTouched,
         setFormVisited: this.setVisited,
@@ -319,15 +298,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
             path: startingPath,
             submit: this.submit,
             setValue: this.setValue,
-            clearForm: this.clearForm,
-            resetForm: this.resetForm,
             value: this.state.formValue,
             visitField: this.visitField,
             touchField: this.touchField,
-            forgetState: this.forgetState,
-            setFormTouched: this.setTouched,
-            setFormVisited: this.setVisited,
-            setFormValue: this.setFormValue,
             registerError: this.registerError,
             registerField: this.registerField,
             setActiveField: this.setActiveField,

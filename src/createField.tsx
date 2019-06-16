@@ -54,8 +54,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         submitCount: b.submitCount,
         forgetState: b.forgetState,
         setFormVisited: b.setFormVisited,
-        setFormTouched: b.setFormTouched,
-        clearForm: b.clearForm
+        setFormTouched: b.setFormTouched
       }
     }
 

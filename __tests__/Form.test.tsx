@@ -3,7 +3,6 @@ import { cleanup } from 'react-testing-library'
 import { Person, Hobby } from '../src'
 import renderer from 'react-test-renderer'
 import { createFormRenderer, createDataSetter } from './helpers'
-import { assignDefaults } from '../src/utils'
 
 type B = { x?: any[]; y?: Date }
 
@@ -403,7 +402,6 @@ describe('<Form />', () => {
             expect(p2.submitCount).toEqual(overrides.initialSubmitCount)
             expect(p2.touched).toEqual(overrides.initialTouched)
             expect(p2.visited).toEqual(overrides.initialVisited)
-            expect(p2.formValue).toEqual(assignDefaults({}, personData, defaultPerson)) // starting value
           })
         })
 
@@ -429,52 +427,7 @@ describe('<Form />', () => {
             expect(p2.submitCount).toEqual(0)
             expect(p2.touched).toEqual({})
             expect(p2.visited).toEqual({})
-            expect(p2.formValue).toEqual(assignDefaults({}, personData, defaultPerson)) // starting value
           })
-        })
-      })
-
-      describe('clearForm', () => {
-        const { renderForm } = createFormRenderer<Person>()
-        const overrides = {
-          initialSubmitCount: 4,
-          initialTouched: {
-            age: true,
-            name: true
-          },
-          initialVisited: {
-            age: true,
-            name: true
-          }
-        }
-        const { getFormProps, getRenderCount } = renderForm({
-          initialValue: personData,
-          defaultValue: defaultPerson,
-          ...overrides
-        })
-
-        expect(getRenderCount()).toEqual(2)
-
-        const p = getFormProps()
-        expect(p.touched).toEqual({ age: true, name: true })
-        expect(p.visited).toEqual({ age: true, name: true })
-
-        p.clearForm() // clear the form
-
-        const { submitCount, touched, visited } = getFormProps()
-
-        it('should clear touched and visited', () => {
-          expect(touched).toEqual({})
-          expect(visited).toEqual({})
-        })
-
-        it('should reset submitCount', () => {
-          expect(submitCount).toEqual(0)
-        })
-
-        it('should set `formValue` to `defaultValue`', () => {
-          const { formValue } = getFormProps()
-          expect(formValue).toEqual(defaultPerson)
         })
       })
 
@@ -546,7 +499,6 @@ describe('<Form />', () => {
           setFormConfig({ initialValue: personData })
           const { initialValue, formValue } = getFormProps()
           expect(initialValue).toEqual(personData)
-          expect(formValue).toEqual(assignDefaults({}, personData, defaultPerson))
         })
       })
     })
