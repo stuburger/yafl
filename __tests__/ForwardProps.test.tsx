@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { createFormContext } from '../src'
-import { cleanup, render } from 'react-testing-library'
+import { cleanup, render } from '@testing-library/react'
 import { ErrorBoundary } from './ErrorBoundry'
 import { NO_PROVIDER } from '../src/useSafeContext'
 import { createFormRenderer } from './helpers'

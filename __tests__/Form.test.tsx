@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cleanup } from 'react-testing-library'
+import { cleanup } from '@testing-library/react'
 import { Person, Hobby } from '../src'
 import renderer from 'react-test-renderer'
 import { createFormRenderer, createDataSetter } from './helpers'

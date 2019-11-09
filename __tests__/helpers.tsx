@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { render, fireEvent } from 'react-testing-library'
+import { render, fireEvent } from '@testing-library/react'
 import { createFormContext, FormProps, FormConfig } from '../src'
 
 interface Props<T extends object> {
@@ -57,7 +57,7 @@ export function createDataSetter<T extends object>() {
             containerState = state
             setPropsFn = setFn
             return (
-              <Form onSubmit={noop} {...state as any}>
+              <Form onSubmit={noop} {...(state as any)}>
                 {props => {
                   renderCount = renderCount + 1
                   injected = props
@@ -98,7 +98,7 @@ export function createFormRenderer<T extends object>() {
         return injected
       },
       ...render(
-        <Form onSubmit={onSubmit} {...props as any}>
+        <Form onSubmit={onSubmit} {...(props as any)}>
           {props => {
             renderCount = renderCount + 1
             injected = props
@@ -141,13 +141,10 @@ export class Selection<TShape extends { [key: string]: () => Element }> {
   }
 
   constructor(selectors: TShape) {
-    this.selectors = Object.keys(selectors).reduce(
-      (ret, key: keyof TShape) => {
-        ret[key] = SelectionController.create(selectors[key])
-        return ret
-      },
-      {} as ISelectors<TShape>
-    )
+    this.selectors = Object.keys(selectors).reduce((ret, key: keyof TShape) => {
+      ret[key] = SelectionController.create(selectors[key])
+      return ret
+    }, {} as ISelectors<TShape>)
   }
 
   element<K extends keyof TShape>(key: K): ISelectors<TShape>[K] {

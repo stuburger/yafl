@@ -1,6 +1,6 @@
 import commonjs from 'rollup-plugin-commonjs'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
-import replace from 'rollup-plugin-replace'
+import replace from '@rollup/plugin-replace'
 import resolve from 'rollup-plugin-node-resolve'
 import sourceMaps from 'rollup-plugin-sourcemaps'
 import { uglify } from 'rollup-plugin-uglify'

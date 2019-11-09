@@ -2,7 +2,7 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import { get, noop, toStrPath, constructFrom } from './utils'
 import isEqual from 'react-fast-compare'
-import immutable from 'object-path-immutable'
+import * as immutable from 'object-path-immutable'
 import {
   Path,
   FormState,
