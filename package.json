@@ -38,7 +38,8 @@
     "prop-types": "^15.6.2",
     "react-fast-compare": "^2.0.2",
     "tiny-warning": "^1.0.3",
-    "tslib": "^1.10.0"
+    "tslib": "^1.10.0",
+    "tslint": "^5.20.1"
   },
   "keywords": [
     "yafl",

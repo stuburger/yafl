@@ -351,7 +351,6 @@ export interface Address {
 
 export interface FormConfig<T extends object> {
   initialValue?: T
-  defaultValue?: T
   disabled?: boolean
   initialSubmitCount?: number
   initialTouched?: BooleanTree<T>

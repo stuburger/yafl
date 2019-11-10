@@ -11,7 +11,8 @@ import {
   SetFormVisitedFunc,
   SetFormTouchedFunc,
   FormConfig,
-  FormProps
+  FormProps,
+  BooleanTree
 } from './sharedTypes'
 
 const startingPath: Path = []
@@ -31,20 +32,20 @@ function whenEnabled(func: Function, defaultFunc = noop) {
   }
 }
 
-export default function<F extends object>(Provider: React.Provider<FormProvider<F, F>>) {
+function createForm<F extends object>(
+  Provider: React.Provider<FormProvider<F, F>>
+): React.ComponentType<FormConfig<F>> {
   type RFC = Required<FormConfig<F>>
 
-  return class Form extends React.Component<FormConfig<F>, FormState<F>> {
+  class Form extends React.Component<FormConfig<F>, FormState<F>> {
     static propTypes /* remove-proptypes */ = {
       onSubmit: PropTypes.func.isRequired,
       children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
-      initialValue: PropTypes.object,
-      defaultValue: PropTypes.object,
+      initialValue: PropTypes.object as any,
       disableReinitialize: PropTypes.bool,
       submitUnregisteredValues: PropTypes.bool,
       rememberStateOnReinitialize: PropTypes.bool,
-      persistFieldState: PropTypes.bool,
-      sharedProps: PropTypes.object
+      persistFieldState: PropTypes.bool
     }
 
     registerCache: string[] = []
@@ -76,11 +77,11 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
         formValue,
         initialMount: false,
         activeField: null,
-        touched: {},
-        visited: {},
-        submitCount: 0,
         errorCount: 0,
-        errors: {}
+        errors: {},
+        touched: props.initialTouched || {},
+        visited: props.initialVisited || {},
+        submitCount: props.initialSubmitCount || 0
       }
     }
 
@@ -88,9 +89,9 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       disableReinitialize: false,
       rememberStateOnReinitialize: false,
       submitUnregisteredValues: false,
-      initialValue: {},
-      initialTouched: {},
-      initialVisited: {},
+      initialValue: {} as F,
+      initialTouched: {} as BooleanTree<F>,
+      initialVisited: {} as BooleanTree<F>,
       initialSubmitCount: 0,
       onStateChange: () => false
     }
@@ -313,4 +314,8 @@ export default function<F extends object>(Provider: React.Provider<FormProvider<
       )
     }
   }
+
+  return Form
 }
+
+export default createForm

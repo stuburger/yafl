@@ -1,7 +1,5 @@
 import * as React from 'react'
-import { cleanup } from '@testing-library/react'
-import { Person, Hobby } from '../src'
-import renderer from 'react-test-renderer'
+import { Person } from '../src'
 import { createFormRenderer, createDataSetter } from './helpers'
 
 type B = { x?: any[]; y?: Date }
@@ -45,56 +43,10 @@ const defaultPerson: Person = {
 }
 
 describe('<Form />', () => {
-  afterEach(cleanup)
-
-  describe('snapshot', () => {
-    const { Form, Section, Field, Repeat } = createFormRenderer<Person>()
-    it('should match previous snapshot', () => {
-      const tree = renderer
-        .create(
-          <Form initialValue={personData} defaultValue={defaultPerson} onSubmit={() => {}}>
-            {yafl => (
-              <form onSubmit={yafl.submit}>
-                <Field name="firstName" label="First Name" component={TextInput} />
-                <Section name="contact">
-                  <Field name="tel" label="First Name" component={TextInput} />
-                  <Field name="email" label="Email Address" component={TextInput} />
-                </Section>
-                <Repeat<Hobby>
-                  name="hobbies"
-                  fallback={[{ type: 'art', name: 'print making' }, undefined, undefined] as any}
-                >
-                  {hobbies => {
-                    return hobbies.map((value, i) => {
-                      return (
-                        <Section name={i} key={i} fallback={{ type: 'new', name: 'new' }}>
-                          <Field name="type" label="Type of hobby" component={TextInput} />
-                          <Field name="name" label="Name of hobby" component={TextInput} />
-                        </Section>
-                      )
-                    })
-                  }}
-                </Repeat>
-                <pre>{JSON.stringify(yafl, null, 2)}</pre>
-              </form>
-            )}
-          </Form>
-        )
-        .toJSON()
-      expect(tree).toMatchSnapshot()
-    })
-  })
-
   describe('FormProps', () => {
-    const initialValue: Thing = {
-      a: undefined,
-      b: {
-        x: []
-      }
-    }
-
     const date = new Date()
-    const defaultValue: Thing = {
+
+    const initialValue: Thing = {
       a: 12,
       b: {
         x: [{ name: 'Munk Jones' }],
@@ -115,7 +67,7 @@ describe('<Form />', () => {
       }
 
       const { getFormProps, getRenderCount } = renderForm(
-        { initialValue, defaultValue, ...overrides },
+        { initialValue, ...overrides },
         <Field<number>
           name="a"
           component={TextInput}
@@ -155,7 +107,6 @@ describe('<Form />', () => {
         }
         const { getFormProps } = renderForm({
           initialValue,
-          defaultValue,
           onSubmit,
           submitUnregisteredValues: true
         })
@@ -163,7 +114,6 @@ describe('<Form />', () => {
         const props = getFormProps()
 
         expect(props.initialValue).toEqual(initialValue)
-        expect(props.defaultValue).toEqual(defaultValue)
         expect(props.errors).toEqual({})
         expect(props.errorCount).toEqual(0)
         expect(props.formIsDirty).toEqual(false)
@@ -172,27 +122,6 @@ describe('<Form />', () => {
         expect(props.submitCount).toEqual(0)
         expect(props.touched).toEqual({})
         expect(props.visited).toEqual({})
-      })
-
-      it('merges defaultValue into initalValue to create the form starting value', () => {
-        const submitMk = jest.fn()
-        const onSubmit = (formValue: Thing) => {
-          submitMk(formValue)
-        }
-        const { getFormProps } = renderForm({
-          initialValue,
-          defaultValue,
-          onSubmit,
-          submitUnregisteredValues: true
-        })
-
-        const props = getFormProps()
-        const expectedStartingValue = {
-          a: 12,
-          b: { x: [{ name: 'Munk Jones' }], y: date }
-        }
-
-        expect(props.formValue).toEqual(expectedStartingValue)
       })
     })
 
@@ -205,7 +134,6 @@ describe('<Form />', () => {
           }
           const { getFormProps, getRenderCount } = renderForm({
             initialValue,
-            defaultValue,
             onSubmit
           })
           expect(getRenderCount()).toEqual(2)
@@ -225,7 +153,6 @@ describe('<Form />', () => {
             const { getFormProps, getRenderCount } = renderForm(
               {
                 initialValue,
-                defaultValue,
                 onSubmit
               },
               <Field name="a" component="input" />
@@ -250,9 +177,8 @@ describe('<Form />', () => {
               submitMk(formValue)
             }
             const { getFormProps } = renderForm({
-              initialValue,
-              defaultValue,
               onSubmit,
+              initialValue: expectedStartingValue,
               submitUnregisteredValues: true
             })
 
@@ -284,7 +210,6 @@ describe('<Form />', () => {
             }
             const { getFormProps, getRenderCount } = renderForm({
               initialValue,
-              defaultValue,
               onSubmit
             })
 
@@ -307,8 +232,7 @@ describe('<Form />', () => {
           const { renderForm } = createFormRenderer<Person>()
 
           const { getFormProps, getRenderCount } = renderForm({
-            initialValue: personData,
-            defaultValue: defaultPerson
+            initialValue: personData
           })
 
           const { setFormValue } = getFormProps()
@@ -338,8 +262,7 @@ describe('<Form />', () => {
         it('should set touched as supplied', () => {
           const { renderForm } = createFormRenderer<Person>()
           const { getFormProps, getRenderCount } = renderForm({
-            initialValue: personData,
-            defaultValue: defaultPerson
+            initialValue: personData
           })
 
           expect(getRenderCount()).toEqual(2)
@@ -356,8 +279,7 @@ describe('<Form />', () => {
         it('should set visited as supplied', () => {
           const { renderForm } = createFormRenderer<Person>()
           const { getFormProps, getRenderCount } = renderForm({
-            initialValue: personData,
-            defaultValue: defaultPerson
+            initialValue: personData
           })
 
           expect(getRenderCount()).toEqual(2)
@@ -385,7 +307,6 @@ describe('<Form />', () => {
             }
             const { getFormProps, getRenderCount } = renderForm({
               initialValue: personData,
-              defaultValue: defaultPerson,
               ...overrides
             })
 
@@ -410,8 +331,7 @@ describe('<Form />', () => {
             const { renderForm } = createFormRenderer<Person>()
 
             const { getFormProps, getRenderCount } = renderForm({
-              initialValue: personData,
-              defaultValue: defaultPerson
+              initialValue: personData
             })
 
             expect(getRenderCount()).toEqual(2)
@@ -446,7 +366,6 @@ describe('<Form />', () => {
         }
         const { getFormProps, getRenderCount } = renderForm({
           initialValue: personData,
-          defaultValue: defaultPerson,
           ...overrides
         })
 
@@ -483,21 +402,19 @@ describe('<Form />', () => {
   describe('FormConfig: what happens when the props passed to the <Form /> component change', () => {
     const { renderForm } = createDataSetter<Person>()
     describe('asynchronously setting initialValue to imitate async api calls', () => {
-      it('should have correct initialValue and defaultValue', () => {
-        const { getFormProps } = renderForm({ defaultValue: defaultPerson })
-        const { initialValue, defaultValue } = getFormProps()
-        expect(initialValue).toEqual({})
-        expect(defaultValue).toEqual(defaultPerson)
+      it('should have correct initialValue', () => {
+        const { getFormProps } = renderForm({ initialValue: defaultPerson })
+        const { initialValue } = getFormProps()
+        expect(initialValue).toEqual(defaultPerson)
       })
 
       describe('when initialValue is finally set', () => {
         it('should set the formValue', () => {
-          const { getFormProps, setFormConfig } = renderForm({ defaultValue: defaultPerson })
+          const { getFormProps, setFormConfig } = renderForm({ initialValue: defaultPerson })
           const p = getFormProps()
-          expect(p.initialValue).toEqual({})
-          expect(p.defaultValue).toEqual(defaultPerson)
+          expect(p.initialValue).toEqual(defaultPerson)
           setFormConfig({ initialValue: personData })
-          const { initialValue, formValue } = getFormProps()
+          const { initialValue } = getFormProps()
           expect(initialValue).toEqual(personData)
         })
       })
