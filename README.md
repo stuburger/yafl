@@ -111,7 +111,6 @@ class ExampleForm extends Component {
   - [`<Form />`](#form-)
     - [Configuration](#configuration)
       - [`initialValue?: T`](#initialvalue-t)
-      - [`disableReinitialize?: boolean`](#disablereinitialize-boolean)
       - [`components?: ComponentTypes<T>`](#components-componenttypest)
       - [`onSubmit?: (formValue: T) => boolean | void`](#onsubmit-formvalue-t--boolean--void)
       - [`submitUnregisteredValues?: boolean`](#submitunregisteredvalues-boolean)
@@ -203,13 +202,6 @@ The `<Form />` component contains all the state that tracks what's going on in y
 ##### `initialValue?: T`
 
 The initial value of your Form. Once `initialValue` becomes a non-null object, your Form will initialize.
-
-
-##### `disableReinitialize?: boolean`
-
-Default is `false`.
-
-By default any time the `initialValue` prop changes, your Form will be reinitialized with the updated `initialValue`. To prevent this behaviour simply set `disableReinitialize` to `true`.
 
 ##### `components?: ComponentTypes<T>`
 

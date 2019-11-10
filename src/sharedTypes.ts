@@ -358,7 +358,6 @@ export interface FormConfig<T extends object> {
   children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)
   submitUnregisteredValues?: boolean
   persistFieldState?: boolean
-  disableReinitialize?: boolean
   onSubmit?: (formValue: T, props: FormProps<T>) => boolean | void
   rememberStateOnReinitialize?: boolean
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void

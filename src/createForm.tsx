@@ -42,7 +42,6 @@ function createForm<F extends object>(
       onSubmit: PropTypes.func.isRequired,
       children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
       initialValue: PropTypes.object as any,
-      disableReinitialize: PropTypes.bool,
       submitUnregisteredValues: PropTypes.bool,
       rememberStateOnReinitialize: PropTypes.bool,
       persistFieldState: PropTypes.bool
@@ -86,7 +85,6 @@ function createForm<F extends object>(
     }
 
     static defaultProps = {
-      disableReinitialize: false,
       rememberStateOnReinitialize: false,
       submitUnregisteredValues: false,
       initialValue: {} as F,
@@ -108,7 +106,6 @@ function createForm<F extends object>(
         initialVisited,
         initialSubmitCount,
         onStateChange,
-        disableReinitialize,
         rememberStateOnReinitialize
       } = this.props as RFC
 
@@ -122,7 +119,7 @@ function createForm<F extends object>(
         onStateChange(ps, this.state)
       }
 
-      if (!disableReinitialize && !isEqual(pp.initialValue, initialValue)) {
+      if (!isEqual(pp.initialValue, initialValue)) {
         const update = { formValue: initialValue } as FormState<F>
 
         if (!rememberStateOnReinitialize) {

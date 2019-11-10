@@ -16,7 +16,7 @@ const renderError = (error: Error) => {
 
 describe('<Repeat />', () => {
   describe('when a Repeat is rendered outside of a Form Component', () => {
-    xit('throws an error stating that a Repeat can only be rendered inside of a Form component', () => {
+    it('throws an error stating that a Repeat can only be rendered inside of a Form component', () => {
       const { Repeat } = createFormContext()
       const { queryByText } = render(
         <ErrorBoundary renderError={renderError}>

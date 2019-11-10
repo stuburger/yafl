@@ -410,12 +410,14 @@ describe('<Form />', () => {
 
       describe('when initialValue is finally set', () => {
         it('should set the formValue', () => {
-          const { getFormProps, setFormConfig } = renderForm({ initialValue: defaultPerson })
+          const { getFormProps, setFormConfig } = renderForm({
+            initialValue: defaultPerson
+          })
           const p = getFormProps()
           expect(p.initialValue).toEqual(defaultPerson)
           setFormConfig({ initialValue: personData })
-          const { initialValue } = getFormProps()
-          expect(initialValue).toEqual(personData)
+          const { formValue } = getFormProps()
+          expect(formValue).toEqual(personData)
         })
       })
     })
