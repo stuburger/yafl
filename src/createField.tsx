@@ -44,7 +44,6 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         setTouched: touchField,
         setVisited: visitField,
         initialValue: b.initialValue,
-        defaultValue: b.defaultValue,
         isValid: ((b.errors || []) as any).length === 0,
         isActive: b.activeField === stringPath,
         isDirty: b.formIsDirty && b.initialValue !== b.value,
@@ -55,8 +54,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         submitCount: b.submitCount,
         forgetState: b.forgetState,
         setFormVisited: b.setFormVisited,
-        setFormTouched: b.setFormTouched,
-        clearForm: b.clearForm
+        setFormTouched: b.setFormTouched
       }
     }
 
@@ -158,13 +156,8 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
     } else if (render) {
       ret.push(render(jam))
     } else if (typeof component === 'string') {
-      if (yafl.components[component]) {
-        const Component = yafl.components[component]
-        ret = [<Component key="comp" ref={forwardRef} {...jam} />]
-      } else {
-        const { input, meta, ...rest } = jam
-        ret = [React.createElement(component, { ...input, ...rest, ref: forwardRef, key: 'comp' })]
-      }
+      const { input, meta, ...rest } = jam
+      ret = [React.createElement(component, { ...input, ...rest, ref: forwardRef, key: 'comp' })]
     } else {
       ret = [<FieldSink key="comp" path={jam.meta.path} {...jam} />]
     }

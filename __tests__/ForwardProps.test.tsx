@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { createFormContext } from '../src'
-import { cleanup, render } from 'react-testing-library'
+import { cleanup, render } from '@testing-library/react'
 import { ErrorBoundary } from './ErrorBoundry'
 import { NO_PROVIDER } from '../src/useSafeContext'
 import { createFormRenderer } from './helpers'
@@ -103,7 +103,7 @@ describe('<ForwardProps />', () => {
       const { renderForm, Field, Section, ForwardProps } = createFormRenderer<any>()
       renderForm(
         {},
-        <ErrorBoundary renderError={e => null}>
+        <ErrorBoundary renderError={() => null}>
           <ForwardProps mode="branch" good={{ field1: 'wow' }} bad="wow">
             <Field name="field1" component={TextInput} />
             <Field name="field2" component={TextInput} />

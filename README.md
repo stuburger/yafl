@@ -111,8 +111,6 @@ class ExampleForm extends Component {
   - [`<Form />`](#form-)
     - [Configuration](#configuration)
       - [`initialValue?: T`](#initialvalue-t)
-      - [`defaultValue?: T`](#defaultvalue-t)
-      - [`disableReinitialize?: boolean`](#disablereinitialize-boolean)
       - [`components?: ComponentTypes<T>`](#components-componenttypest)
       - [`onSubmit?: (formValue: T) => boolean | void`](#onsubmit-formvalue-t--boolean--void)
       - [`submitUnregisteredValues?: boolean`](#submitunregisteredvalues-boolean)
@@ -123,7 +121,6 @@ class ExampleForm extends Component {
   - [`<Field />`](#field-)
     - [Configuration](#configuration-1)
       - [`name: string | number`](#name-string--number)
-      - [`watch?: (formValue: F) => any`](#watch-formvalue-f--any)
       - [`validate?: ((value: T, formValue: F) => string | void) | (Array<(value: T, formValue: F) => string | void)>`](#validate-value-t-formvalue-f--string--void--arrayvalue-t-formvalue-f--string--void)
       - [`render?: (props: FieldProps<F, T>) => React.ReactNode`](#render-props-fieldpropsf-t--reactreactnode)
       - [`component?: React.ComponentType<FieldProps<F, T>> | string`](#component-reactcomponenttypefieldpropsf-t--string)
@@ -205,18 +202,6 @@ The `<Form />` component contains all the state that tracks what's going on in y
 ##### `initialValue?: T`
 
 The initial value of your Form. Once `initialValue` becomes a non-null object, your Form will initialize.
-
-
-##### `defaultValue?: T`
-
-The `defaultValue` is merged with the `formValue`. Currently this is done any time the `defaultValue` changes and not when your `formValue` changes.
-
-
-##### `disableReinitialize?: boolean`
-
-Default is `false`.
-
-By default any time the `initialValue` prop changes, your Form will be reinitialized with the updated `initialValue`. To prevent this behaviour simply set `disableReinitialize` to `true`.
 
 ##### `components?: ComponentTypes<T>`
 
@@ -348,14 +333,12 @@ TypeScript: `FieldMeta<F, T>` where `F` and `T` correspond to the generic types 
 | `isValid: boolean` | Indicates whether this Field is valid based on whether there are any Validators rendered that match the `path` of this Field. |
 | `errors: string[]` |  An array containing any errors for this Field based on whether there are any Validators rendered that match the path of this Field. |
 | `initialValue: T` | The value this Field was initialized with. |
-| `defaultValue: T` | The default value of this Field. |
 | `setValue: (value: T, touch?: boolean) => void` | Sets the value for this Field.<br />Optionally specify if this Field should be touched when this function is called.<br />*If the `touch` paramater is not provided it defaults to `true`.* |
 | `formValue: F` | The current value of the Form |
 | `submitCount: number` | The number of times the Form has been submitted.  |
 | `resetForm: () => void` |  Clears all Form state. `formValue` is reset to its initialValue. |
 | `submit: () => void` |  Calls the onSubmit function supplied to the Form component  |
 | `forgetState: () => void` |  Resets `submitCount`, `touched` and `visited`. The `formValue` is not reset. |
-| `clearForm: () => void` |  Clears all Form state. `formValue` is reset to its `defaultValue`. |
 | `setFormValue: (set: SetFormValueFunc<F>) => void` |  Sets the `formValue` imperatively. |
 | `setFormVisited: (set: SetFormVisitedFunc<F>) => void` |  Sets the Form's `visited` state imperatively.<br />Accepts a callback with the Form's previous value. |
 | `setFormTouched: (set: SetFormTouchedFunc<F>) => void` | Sets the Form's `touched` state imperatively.<br />Accepts a callback with the Form's previous visited state. |
@@ -371,8 +354,6 @@ Section components give your forms depth. The `name` prop of a `<Section />` wil
 Like a Field, a Section also requires a name prop! Corresponds to the name of the object this Section will create on the `formValue`.
 
 ##### `fallback?: T`
-
-The `fallback` prop is similar to the `defaultValue` prop on the Form component, except that it never gets merged into the `formValue`.
 
 > **Why you might need this: `fallback`**
 >

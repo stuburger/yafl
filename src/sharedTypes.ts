@@ -32,10 +32,6 @@ export interface FormMeta<T extends object> {
    */
   forgetState: () => void
   /**
-   * Clears all form state. formValue is reset to its defaultValue.
-   */
-  clearForm: () => void
-  /**
    * Sets the form value imperatively.
    * @param set A function that accepts the previous form value and returns the next form value.
    */
@@ -137,10 +133,6 @@ export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
    */
   initialValue: T
   /**
-   * The default value that this Field was initialized with.
-   */
-  defaultValue: T
-  /**
    * Sets the value for this Field.
    * @param value The value to set.
    * @param touch Optionally specify if this Field should be touched when this function is called. Default is true.
@@ -178,25 +170,12 @@ export interface FieldValidator<T, F extends object> {
 
 export interface FormState<F extends object> {
   formValue: F
-  defaultValue: F
   errorCount: number
   submitCount: number
   errors: FormErrors<F>
   initialMount: boolean
   touched: BooleanTree<F>
   visited: BooleanTree<F>
-  /**
-   * Used to determine if the intialValue did change. This is so that we can *'reset'*
-   * the form declaritively when `props.intialValue` changes.
-   */
-  initialValue: F | null
-  /**
-   * Used to calculate the `formIsDirty` flag and contains the
-   * value of the form after after the inital render i.e. once `initialValue`
-   * has be merged with `defaultValue`. This is necessary because `initialValue`
-   * needs to be left *as is* in order to determine when the form should be re-initialized.
-   */
-  startingValue: F
   activeField: string | null
 }
 
@@ -274,7 +253,6 @@ export interface SharedFieldProps<F extends object> {
 export interface FormProvider<F extends object, T = F> {
   path: Path
   value: T
-  defaultValue: T
   initialValue: T
   errorCount: number
   formValue: F
@@ -283,14 +261,12 @@ export interface FormProvider<F extends object, T = F> {
   touched: BooleanTree<any>
   visited: BooleanTree<any>
   activeField: string | null
-  components: ComponentTypes<F>
   submitCount: number
   formIsValid: boolean
   formIsDirty: boolean
   errors: FormErrors<F>
   submit: () => void
   resetForm: () => void
-  clearForm: () => void
   forgetState: () => void
   sharedProps: SharedFieldProps<F>
   setActiveField: (path: string | null) => void
@@ -311,10 +287,6 @@ export interface FormProps<F extends object> extends FormMeta<F> {
    * Indicates if the Form has mounted. Field's are only registerd once initialMount becomes true.
    */
   initialMount: boolean
-  /**
-   * The default value of the Form.
-   */
-  defaultValue: F
   /**
    * The initial value of the Form.
    */
@@ -379,7 +351,6 @@ export interface Address {
 
 export interface FormConfig<T extends object> {
   initialValue?: T
-  defaultValue?: T
   disabled?: boolean
   initialSubmitCount?: number
   initialTouched?: BooleanTree<T>
@@ -387,10 +358,8 @@ export interface FormConfig<T extends object> {
   children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)
   submitUnregisteredValues?: boolean
   persistFieldState?: boolean
-  disableReinitialize?: boolean
   onSubmit?: (formValue: T, props: FormProps<T>) => boolean | void
   rememberStateOnReinitialize?: boolean
-  components?: ComponentTypes<T>
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
   onFormValueChange?: (prev: T, next: T) => void
 }

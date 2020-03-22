@@ -7,7 +7,7 @@ import { FormProvider, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
 import { useSafeContext } from './useSafeContext'
 
 function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
-  function RepeatController<T extends object>(props: RepeatConfig<T>) {
+  function RepeatController<T = any>(props: RepeatConfig<T>) {
     const { children, name, fallback } = props
     const yafl = useSafeContext<F, T[]>(ctx)
 
@@ -95,7 +95,7 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
     )
   }
 
-  function Repeat<T extends object>(props: RepeatConfig<T>) {
+  function Repeat<T = any>(props: RepeatConfig<T>) {
     if (process.env.NODE_ENV !== 'production') {
       validateName(props.name)
     }

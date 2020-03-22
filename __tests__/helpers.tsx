@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { render, fireEvent } from 'react-testing-library'
+import { render, fireEvent } from '@testing-library/react'
 import { createFormContext, FormProps, FormConfig } from '../src'
 
 interface Props<T extends object> {
@@ -31,7 +31,7 @@ export function createDataSetter<T extends object>() {
     }
   }
 
-  function noop(e: T, props: FormProps<T>) {}
+  function noop() {}
   function renderForm(initialProps: Partial<FormConfig<T>> = {}, ui: React.ReactNode = null) {
     let injected: FormProps<T>
     let setPropsFn: (prev: SetProps<T>) => void
@@ -57,7 +57,7 @@ export function createDataSetter<T extends object>() {
             containerState = state
             setPropsFn = setFn
             return (
-              <Form onSubmit={noop} {...state as any}>
+              <Form onSubmit={noop} {...(state as any)}>
                 {props => {
                   renderCount = renderCount + 1
                   injected = props
@@ -82,7 +82,7 @@ export function createDataSetter<T extends object>() {
 
 export function createFormRenderer<T extends object>() {
   const { Form, Section, Field, Repeat, ForwardProps, useYaflContext } = createFormContext<T>()
-  function noop(e: T, props: FormProps<T>) {}
+  function noop() {}
   function renderForm(
     props: Partial<FormConfig<T>> = {},
     ui: React.ReactNode | ((props: FormProps<T>) => React.ReactNode) = null
@@ -98,7 +98,7 @@ export function createFormRenderer<T extends object>() {
         return injected
       },
       ...render(
-        <Form onSubmit={onSubmit} {...props as any}>
+        <Form onSubmit={onSubmit} {...(props as any)}>
           {props => {
             renderCount = renderCount + 1
             injected = props
@@ -141,13 +141,10 @@ export class Selection<TShape extends { [key: string]: () => Element }> {
   }
 
   constructor(selectors: TShape) {
-    this.selectors = Object.keys(selectors).reduce(
-      (ret, key: keyof TShape) => {
-        ret[key] = SelectionController.create(selectors[key])
-        return ret
-      },
-      {} as ISelectors<TShape>
-    )
+    this.selectors = Object.keys(selectors).reduce((ret, key: keyof TShape) => {
+      ret[key] = SelectionController.create(selectors[key])
+      return ret
+    }, {} as ISelectors<TShape>)
   }
 
   element<K extends keyof TShape>(key: K): ISelectors<TShape>[K] {

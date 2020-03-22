@@ -1,4 +1,4 @@
-import immutable from 'object-path-immutable'
+import * as immutable from 'object-path-immutable'
 import get from './get'
 
 export default function<F extends object>(obj: F, paths: string[]): F {

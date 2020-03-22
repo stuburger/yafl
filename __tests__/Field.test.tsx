@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cleanup, render } from 'react-testing-library'
+import { cleanup, render } from '@testing-library/react'
 import { createFormContext } from '../src'
 import { NO_PROVIDER } from '../src/useSafeContext'
 import { ErrorBoundary } from './ErrorBoundry'
@@ -100,24 +100,6 @@ describe('<Field />', () => {
       )
 
       expect(input.current.innerHTML).toBe(JSON.stringify(initialValue))
-    })
-
-    it('uses defaultValue as a fallback if initialValue is not supplied', () => {
-      const { renderForm, Field } = createFormRenderer()
-
-      const defaultValue = { [TEST_FIELD_NAME]: 'this be the default' }
-      const initialValue = { [TEST_FIELD_NAME]: undefined, notUnderTest: '' }
-
-      const api = renderForm(
-        { initialValue, defaultValue },
-        <Field name={TEST_FIELD_NAME} label={LABEL_SELECTOR} component={TextInput} />
-      )
-
-      const input = SelectionController.create<HTMLInputElement>(() =>
-        api.getByLabelText(LABEL_SELECTOR)
-      )
-
-      expect(input.current.value).toEqual(defaultValue.fieldUnderTest)
     })
 
     it('has an initial isValid value of true when there are no field validators', () => {
@@ -271,9 +253,9 @@ describe('<Field />', () => {
     it('updates the value of the Field when onChange event is fired', () => {
       const { renderForm, Field } = createFormRenderer()
 
-      const defaultValue = { [TEST_FIELD_NAME]: '' }
+      const initialValue = { [TEST_FIELD_NAME]: '' }
       const api = renderForm(
-        { defaultValue },
+        { initialValue },
         <Field name={TEST_FIELD_NAME} label={LABEL_SELECTOR} component={TextInput} />
       )
 
