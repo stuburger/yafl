@@ -1,32 +1,33 @@
 {
   "name": "yafl",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Yet another form library for React",
-  "main": "lib/yafl.js",
-  "module": "lib/yafl.esm.js",
-  "typings": "lib/index.d.ts",
+  "main": "dist/yafl.js",
+  "module": "dist/yafl.esm.js",
+  "typings": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/stuburger/yafl"
   },
   "files": [
-    "lib"
+    "dist"
   ],
   "scripts": {
+    "test": "tsdx test --env=jsdom",
+    "test:watch": "npm run test -- --watchAll",
+    "start": "cross-env NODE_ENV=development tsdx watch --verbose",
+    "prebuild": "rimraf dist",
+    "build": "cross-env NODE_ENV=production tsdx build --format=cjs,esm,umd",
+    "prepublish": "npm run build",
+    "precommit": "lint-staged",
+    "gen-docs": "all-contributors generate && doctoc README.md",
     "size": "size-limit",
-    "toc": "doctoc README.md",
-    "prebuild": "rimraf lib",
-    "build": "cross-env NODE_ENV=production tsc -p tsconfig.base.json  && rollup -c && rimraf compiled && cp ./index.js ./lib/index.js",
-    "watch": "tsc --watch",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "prepublishOnly": "npm run build",
-    "jest:updatesnapshot": "jest --updateSnapshot",
-    "precommit": "lint-staged"
+    "lint": "tsdx lint"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
       "prettier --parser typescript --write",
+      "tsdx lint",
       "git add"
     ]
   },
@@ -34,12 +35,12 @@
   "license": "MIT",
   "dependencies": {
     "invariant": "^2.2.4",
-    "object-path-immutable": "^4.0.2",
+    "object-path-immutable": "^4.1.0",
     "prop-types": "^15.6.2",
-    "react-fast-compare": "^2.0.2",
+    "react-fast-compare": "^3.0.1",
     "tiny-warning": "^1.0.3",
-    "tslib": "^1.10.0",
-    "tslint": "^5.20.1"
+    "tslib": "^1.11.1",
+    "tslint": "^6.1.0"
   },
   "keywords": [
     "yafl",
@@ -49,77 +50,55 @@
     "validation"
   ],
   "peerDependencies": {
-    "react": ">=16.7.0"
+    "react": ">=16.13.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.2",
-    "@rollup/plugin-replace": "^2.2.1",
-    "@testing-library/react": "^9.3.2",
-    "@types/invariant": "^2.2.30",
-    "@types/jest": "^24.0.22",
-    "@types/node": "12.12.7",
+    "@babel/core": "^7.9.0",
+    "@size-limit/preset-big-lib": "^4.4.0",
+    "@testing-library/react": "^10.0.1",
+    "@types/invariant": "^2.2.31",
+    "@types/jest": "^25.1.4",
+    "@types/node": "13.9.2",
     "@types/prop-types": "^15.7.3",
-    "@types/react": "^16.9.11",
-    "@types/react-dom": "^16.9.4",
-    "@types/react-test-renderer": "^16.9.1",
+    "@types/react": "^16.9.25",
+    "@types/react-dom": "^16.9.5",
     "babel-plugin-annotate-pure-calls": "^0.4.0",
     "babel-plugin-dev-expression": "^0.2.2",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.21",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "doctoc": "^1.3.1",
-    "husky": "^3.0.9",
-    "jest": "^24.9.0",
-    "lint-staged": "^9.4.2",
+    "husky": "^4.2.3",
+    "jest": "^25.1.0",
+    "lint-staged": "^10.0.8",
     "npm-run-all": "^4.1.3",
-    "prettier": "^1.19.1",
-    "react": "^16.11.0",
-    "react-dom": "^16.11.0",
-    "react-test-renderer": "^16.11.0",
-    "rimraf": "^3.0.0",
-    "rollup": "^1.26.3",
-    "rollup-plugin-babel": "^4.3.3",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-size-snapshot": "^0.10.0",
-    "rollup-plugin-sourcemaps": "^0.4.2",
-    "rollup-plugin-uglify": "^6.0.3",
-    "size-limit": "^2.1.6",
-    "ts-jest": "^24.1.0",
-    "typescript": "^3.7.2",
+    "prettier": "^2.0.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "rimraf": "^3.0.2",
+    "size-limit": "^4.4.0",
+    "ts-jest": "^25.2.1",
+    "tsdx": "^0.13.0",
+    "typescript": "^3.8.3",
     "uglify-es": "^3.3.9",
     "why-did-you-update": "^1.0.6"
   },
   "jest": {
-    "collectCoverage": true,
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
     "collectCoverageFrom": [
-      "src/**/*.{ts,tsx}",
-      "!src/**/index.{ts,tsx}"
-    ],
-    "testRegex": "((\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
+      "src/**/*.{ts,tsx}"
     ]
   },
   "size-limit": [
     {
-      "path": "./lib/index.js",
-      "limit": "16 kB"
+      "path": "./dist/index.js",
+      "limit": "10kb"
     },
     {
-      "path": "./lib/yafl.esm.js",
-      "limit": "16 kB"
+      "path": "./dist/yafl.esm.js",
+      "limit": "10kb"
     },
     {
-      "path": "./lib/yafl.umd.production.js",
-      "limit": "16 kB"
+      "path": "./dist/yafl.umd.production.min.js",
+      "limit": "10kb"
     }
   ]
 }

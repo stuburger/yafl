@@ -70,7 +70,7 @@ describe('<Section />', () => {
         }
       },
       <Section<Contact> name="contact">
-        {(value, { setValue }) => {
+        {(_, { setValue }) => {
           return (
             <>
               <button
@@ -121,7 +121,7 @@ describe('<Section />', () => {
         }
       },
       <Section<Contact> name="contact">
-        {(value, { setValue }) => {
+        {(_, { setValue }) => {
           return (
             <>
               <button

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
-import { get, noop, toStrPath, constructFrom } from './utils'
+import { get, toStrPath, constructFrom } from './utils'
 import isEqual from 'react-fast-compare'
 import * as immutable from 'object-path-immutable'
 import {
@@ -12,7 +12,7 @@ import {
   SetFormTouchedFunc,
   FormConfig,
   FormProps,
-  BooleanTree
+  BooleanTree,
 } from './sharedTypes'
 
 const startingPath: Path = []
@@ -23,12 +23,11 @@ function childrenIsFunc<F extends object>(
   return typeof children === 'function'
 }
 
-function whenEnabled(func: Function, defaultFunc = noop) {
+function whenEnabled(this: React.Component<any, any>, func: Function) {
   return (...params: any[]) => {
-    if (!this.state.initialMount || this.props.disabled) {
-      return defaultFunc(...params)
+    if (this.state.initialMount && !this.props.disabled) {
+      return func(...params)
     }
-    return func(...params)
   }
 }
 
@@ -44,7 +43,7 @@ function createForm<F extends object>(
       initialValue: PropTypes.object as any,
       submitUnregisteredValues: PropTypes.bool,
       rememberStateOnReinitialize: PropTypes.bool,
-      persistFieldState: PropTypes.bool
+      persistFieldState: PropTypes.bool,
     }
 
     registerCache: string[] = []
@@ -80,7 +79,7 @@ function createForm<F extends object>(
         errors: {},
         touched: props.initialTouched || {},
         visited: props.initialVisited || {},
-        submitCount: props.initialSubmitCount || 0
+        submitCount: props.initialSubmitCount || 0,
       }
     }
 
@@ -91,7 +90,7 @@ function createForm<F extends object>(
       initialTouched: {} as BooleanTree<F>,
       initialVisited: {} as BooleanTree<F>,
       initialSubmitCount: 0,
-      onStateChange: () => false
+      onStateChange: () => false,
     }
 
     componentDidMount() {
@@ -106,7 +105,7 @@ function createForm<F extends object>(
         initialVisited,
         initialSubmitCount,
         onStateChange,
-        rememberStateOnReinitialize
+        rememberStateOnReinitialize,
       } = this.props as RFC
 
       const { formValue } = this.state
@@ -138,11 +137,11 @@ function createForm<F extends object>(
 
     unregisterField(path: Path) {
       const strPath = toStrPath(path)
-      this.registerCache = this.registerCache.filter(x => !x.startsWith(strPath))
+      this.registerCache = this.registerCache.filter((x) => !x.startsWith(strPath))
       if (this.props.persistFieldState) return
       this.setState(({ touched, visited }) => ({
         touched: immutable.del(touched, path as string[]),
-        visited: immutable.del(visited, path as string[])
+        visited: immutable.del(visited, path as string[]),
       }))
     }
 
@@ -152,7 +151,7 @@ function createForm<F extends object>(
         const errs = Array.isArray(curr) ? [...curr, error] : [error]
         return {
           errorCount: errorCount + 1,
-          errors: immutable.set(errors, path as string[], errs)
+          errors: immutable.set(errors, path as string[], errs),
         }
       })
     }
@@ -160,19 +159,19 @@ function createForm<F extends object>(
     unregisterError(path: Path, error: string) {
       this.setState(({ errors, errorCount }) => {
         const curr: string[] = get(errors, path, [])
-        const next = curr.filter(x => x !== error)
+        const next = curr.filter((x) => x !== error)
         return {
           errors: next.length
             ? immutable.set(errors, path as string[], next)
             : immutable.del(errors, path as string[]),
-          errorCount: errorCount - 1
+          errorCount: errorCount - 1,
         }
       })
     }
 
     incSubmitCount() {
       this.setState(({ submitCount }) => ({
-        submitCount: submitCount + 1
+        submitCount: submitCount + 1,
       }))
     }
 
@@ -196,38 +195,38 @@ function createForm<F extends object>(
     setValue(path: Path, val: any, setTouched = true) {
       this.setState(({ formValue, touched }) => ({
         formValue: immutable.set(formValue, path as string[], val),
-        touched: setTouched ? immutable.set(touched, path as string[], true) : touched
+        touched: setTouched ? immutable.set(touched, path as string[], true) : touched,
       }))
     }
 
     setFormValue(setFunc: SetFormValueFunc<F>) {
       this.setState(({ formValue }) => ({
-        formValue: setFunc(formValue)
+        formValue: setFunc(formValue),
       }))
     }
 
     touchField(path: Path, touched: boolean) {
       this.setState(({ touched: prev }) => ({
-        touched: immutable.set(prev, path as string[], touched)
+        touched: immutable.set(prev, path as string[], touched),
       }))
     }
 
     setTouched(setFunc: SetFormTouchedFunc<F>) {
       this.setState(({ touched }) => ({
-        touched: setFunc(touched)
+        touched: setFunc(touched),
       }))
     }
 
     visitField(path: Path, visited: boolean) {
       this.setState(({ visited: prev }) => ({
         activeField: null,
-        visited: immutable.set(prev, path as string[], visited)
+        visited: immutable.set(prev, path as string[], visited),
       }))
     }
 
     setVisited(setFunc: SetFormVisitedFunc<F>) {
       this.setState(({ visited }) => ({
-        visited: setFunc(visited)
+        visited: setFunc(visited),
       }))
     }
 
@@ -242,7 +241,7 @@ function createForm<F extends object>(
         formValue: initialValue,
         visited: initialVisited,
         touched: initialTouched,
-        submitCount: initialSubmitCount
+        submitCount: initialSubmitCount,
       })
     }
 
@@ -250,7 +249,7 @@ function createForm<F extends object>(
       this.setState({
         touched: {},
         visited: {},
-        submitCount: 0
+        submitCount: 0,
       })
     }
 
@@ -278,7 +277,7 @@ function createForm<F extends object>(
         forgetState: this.forgetState,
         setFormTouched: this.setTouched,
         setFormVisited: this.setVisited,
-        setFormValue: this.setFormValue
+        setFormValue: this.setFormValue,
       }
     }
 
@@ -303,7 +302,7 @@ function createForm<F extends object>(
             registerField: this.registerField,
             setActiveField: this.setActiveField,
             unregisterError: this.unregisterError,
-            unregisterField: this.unregisterField
+            unregisterField: this.unregisterField,
           }}
         >
           {childrenIsFunc<F>(children) ? children(props) : children}

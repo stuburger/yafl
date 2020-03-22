@@ -31,7 +31,7 @@ export function createDataSetter<T extends object>() {
     }
   }
 
-  function noop(e: T, props: FormProps<T>) {}
+  function noop() {}
   function renderForm(initialProps: Partial<FormConfig<T>> = {}, ui: React.ReactNode = null) {
     let injected: FormProps<T>
     let setPropsFn: (prev: SetProps<T>) => void
@@ -82,7 +82,7 @@ export function createDataSetter<T extends object>() {
 
 export function createFormRenderer<T extends object>() {
   const { Form, Section, Field, Repeat, ForwardProps, useYaflContext } = createFormContext<T>()
-  function noop(e: T, props: FormProps<T>) {}
+  function noop() {}
   function renderForm(
     props: Partial<FormConfig<T>> = {},
     ui: React.ReactNode | ((props: FormProps<T>) => React.ReactNode) = null

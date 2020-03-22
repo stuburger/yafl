@@ -3,9 +3,9 @@
 
 .rpt2_cache
 
-lib
 yafl-docs
 compiled
+dist
 *.log
 coverage
 .DS_Store
