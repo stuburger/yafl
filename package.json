@@ -1,8 +1,8 @@
 {
   "name": "yafl",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.5",
   "description": "Yet another form library for React",
-  "main": "dist/yafl.js",
+  "main": "dist/index.js",
   "module": "dist/yafl.esm.js",
   "typings": "dist/index.d.ts",
   "repository": {
