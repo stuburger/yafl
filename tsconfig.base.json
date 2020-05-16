@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
+    "moduleResolution": "node",
+    "jsx": "react",
     "strict": true,
     "pretty": true,
+    "importHelpers": true,
+    "declaration": true,
+    "sourceMap": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -16,6 +21,6 @@
     "emitDecoratorMetadata": false,
     "experimentalDecorators": false,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": true
   }
 }
