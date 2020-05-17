@@ -13,13 +13,16 @@
     "dist"
   ],
   "scripts": {
-    "test:watch": "npm run test -- --watchAll",
+    "size": "size-limit",
+    "toc": "doctoc README.md",
     "prebuild": "rimraf dist",
-    "build": "tsc -p tsconfig.json && rollup -c && rimraf compiled && cp index.js dist/index.js",
-    "prepublish": "npm run build",
-    "precommit": "lint-staged",
-    "gen-docs": "all-contributors generate && doctoc README.md",
-    "size": "size-limit"
+    "build": "cross-env NODE_ENV=production tsc -p tsconfig.json && rollup -c && rimraf compiled && cp ./index.js ./dist/index.js",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "prepublishOnly": "npm run build",
+    "jest:updatesnapshot": "jest --updateSnapshot",
+    "precommit": "lint-staged"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -87,8 +90,22 @@
     "why-did-you-update": "^1.0.6"
   },
   "jest": {
+    "collectCoverage": true,
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
     "collectCoverageFrom": [
-      "src/**/*.{ts,tsx}"
+      "src/**/*.{ts,tsx}",
+      "!src/**/index.{ts,tsx}"
+    ],
+    "testRegex": "((\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
     ]
   },
   "size-limit": [
