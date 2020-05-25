@@ -15,13 +15,13 @@ const renderError = (error: Error) => {
   )
 }
 
-describe('<Validator />', () => {
-  describe('when a Validator is rendered outside of a Form Component', () => {
-    it('throws an error stating that a Validator can only be rendered inside of a Form component', () => {
-      const { Validator } = createFormContext()
+describe('<FormError />', () => {
+  describe('when a FormError is rendered outside of a Form Component', () => {
+    it('throws an error stating that a FormError can only be rendered inside of a Form component', () => {
+      const { FormError } = createFormContext()
       const { queryByText } = render(
         <ErrorBoundary renderError={renderError}>
-          <Validator path={['test']}>{() => null}</Validator>
+          <FormError path={['test']}>{() => null}</FormError>
         </ErrorBoundary>
       )
 

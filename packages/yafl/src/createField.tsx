@@ -7,16 +7,16 @@ import {
   InputProps,
   FieldConfig,
   FieldMeta,
-  SetFieldValueFunc
+  SetFieldValueFunc,
 } from './sharedTypes'
 import { toStrPath, validateName, branchByName, isSetFunc, toArray } from './utils'
 import { branchableProps } from './defaults'
 import FieldSink from './FieldSink'
-import createValidator from './createValidator'
+import createFormError from './createFormError'
 import { useSafeContext } from './useSafeContext'
 
 function createFieldController(context: React.Context<FormProvider<any, any> | Symbol>) {
-  const Validator = createValidator(context)
+  const FormError = createFormError(context)
 
   type IFP<F extends object, T> = InnerFieldProps<F, T>
 
@@ -54,7 +54,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         submitCount: b.submitCount,
         forgetState: b.forgetState,
         setFormVisited: b.setFormVisited,
-        setFormTouched: b.setFormTouched
+        setFormTouched: b.setFormTouched,
       }
     }
 
@@ -65,7 +65,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         value: isCheckInput(forwardProps.type) ? forwardProps.value : b.value,
         onFocus: onFocus,
         onBlur: onBlur,
-        onChange: onChange
+        onChange: onChange,
       }
     }
 
@@ -76,7 +76,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         meta: collectMetaProps(),
         ...b.branchProps,
         ...b.sharedProps,
-        ...forwardProps
+        ...forwardProps,
       }
     }
 
@@ -168,9 +168,9 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
         <React.Fragment key="frag">
           {validators.reduceRight<React.ReactNode>(
             (ret, test) => (
-              <Validator path={path} msg={test(currentValue, yafl.formValue)}>
+              <FormError path={path} msg={test(currentValue, yafl.formValue)}>
                 {ret}
-              </Validator>
+              </FormError>
             ),
             null
           )}
@@ -184,7 +184,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
   return FieldController
 }
 
-export default function<F extends object>(context: React.Context<FormProvider<any, any> | Symbol>) {
+function createField<F extends object>(context: React.Context<FormProvider<any, any> | Symbol>) {
   const FieldController = createFieldController(context)
 
   function Field<T, F1 extends object = F>(
@@ -226,7 +226,7 @@ export default function<F extends object>(context: React.Context<FormProvider<an
     name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     type: PropTypes.string,
     render: PropTypes.func,
-    component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node])
+    component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node]),
   }
 
   return Field
@@ -235,3 +235,5 @@ export default function<F extends object>(context: React.Context<FormProvider<an
 const isCheckInput = (type?: string): type is 'radio' | 'checkbox' => {
   return type === 'radio' || type === 'checkbox'
 }
+
+export default createField

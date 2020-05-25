@@ -9,7 +9,7 @@ export type InnerValidatorProps = FormProvider<any> & {
   msg: string
 }
 
-export const InnerError: React.FC<InnerValidatorProps> = props => {
+export const InnerError: React.FC<InnerValidatorProps> = (props) => {
   const { msg, path, registerError, unregisterError } = props
   React.useEffect(() => {
     registerError(path, msg)
@@ -19,13 +19,13 @@ export const InnerError: React.FC<InnerValidatorProps> = props => {
   return null
 }
 
-export interface ValidatorProps {
+export interface FormErrorProps {
   msg?: string | null | void
   path: Path
 }
 
-export default function createValidator(ctx: React.Context<FormProvider<any, any> | Symbol>) {
-  const Validator: React.FC<ValidatorProps> = props => {
+function createFormError(ctx: React.Context<FormProvider<any, any> | Symbol>) {
+  const FormError: React.FC<FormErrorProps> = (props) => {
     const yafl = useSafeContext(ctx)
 
     const { path = [], msg, children = null } = props
@@ -41,12 +41,14 @@ export default function createValidator(ctx: React.Context<FormProvider<any, any
     return children as React.ReactElement<any>
   }
 
-  Validator.propTypes /* remove-proptypes */ = {
+  FormError.propTypes /* remove-proptypes */ = {
     msg: PropTypes.string,
     path: PropTypes.arrayOf(
       PropTypes.oneOfType([PropTypes.string.isRequired, PropTypes.number.isRequired]).isRequired
-    ).isRequired
+    ).isRequired,
   }
 
-  return Validator
+  return FormError
 }
+
+export default createFormError

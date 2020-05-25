@@ -15,7 +15,7 @@ export interface SectionConfig<T> {
   children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
 }
 
-export default function<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
+function createSection<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
   function SectionController<T extends object>(props: SectionConfig<T>) {
     const { children, name, fallback } = props
     const yafl = useSafeContext<F, T>(ctx)
@@ -51,8 +51,10 @@ export default function<F extends object>(ctx: React.Context<FormProvider<F, any
 
   Section.propTypes /* remove-proptypes */ = {
     name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
   }
 
   return Section
 }
+
+export default createSection
