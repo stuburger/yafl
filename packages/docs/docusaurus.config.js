@@ -1,17 +1,18 @@
 module.exports = {
-  title: 'My Site',
-  tagline: 'The tagline of my site',
+  title: 'Yet. Another. Form. Library.',
+  tagline: 'Fun, flexible forms in React.',
   url: 'https://stuburger.github.io',
   baseUrl: '/yafl/',
   favicon: 'img/favicon.ico',
   organizationName: 'stuburger', // Usually your GitHub org/user name.
   projectName: 'yafl', // Usually your repo name.
   themeConfig: {
+    disableDarkMode: true,
     navbar: {
-      title: 'My Site',
+      title: 'Yafl',
       logo: {
-        alt: 'My Site Logo',
-        src: 'img/logo.svg',
+        alt: 'Yafl',
+        // src: 'img/logo.svg',
       },
       links: [
         {
@@ -22,7 +23,7 @@ module.exports = {
         },
         {to: 'blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/stuburger/yafl',
           label: 'GitHub',
           position: 'right',
         },
@@ -30,52 +31,34 @@ module.exports = {
     },
     footer: {
       style: 'dark',
-      links: [
-        {
-          title: 'Docs',
-          items: [
-            {
-              label: 'Style Guide',
-              to: 'docs/',
-            },
-            {
-              label: 'Second Doc',
-              to: 'docs/doc2/',
-            },
-          ],
-        },
-        {
-          title: 'Community',
-          items: [
-            {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: 'blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
-            },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      // links: [
+      //   {
+      //     title: 'Getting Started',
+      //     items: [
+      //       {
+      //         label: 'Style Guide',
+      //         to: 'docs/',
+      //       },
+      //       {
+      //         label: 'Second Doc',
+      //         to: 'docs/doc2/',
+      //       },
+      //     ],
+      //   },
+      //   {
+      //     title: 'More',
+      //     items: [
+      //       {
+      //         label: 'Blog',
+      //         to: 'blog',
+      //       },
+      //       {
+      //         label: 'GitHub',
+      //         href: 'https://github.com/stuburger/yafl',
+      //       },
+      //     ],
+      //   },
+      // ],
     },
   },
   presets: [
@@ -84,7 +67,7 @@ module.exports = {
       {
         docs: {
           // It is recommended to set document id as docs home page (`docs/` path).
-          homePageId: 'doc1',
+          homePageId: 'overview',
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl:
