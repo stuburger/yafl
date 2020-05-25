@@ -507,7 +507,7 @@ The only configurable prop on the ForwardProps component is `mode`. By default a
 
 ### `<Validator />`
 
-The `<Validator />` component can be 'rendered' to create errors on your Form. The concept of "rendering a validator" might require a small shift in the way you think about form validation since other form libraries usually do validation through the use of a `validate` prop. With Yafl however, you validate your form by simply rendering a Validator. This has some interesting benefits, one of which is that a "rendered" validator solves some of the edge cases around form validation - the most obvious example being that of async validation.
+The `<Validator />` component can be 'rendered' to create errors on your Form. The concept of "rendering an error" might require a small shift in the way you think about form validation since other form libraries usually do validation through the use of a `validate` prop. With Yafl however, you validate your form by simply rendering an Error. This has some interesting benefits, one of which is that a "rendered" validator solves some of the edge cases around form validation - the most obvious example being that of async validation.
 
 #### Configuration
 
@@ -528,7 +528,7 @@ Override the `path` for a Validator. By default the `path` is determined by what
 
 >**Why you might need this: `path`**
 >
-> This is useful assign errors that belong to the domain of a Section, Repeat, at the Form level. Using the `path` prop is also for simply displaying general errors with a custom path or key.
+> This is useful assign errors that belong to the domain of a Section, Repeat, at the Form level. Using the `path` prop can also be used to display errors with a custom path or key.
 
 #### Example
 
@@ -587,16 +587,18 @@ function TextInput({ input, meta, ...props }) {
 ```jsx
 // IsRequiredValidator.jsx
 function IsRequired ({ value, message }) {
-  return <Validator invalid={!value} msg={message} />
+  return isNullOrUndefined(value) ? <Validator msg={message} /> : null
 }
 ```
 
 ```jsx
 // MinLengthValidator.jsx
 function MinLength ({ value, min, message }) {
-  return (
-    <Validator msg={message} invalid={value.length < min} />
-  )
+  if(value.length < min) {
+    return <Validator msg={message} /> 
+  }
+  
+  return null
 }
 
 ```

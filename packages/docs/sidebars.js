@@ -1,6 +1,16 @@
 module.exports = {
-  someSidebar: {
-    Docusaurus: ['doc1', 'doc2', 'doc3'],
-    Features: ['mdx'],
+  main: {
+    'Getting Started': ['overview', 'tutorial'],
+    Guides: ['validation', 'typescript'],
+    'API Reference': [
+      'form',
+      'field',
+      'section',
+      'repeat',
+      'form-error',
+      'forwardProps',
+      'createFormContext',
+      'useYaflContext',
+    ],
   },
-};
+}
