@@ -55,5 +55,5 @@ const FormErrorExample = (props) => {
 ```
 
 :::caution
-Currently Yafl does not guarantee the order in which error messages will appear in a Field's `errors` array. However this is usually only important when you only want to display the first error message using something like `errors[0]`. Fortunately Yafl provides the syntax that allows you to stop validating Fields "on first failure". You can accomplish this by nesting a `<FormError />` as the child of another `<FormError />`. This works because the children of a FormError are only rendered when Validation passes for any particular `<Validator />`.
+Currently Yafl does not guarantee the order in which error messages will appear in a Field's `errors` array. However this is usually only important when you only want to display the first error message using something like `errors[0]`. Fortunately Yafl provides the syntax that allows you to stop validating Fields "on first failure". You can accomplish this by nesting a `<FormError />` as the child of another `<FormError />`. This works because the children of a FormError are only rendered when Validation passes for any particular `<FormError />`.
 :::

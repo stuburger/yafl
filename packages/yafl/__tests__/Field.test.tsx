@@ -28,7 +28,7 @@ describe('<Field />', () => {
         <ErrorBoundary renderError={renderError}>
           <Field<string>
             name="test"
-            render={props => {
+            render={(props) => {
               return (
                 <>
                   <label htmlFor={props.input.name} />
@@ -51,7 +51,7 @@ describe('<Field />', () => {
         <Form initialValue={{ test: 'wow' }} onSubmit={() => {}}>
           <Field<string>
             name="test"
-            render={props => {
+            render={(props) => {
               return (
                 <>
                   <label htmlFor={props.input.name}>Test Field</label>
@@ -130,7 +130,7 @@ describe('<Field />', () => {
           name={TEST_FIELD_NAME}
           label={LABEL_SELECTOR}
           component={TextInput}
-          validate={value => (value === 'wow' ? 'We cant be wowed' : undefined)}
+          validate={(value) => (value === 'wow' ? 'We cant be wowed' : undefined)}
         />
       )
 
@@ -152,7 +152,7 @@ describe('<Field />', () => {
           name={TEST_FIELD_NAME}
           label={LABEL_SELECTOR}
           component={TextInput}
-          validate={value => (value < 42 ? 'That aint the answer' : undefined)}
+          validate={(value) => (value < 42 ? 'That aint the answer' : undefined)}
         />
       )
 
@@ -277,7 +277,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.getByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        output: () => api.getByTestId(`${TEST_FIELD_NAME}_isDirty`) as HTMLSpanElement
+        output: () => api.getByTestId(`${TEST_FIELD_NAME}_isDirty`) as HTMLSpanElement,
       })
 
       selectors.element(TEST_FIELD_NAME).change('tap tap tap')
@@ -296,7 +296,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.getByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        output: () => api.getByTestId(`${TEST_FIELD_NAME}_isActive`) as HTMLSpanElement
+        output: () => api.getByTestId(`${TEST_FIELD_NAME}_isActive`) as HTMLSpanElement,
       })
 
       selectors.element(TEST_FIELD_NAME).focus()
@@ -315,13 +315,10 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.getByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        output: () => api.getByTestId(`${TEST_FIELD_NAME}_isActive`) as HTMLSpanElement
+        output: () => api.getByTestId(`${TEST_FIELD_NAME}_isActive`) as HTMLSpanElement,
       })
 
-      selectors
-        .element(TEST_FIELD_NAME)
-        .focus()
-        .blur()
+      selectors.element(TEST_FIELD_NAME).focus().blur()
 
       expect(selectors.element('output').current.innerHTML).toEqual('false')
     })
@@ -337,7 +334,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.getByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        output: () => api.getByTestId(`${TEST_FIELD_NAME}_touched`) as HTMLSpanElement
+        output: () => api.getByTestId(`${TEST_FIELD_NAME}_touched`) as HTMLSpanElement,
       })
 
       selectors.element(TEST_FIELD_NAME).change('super')
@@ -356,7 +353,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.getByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        output: () => api.getByTestId(`${TEST_FIELD_NAME}_visited`) as HTMLSpanElement
+        output: () => api.getByTestId(`${TEST_FIELD_NAME}_visited`) as HTMLSpanElement,
       })
 
       selectors.element(TEST_FIELD_NAME).blur()
@@ -375,13 +372,10 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.getByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        output: () => api.getByTestId(`${TEST_FIELD_NAME}_formValue`) as HTMLSpanElement
+        output: () => api.getByTestId(`${TEST_FIELD_NAME}_formValue`) as HTMLSpanElement,
       })
 
-      selectors
-        .element(TEST_FIELD_NAME)
-        .change('meow')
-        .blur()
+      selectors.element(TEST_FIELD_NAME).change('meow').blur()
 
       expect(selectors.element('output').current.innerHTML).toEqual(
         JSON.stringify({ [TEST_FIELD_NAME]: 'meow', otherField: 42 })
@@ -410,7 +404,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.getByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        toggle: () => api.getByText('Toggle') as HTMLButtonElement
+        toggle: () => api.getByText('Toggle') as HTMLButtonElement,
       })
 
       const input = selectors.element(TEST_FIELD_NAME)
@@ -437,7 +431,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.queryByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        toggle: () => api.getByText('Toggle') as HTMLButtonElement
+        toggle: () => api.getByText('Toggle') as HTMLButtonElement,
       })
 
       const toggleFieldBtn = selectors.element('toggle')
@@ -467,7 +461,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.queryByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement
+        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement,
       })
 
       // sets touched to true for this Field
@@ -500,7 +494,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.queryByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement
+        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement,
       })
 
       // this will set visited to true
@@ -517,7 +511,7 @@ describe('<Field />', () => {
       const { renderForm, Field } = createFormRenderer()
       const initialValue = {
         [TEST_FIELD_NAME]: 'wow',
-        other: 42
+        other: 42,
       }
       const api = renderForm(
         { initialValue },
@@ -540,7 +534,7 @@ describe('<Field />', () => {
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.queryByLabelText(LABEL_SELECTOR) as HTMLInputElement,
         other: () => api.queryByLabelText('Other Label') as HTMLInputElement,
-        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement
+        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement,
       })
 
       const input1 = selectors.element(TEST_FIELD_NAME)
@@ -562,8 +556,8 @@ describe('<Field />', () => {
       const api = renderForm(
         {
           initialValue: {
-            [TEST_FIELD_NAME]: 'wow'
-          }
+            [TEST_FIELD_NAME]: 'wow',
+          },
         },
         <Toggler initialValue={false}>
           {({ toggle, value }) => {
@@ -581,7 +575,7 @@ describe('<Field />', () => {
 
       const selectors = Selection.create({
         [TEST_FIELD_NAME]: () => api.queryByLabelText(LABEL_SELECTOR) as HTMLInputElement,
-        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement
+        toggleBtn: () => api.getByText('Toggle') as HTMLButtonElement,
       })
 
       // ensure that the Field under test is initially nowhere to be seen
@@ -592,6 +586,33 @@ describe('<Field />', () => {
       selectors.element('toggleBtn').click()
       // the Field should now be visible and should contain the correct value
       expect(input.current.value).toBe('wow')
+    })
+  })
+
+  describe('validation', () => {
+    it('registers all errors returned by validate prop', () => {
+      const { renderForm, Field } = createFormRenderer()
+
+      const initialValue = { [TEST_FIELD_NAME]: 'wow' }
+      let errors: any
+
+      renderForm(
+        { initialValue },
+        <Field<string>
+          name={TEST_FIELD_NAME}
+          label={LABEL_SELECTOR}
+          render={(props) => {
+            errors = props.meta.errors
+            return <input {...props.input} />
+          }}
+          validate={[
+            (value) => (value === 'wow' ? 'We cant be wowed' : undefined),
+            (value) => (value === 'wow' ? 'Really really cant be wowed' : undefined),
+          ]}
+        />
+      )
+
+      expect(errors).toEqual(['We cant be wowed', 'Really really cant be wowed'])
     })
   })
 })

@@ -163,19 +163,12 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
     }
 
     const validators = toArray(props.validate)
-    if (validators.length > 0) {
-      ret.push(
-        <React.Fragment key="frag">
-          {validators.reduceRight<React.ReactNode>(
-            (ret, test) => (
-              <FormError path={path} msg={test(currentValue, yafl.formValue)}>
-                {ret}
-              </FormError>
-            ),
-            null
-          )}
-        </React.Fragment>
-      )
+    const ln = validators.length
+    for (let i = 0; i < ln; i++) {
+      const msg = validators[i](currentValue, yafl.formValue)
+      if (msg) {
+        ret.push(<FormError key={msg} path={path} msg={msg} />)
+      }
     }
 
     return <>{ret}</>
@@ -187,7 +180,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
 function createField<F extends object>(context: React.Context<FormProvider<any, any> | Symbol>) {
   const FieldController = createFieldController(context)
 
-  function Field<T, F1 extends object = F>(
+  function Field<T = any, F1 extends object = F>(
     props: FieldConfig<F1, T>
   ): React.ReactElement<FieldConfig<F1, T>> {
     if (process.env.NODE_ENV !== 'production') {
