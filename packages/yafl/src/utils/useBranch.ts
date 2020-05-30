@@ -15,7 +15,7 @@ function useBranch<T>(name: Name, yafl: FormProvider<any>, fallback: T) {
 
   return React.useMemo(() => {
     return {
-      path: (path ? path.concat(`.${name}`) : `${name}`) as string,
+      path: path ? path.concat(`.${name}`) : `${name}`,
       touched: touched[name] as any,
       visited: visited[name] as any,
       errors: errors[name] as any,

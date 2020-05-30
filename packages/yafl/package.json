@@ -20,7 +20,7 @@
     "watch": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "yarn build",
     "jest:updatesnapshot": "jest --updateSnapshot",
     "precommit": "lint-staged"
   },
