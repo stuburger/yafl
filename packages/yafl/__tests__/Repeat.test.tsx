@@ -1,6 +1,8 @@
+/* eslint-disable react/no-array-index-key */
 import * as React from 'react'
-import { createFormContext } from '../src'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { render, fireEvent } from '@testing-library/react'
+import { createFormContext } from '../src'
 import { ErrorBoundary } from './ErrorBoundry'
 import { NO_PROVIDER } from '../src/useSafeContext'
 import { createFormRenderer } from './helpers'
@@ -36,7 +38,7 @@ describe('<Repeat />', () => {
             {(values, { push }) => {
               return (
                 <>
-                  <button data-testid="adder" onClick={() => push('blah')}>
+                  <button type="button" data-testid="adder" onClick={() => push('blah')}>
                     push
                   </button>
                   {values.map((_, i) => {
@@ -61,7 +63,7 @@ describe('<Repeat />', () => {
             {(values, { remove }) => {
               return (
                 <>
-                  <button data-testid="adder" onClick={() => remove(2)}>
+                  <button type="button" data-testid="adder" onClick={() => remove(2)}>
                     remove
                   </button>
                   {values.map((_, i) => {
@@ -86,7 +88,7 @@ describe('<Repeat />', () => {
             {(values, { shift }) => {
               return (
                 <>
-                  <button data-testid="adder" onClick={() => shift()}>
+                  <button type="button" data-testid="adder" onClick={() => shift()}>
                     shift
                   </button>
                   {values.map((_, i) => {
@@ -111,7 +113,7 @@ describe('<Repeat />', () => {
             {(values, { swap }) => {
               return (
                 <>
-                  <button data-testid="adder" onClick={() => swap(1, 2)}>
+                  <button type="button" data-testid="adder" onClick={() => swap(1, 2)}>
                     swap
                   </button>
                   {values.map((_, i) => {
@@ -136,7 +138,11 @@ describe('<Repeat />', () => {
             {(values, { setValue }) => {
               return (
                 <>
-                  <button data-testid="adder" onClick={() => setValue(['we', 'are', 'one'])}>
+                  <button
+                    type="button"
+                    data-testid="adder"
+                    onClick={() => setValue(['we', 'are', 'one'])}
+                  >
                     setValue
                   </button>
                   {values.map((_, i) => {
@@ -163,7 +169,8 @@ describe('<Repeat />', () => {
                 <>
                   <button
                     data-testid="adder"
-                    onClick={() => setValue(prev => [...prev, 'we', 'are', 'one'])}
+                    type="button"
+                    onClick={() => setValue((prev) => [...prev, 'we', 'are', 'one'])}
                   >
                     setValue
                   </button>
@@ -179,7 +186,7 @@ describe('<Repeat />', () => {
         fireEvent.click(queryByTestId('adder') as any)
 
         expect(getFormProps().formValue).toEqual({
-          arr: ['cool', 'beans', 'sweet', 'potatoes', 'we', 'are', 'one']
+          arr: ['cool', 'beans', 'sweet', 'potatoes', 'we', 'are', 'one'],
         })
       })
 
@@ -191,7 +198,7 @@ describe('<Repeat />', () => {
             {(values, { unshift }) => {
               return (
                 <>
-                  <button data-testid="adder" onClick={() => unshift(...['a', 'b'])}>
+                  <button data-testid="adder" onClick={() => unshift(...['a', 'b'])} type="button">
                     unshift
                   </button>
                   {values.map((_, i) => {
@@ -206,7 +213,7 @@ describe('<Repeat />', () => {
         fireEvent.click(queryByTestId('adder') as any)
 
         expect(getFormProps().formValue).toEqual({
-          arr: ['a', 'b', 'cool', 'beans', 'sweet', 'potatoes']
+          arr: ['a', 'b', 'cool', 'beans', 'sweet', 'potatoes'],
         })
       })
 
@@ -218,7 +225,7 @@ describe('<Repeat />', () => {
             {(values, { pop }) => {
               return (
                 <>
-                  <button data-testid="adder" onClick={() => pop()}>
+                  <button data-testid="adder" onClick={() => pop()} type="button">
                     pop
                   </button>
                   {values.map((_, i) => {
@@ -233,7 +240,7 @@ describe('<Repeat />', () => {
         fireEvent.click(queryByTestId('adder') as any)
 
         expect(getFormProps().formValue).toEqual({
-          arr: ['cool', 'beans', 'sweet']
+          arr: ['cool', 'beans', 'sweet'],
         })
       })
 
@@ -245,7 +252,7 @@ describe('<Repeat />', () => {
             {(values, { insert }) => {
               return (
                 <>
-                  <button data-testid="adder" onClick={() => insert(1, 'a', 'b')}>
+                  <button data-testid="adder" onClick={() => insert(1, 'a', 'b')} type="button">
                     insert
                   </button>
                   {values.map((_, i) => {
@@ -260,7 +267,7 @@ describe('<Repeat />', () => {
         fireEvent.click(queryByTestId('adder') as any)
 
         expect(getFormProps().formValue).toEqual({
-          arr: ['cool', 'a', 'b', 'beans', 'sweet', 'potatoes']
+          arr: ['cool', 'a', 'b', 'beans', 'sweet', 'potatoes'],
         })
       })
     })

@@ -5,6 +5,6 @@ export default (name: any) => {
   const isValidA = isString || Number.isInteger(name)
   warning(isValidA, "Expected string | number for the 'name' prop")
   if (isString) {
-    warning(!name.includes('.'), "'name' prop cannot be a path string. " + name + ' is invalid')
+    warning(!name.includes('.'), `'name' prop cannot be a path string. ${name} is invalid`)
   }
 }

@@ -36,7 +36,6 @@
   "dependencies": {
     "invariant": "^2.2.4",
     "object-path-immutable": "^4.1.0",
-    "prop-types": "^15.6.2",
     "react-fast-compare": "^3.0.1",
     "tiny-warning": "^1.0.3",
     "tslib": "^1.11.1",

@@ -2,13 +2,12 @@ import * as check from './checkType'
 
 describe('type checks', () => {
   test('isString', () => {
-    const isString: any = check.isString
+    const { isString } = check
     expect(isString('')).toBe(true)
     expect(isString('aksdjfhasdlfa')).toBe(true)
-    expect(isString('aksdjfhasdlfa', 1, 2, 'asdf')).toBe(true)
     expect(isString(null)).toBe(false)
     expect(isString(undefined)).toBe(false)
-    expect(isString()).toBe(false)
+    expect((isString as any)()).toBe(false)
     expect(isString(1)).toBe(false)
     expect(isString(0)).toBe(false)
     expect(isString(true)).toBe(false)
@@ -18,10 +17,10 @@ describe('type checks', () => {
   })
 
   test('isNullOrUndefined', () => {
-    const isNullOrUndefined: any = check.isNullOrUndefined
+    const { isNullOrUndefined } = check
     expect(isNullOrUndefined(null)).toBe(true)
     expect(isNullOrUndefined(undefined)).toBe(true)
-    expect(isNullOrUndefined()).toBe(true)
+    expect((isNullOrUndefined as any)()).toBe(true)
     expect(isNullOrUndefined(1)).toBe(false)
     expect(isNullOrUndefined(0)).toBe(false)
     expect(isNullOrUndefined('')).toBe(false)
@@ -32,10 +31,10 @@ describe('type checks', () => {
   })
 
   test('isObject', () => {
-    const isObject: any = check.isObject
+    const { isObject } = check
     expect(isObject(null)).toBe(false)
     expect(isObject(undefined)).toBe(false)
-    expect(isObject()).toBe(false)
+    expect((isObject as any)()).toBe(false)
     expect(isObject(1)).toBe(false)
     expect(isObject(0)).toBe(false)
     expect(isObject('')).toBe(false)

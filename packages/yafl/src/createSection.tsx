@@ -1,8 +1,6 @@
 import * as React from 'react'
-import PropTypes from 'prop-types'
-import { validateName, branchByName, isSetFunc } from './utils'
+import { validateName, useBranch, isSetFunc } from './utils'
 import { Name, FormProvider, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
-import { branchableProps } from './defaults'
 import { useSafeContext } from './useSafeContext'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
@@ -17,41 +15,38 @@ export interface SectionConfig<T> {
 
 function createSection<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
   function SectionController<T extends object>(props: SectionConfig<T>) {
-    const { children, name, fallback } = props
+    const { children, name, fallback = {} as T } = props
+
     const yafl = useSafeContext<F, T>(ctx)
+    const curr = useBranch<T>(name, yafl, fallback)
 
-    const path = yafl.path.concat(name)
+    const { registerField, unregisterField } = yafl
     React.useEffect(() => {
-      yafl.registerField(path)
-      return () => yafl.unregisterField(path)
-    }, [])
-
-    const b = branchByName<F, T, FormProvider<F, T>>(name, yafl, branchableProps, fallback)
+      registerField(curr.path)
+      return () => unregisterField(curr.path)
+    }, [curr.path, registerField, unregisterField])
 
     const setValue = React.useCallback(
       (value: T | SetFieldValueFunc<T>): void => {
-        yafl.setValue(path, isSetFunc(value) ? value(b.value) : value, false)
+        yafl.setValue(curr.path, isSetFunc(value) ? value(curr.value) : value, false)
       },
-      [b.value]
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [curr.path, curr.value, yafl.setValue]
     )
 
     return (
-      <ctx.Provider value={{ ...b, path }}>
-        {typeof children === 'function' ? children(b.value, { setValue }) : children}
+      <ctx.Provider value={{ ...yafl, ...curr }}>
+        {typeof children === 'function' ? children(curr.value, { setValue }) : children}
       </ctx.Provider>
     )
   }
 
   function Section<T extends object>(props: SectionConfig<T>) {
+    const { name } = props
     if (process.env.NODE_ENV !== 'production') {
-      validateName(props.name)
+      validateName(name)
     }
-    return <SectionController key={props.name} {...props} />
-  }
-
-  Section.propTypes /* remove-proptypes */ = {
-    name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
+    return <SectionController key={name} {...props} />
   }
 
   return Section

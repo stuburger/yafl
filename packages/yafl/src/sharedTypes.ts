@@ -1,5 +1,4 @@
 export type Name = string | number
-export type Path = Name[]
 
 export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 export type BooleanTree<T> = { [K in keyof T]?: T[K] extends object ? BooleanTree<T[K]> : boolean }
@@ -243,15 +242,8 @@ export interface SectionHelpers<T> {
   setValue: (value: T | SetFieldValueFunc<T>) => void
 }
 
-export interface SharedFieldProps<F extends object> {
-  onChange?: <T = any>(e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
-  onBlur?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  onFocus?: <T = any>(e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  [key: string]: any
-}
-
 export interface FormProvider<F extends object, T = F> {
-  path: Path
+  path: string
   value: T
   initialValue: T
   errorCount: number
@@ -268,18 +260,18 @@ export interface FormProvider<F extends object, T = F> {
   submit: () => void
   resetForm: () => void
   forgetState: () => void
-  sharedProps: SharedFieldProps<F>
+  sharedProps: Record<string, any>
   setActiveField: (path: string | null) => void
-  touchField: (path: Path, touched: boolean) => void
-  visitField: (path: Path, visited: boolean) => void
-  registerError: (path: Path, error: string) => void
-  unregisterError: (path: Path, error: string) => void
+  touchField: (path: string, touched: boolean) => void
+  visitField: (path: string, visited: boolean) => void
+  registerError: (path: string, error: string) => void
+  unregisterError: (path: string, error: string) => void
   setFormValue: (setFunc: SetFormValueFunc<F>) => void
-  setValue: (path: Path, value: any, setTouched?: boolean) => void
+  setValue: (path: string, value: any, setTouched?: boolean) => void
   setFormTouched: (setFunc: SetFormTouchedFunc<F>) => void
   setFormVisited: (setFunc: SetFormVisitedFunc<F>) => void
-  unregisterField: (path: Path) => void
-  registerField: (path: Path) => void
+  unregisterField: (path: string) => void
+  registerField: (path: string) => void
 }
 
 export interface FormProps<F extends object> extends FormMeta<F> {
@@ -364,7 +356,7 @@ export interface FormConfig<T extends object> {
   onFormValueChange?: (prev: T, next: T) => void
 }
 
-export interface PropForwarderConfig<T extends object> extends SharedFieldProps<T> {
+export interface PropForwarderConfig {
   children: React.ReactNode
   mode?: 'default' | 'branch'
   [key: string]: any

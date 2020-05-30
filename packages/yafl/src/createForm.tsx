@@ -1,10 +1,9 @@
+/* eslint-disable react/sort-comp */
 import * as React from 'react'
-import PropTypes from 'prop-types'
-import { get, toStrPath, constructFrom } from './utils'
 import isEqual from 'react-fast-compare'
 import * as immutable from 'object-path-immutable'
+import { get, constructFrom } from './utils'
 import {
-  Path,
   FormState,
   FormProvider,
   SetFormValueFunc,
@@ -14,8 +13,6 @@ import {
   FormProps,
   BooleanTree,
 } from './sharedTypes'
-
-const startingPath: Path = []
 
 function childrenIsFunc<F extends object>(
   children: Function | React.ReactNode
@@ -28,6 +25,7 @@ function whenEnabled(this: React.Component<any, any>, func: Function) {
     if (this.state.initialMount && !this.props.disabled) {
       return func(...params)
     }
+    return undefined
   }
 }
 
@@ -37,16 +35,8 @@ function createForm<F extends object>(
   type RFC = Required<FormConfig<F>>
 
   class Form extends React.Component<FormConfig<F>, FormState<F>> {
-    static propTypes /* remove-proptypes */ = {
-      onSubmit: PropTypes.func.isRequired,
-      children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
-      initialValue: PropTypes.object as any,
-      submitUnregisteredValues: PropTypes.bool,
-      rememberStateOnReinitialize: PropTypes.bool,
-      persistFieldState: PropTypes.bool,
-    }
-
     registerCache: string[] = []
+
     constructor(props: FormConfig<F>) {
       super(props)
 
@@ -127,43 +117,43 @@ function createForm<F extends object>(
           update.submitCount = initialSubmitCount
         }
 
+        // eslint-disable-next-line react/no-did-update-set-state
         this.setState(update)
       }
     }
 
-    registerField(path: Path) {
-      this.registerCache.push(toStrPath(path))
+    // eslint-disable-next-line react/sort-comp
+    registerField(path: string) {
+      this.registerCache.push(path)
     }
 
-    unregisterField(path: Path) {
-      const strPath = toStrPath(path)
-      this.registerCache = this.registerCache.filter((x) => !x.startsWith(strPath))
-      if (this.props.persistFieldState) return
+    unregisterField(path: string) {
+      const { persistFieldState } = this.props
+      this.registerCache = this.registerCache.filter((x) => !x.startsWith(path))
+      if (persistFieldState) return
       this.setState(({ touched, visited }) => ({
-        touched: immutable.del(touched, path as string[]),
-        visited: immutable.del(visited, path as string[]),
+        touched: immutable.del(touched, path),
+        visited: immutable.del(visited, path),
       }))
     }
 
-    registerError(path: Path, error: string) {
+    registerError(path: string, error: string) {
       this.setState(({ errors, errorCount }) => {
         const curr = get(errors, path, [])
         const errs = Array.isArray(curr) ? [...curr, error] : [error]
         return {
           errorCount: errorCount + 1,
-          errors: immutable.set(errors, path as string[], errs),
+          errors: immutable.set(errors, path, errs),
         }
       })
     }
 
-    unregisterError(path: Path, error: string) {
+    unregisterError(path: string, error: string) {
       this.setState(({ errors, errorCount }) => {
         const curr: string[] = get(errors, path, [])
         const next = curr.filter((x) => x !== error)
         return {
-          errors: next.length
-            ? immutable.set(errors, path as string[], next)
-            : immutable.del(errors, path as string[]),
+          errors: next.length ? immutable.set(errors, path, next) : immutable.del(errors, path),
           errorCount: errorCount - 1,
         }
       })
@@ -284,18 +274,19 @@ function createForm<F extends object>(
     render() {
       const { children } = this.props
 
+      const { formValue } = this.state
       const props = this.collectFormProps()
 
       return (
         <Provider
           value={{
             ...props,
+            path: '',
             branchProps: {},
             sharedProps: {},
-            path: startingPath,
+            value: formValue,
             submit: this.submit,
             setValue: this.setValue,
-            value: this.state.formValue,
             visitField: this.visitField,
             touchField: this.touchField,
             registerError: this.registerError,

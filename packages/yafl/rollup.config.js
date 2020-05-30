@@ -10,17 +10,7 @@ import pkg from './package.json'
 const babelOptions = {
   babelHelpers: 'inline',
   exclude: /node_modules/,
-  plugins: [
-    [
-      'transform-react-remove-prop-types',
-      {
-        mode: 'remove',
-        removeImport: true,
-      },
-    ],
-    'annotate-pure-calls',
-    'dev-expression',
-  ],
+  plugins: ['annotate-pure-calls', 'dev-expression'],
 }
 
 const input = './compiled/index.js'
@@ -71,21 +61,6 @@ function buildUmd({ env }) {
       }),
       commonjs({
         include: /node_modules/,
-        namedExports: {
-          'node_modules/prop-types/index.js': [
-            'object',
-            'oneOf',
-            'oneOfType',
-            'string',
-            'number',
-            'array',
-            'arrayOf',
-            'node',
-            'func',
-            'bool',
-            'element',
-          ],
-        },
       }),
       sourcemaps(),
       env === 'production' && sizeSnapshot(),
@@ -115,12 +90,7 @@ function buildEsm() {
       format: 'es',
       sourcemap: true,
     },
-    plugins: [
-      resolve(),
-      babel(babelOptions),
-      sourcemaps(),
-      sizeSnapshot(),
-    ],
+    plugins: [resolve(), babel(babelOptions), sourcemaps(), sizeSnapshot()],
   }
 }
 
@@ -129,5 +99,5 @@ export default [
   buildCjs({ env: 'production' }),
   buildUmd({ env: 'development' }),
   buildUmd({ env: 'production' }),
-  buildEsm()
+  buildEsm(),
 ]
