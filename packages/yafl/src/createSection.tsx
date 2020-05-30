@@ -14,8 +14,13 @@ export interface SectionConfig<T> {
 }
 
 function createSection<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
-  function SectionController<T extends object>(props: SectionConfig<T>) {
-    const { children, name, fallback = {} as T } = props
+  function Section<T extends object>(props: SectionConfig<T>) {
+    const { name } = props
+    if (process.env.NODE_ENV !== 'production') {
+      validateName(name)
+    }
+
+    const { children, fallback = {} as T } = props
 
     const yafl = useSafeContext<F, T>(ctx)
     const curr = useBranch<T>(name, yafl, fallback)
@@ -39,14 +44,6 @@ function createSection<F extends object>(ctx: React.Context<FormProvider<F, any>
         {typeof children === 'function' ? children(curr.value, { setValue }) : children}
       </ctx.Provider>
     )
-  }
-
-  function Section<T extends object>(props: SectionConfig<T>) {
-    const { name } = props
-    if (process.env.NODE_ENV !== 'production') {
-      validateName(name)
-    }
-    return <SectionController key={name} {...props} />
   }
 
   return Section

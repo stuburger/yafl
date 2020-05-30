@@ -5,10 +5,14 @@ import { FormProvider, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
 import { useSafeContext } from './useSafeContext'
 
 function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
-  function RepeatController<T = any>(props: RepeatConfig<T>) {
-    const { children, name, fallback = [] } = props
-    const yafl = useSafeContext<F, T[]>(ctx)
+  function Repeat<T = any>(props: RepeatConfig<T>) {
+    const { name, children, fallback = [] } = props
 
+    if (process.env.NODE_ENV !== 'production') {
+      validateName(name)
+    }
+
+    const yafl = useSafeContext<F, T[]>(ctx)
     const curr = useBranch<T[]>(name, yafl, fallback)
 
     const { registerField, unregisterField } = yafl
@@ -110,14 +114,6 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
           : children}
       </ctx.Provider>
     )
-  }
-
-  function Repeat<T = any>(props: RepeatConfig<T>) {
-    const { name } = props
-    if (process.env.NODE_ENV !== 'production') {
-      validateName(name)
-    }
-    return <RepeatController key={name} {...props} />
   }
 
   return Repeat
