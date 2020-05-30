@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {
   FormProvider,
-  InnerFieldProps,
   FieldProps,
   InputProps,
   FieldConfig,
@@ -17,13 +16,20 @@ function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
   return type === 'radio' || type === 'checkbox'
 }
 
-function createFieldController(context: React.Context<FormProvider<any, any> | Symbol>) {
+function createField<FValue extends object>(
+  context: React.Context<FormProvider<any, any> | Symbol>
+) {
   const FormError = createFormError(context)
 
-  type IFP<F extends object, T> = InnerFieldProps<F, T>
+  function Field<T = any, F extends object = FValue>(
+    props: FieldConfig<F, T>
+  ): React.ReactElement<FieldConfig<F, T>> {
+    const { name, render, validate, component, forwardRef, ...forwardProps } = props
 
-  function FieldController<T, F extends object>(props: IFP<F, T>): React.ReactElement<IFP<F, T>> {
-    const { name, forwardProps, validate } = props
+    if (process.env.NODE_ENV !== 'production') {
+      validateName(name)
+    }
+
     const yafl = useSafeContext(context)
     const curr = useBranch<T>(name, yafl, undefined!)
 
@@ -91,9 +97,7 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
       }
     }, [setActiveField, visit, path, visited])
 
-    const { render, component, forwardRef } = props
-
-    const metaProps: FieldMeta<F, T> = {
+    const metaProps: FieldMeta<FValue, T> = {
       setValue,
       path: curr.path,
       errors: (curr.errors || []) as any,
@@ -155,47 +159,6 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
     }
 
     return <>{ret}</>
-  }
-
-  return FieldController
-}
-
-function createField<F extends object>(context: React.Context<FormProvider<any, any> | Symbol>) {
-  const FieldController = createFieldController(context)
-
-  function Field<T = any, F1 extends object = F>(
-    props: FieldConfig<F1, T>
-  ): React.ReactElement<FieldConfig<F1, T>> {
-    const {
-      name,
-      render,
-      onBlur,
-      onFocus,
-      onChange,
-      validate,
-      component,
-      forwardRef,
-      ...forwardProps
-    } = props
-
-    if (process.env.NODE_ENV !== 'production') {
-      validateName(name)
-    }
-
-    return (
-      <FieldController<T, F1>
-        key={name}
-        name={name}
-        render={render}
-        onBlur={onBlur}
-        onFocus={onFocus}
-        onChange={onChange}
-        validate={validate}
-        component={component}
-        forwardRef={forwardRef}
-        forwardProps={forwardProps}
-      />
-    )
   }
 
   return Field

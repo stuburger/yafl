@@ -84,12 +84,9 @@ export interface InputProps<T = any> {
 export interface FieldConfig<F extends object, T = any> {
   name: Name
   forwardRef?: React.Ref<any>
-  render?: (state: FieldProps<F, T>) => React.ReactNode
+  render?: (props: FieldProps<F, T>) => React.ReactNode
   validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
   component?: React.ComponentType<FieldProps<F, T>> | string
-  onChange?: (e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
-  onBlur?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  onFocus?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
   [key: string]: any
 }
 export interface FieldProps<F extends object, T = any> {
@@ -147,18 +144,6 @@ export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
    * @param value The boolean value to which this Field's touched state should be set.
    */
   setTouched: (value: boolean) => void
-}
-
-export interface InnerFieldProps<F extends object, T = any> {
-  name: Name
-  forwardRef?: React.Ref<any>
-  validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
-  render?: (state: FieldProps<F, T>) => React.ReactNode
-  component?: React.ComponentType<FieldProps<F, T>> | string
-  onChange?: (e: React.ChangeEvent<any>, props: FieldProps<F, T>) => void
-  onBlur?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  onFocus?: (e: React.FocusEvent<any>, props: FieldProps<F, T>) => void
-  forwardProps: { [key: string]: any }
 }
 
 export type ValidationResult = string | void | undefined
