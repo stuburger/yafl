@@ -1,4 +1,6 @@
+// eslint-disable-next-line max-classes-per-file
 import * as React from 'react'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { render, fireEvent } from '@testing-library/react'
 import { createFormContext, FormProps, FormConfig } from '../src'
 
@@ -27,7 +29,8 @@ export function createDataSetter<T extends object>() {
     }
 
     render() {
-      return this.props.children(this.state, this.setProps)
+      const { children } = this.props
+      return children(this.state, this.setProps)
     }
   }
 
@@ -58,8 +61,8 @@ export function createDataSetter<T extends object>() {
             setPropsFn = setFn
             return (
               <Form onSubmit={noop} {...(state as any)}>
-                {props => {
-                  renderCount = renderCount + 1
+                {(props) => {
+                  renderCount += 1
                   injected = props
                   return ui
                 }}
@@ -67,7 +70,7 @@ export function createDataSetter<T extends object>() {
             )
           }}
         </DataSetter>
-      )
+      ),
     }
   }
 
@@ -76,7 +79,7 @@ export function createDataSetter<T extends object>() {
     Form,
     Section,
     Field,
-    Repeat
+    Repeat,
   }
 }
 
@@ -84,12 +87,12 @@ export function createFormRenderer<T extends object>() {
   const { Form, Section, Field, Repeat, ForwardProps, useYaflContext } = createFormContext<T>()
   function noop() {}
   function renderForm(
-    props: Partial<FormConfig<T>> = {},
+    config: Partial<FormConfig<T>> = {},
     ui: React.ReactNode | ((props: FormProps<T>) => React.ReactNode) = null
   ) {
     let injected: FormProps<T>
     let renderCount: number = 0
-    const { onSubmit = noop } = props
+    const { onSubmit = noop } = config
     return {
       getRenderCount(): number {
         return renderCount
@@ -98,14 +101,14 @@ export function createFormRenderer<T extends object>() {
         return injected
       },
       ...render(
-        <Form onSubmit={onSubmit} {...(props as any)}>
-          {props => {
-            renderCount = renderCount + 1
+        <Form onSubmit={onSubmit} {...(config as any)}>
+          {(props) => {
+            renderCount += 1
             injected = props
             return typeof ui === 'function' ? ui(props) : ui
           }}
         </Form>
-      )
+      ),
     }
   }
 
@@ -116,44 +119,15 @@ export function createFormRenderer<T extends object>() {
     Section,
     Field,
     Repeat,
-    useYaflContext
+    useYaflContext,
   }
 }
 
 const createChangeEvent = (value: string | number) => ({ target: { value } })
 
-interface ISelectionController<T extends Element> {
-  change: (value: string | number) => ISelectionController<T>
-  focus: () => ISelectionController<T>
-  blur: () => ISelectionController<T>
-  click: () => ISelectionController<T>
-  current: T
-}
-
-type ISelectors<TShape extends { [key: string]: () => Element }> = {
-  [K in keyof TShape]: ISelectionController<ReturnType<TShape[K]>>
-}
-
-export class Selection<TShape extends { [key: string]: () => Element }> {
-  private selectors: ISelectors<TShape>
-  static create<TShape extends { [key: string]: () => Element }>(selectors: TShape) {
-    return new Selection<TShape>(selectors)
-  }
-
-  constructor(selectors: TShape) {
-    this.selectors = Object.keys(selectors).reduce((ret, key: keyof TShape) => {
-      ret[key] = SelectionController.create(selectors[key])
-      return ret
-    }, {} as ISelectors<TShape>)
-  }
-
-  element<K extends keyof TShape>(key: K): ISelectors<TShape>[K] {
-    return this.selectors[key]
-  }
-}
-
 export class SelectionController<T extends Element> implements ISelectionController<T> {
   query: () => T
+
   private constructor(query: () => Element) {
     this.query = query as () => T
   }
@@ -184,6 +158,38 @@ export class SelectionController<T extends Element> implements ISelectionControl
   blur() {
     fireEvent.blur(this.query())
     return this
+  }
+}
+
+interface ISelectionController<T extends Element> {
+  change: (value: string | number) => ISelectionController<T>
+  focus: () => ISelectionController<T>
+  blur: () => ISelectionController<T>
+  click: () => ISelectionController<T>
+  current: T
+}
+
+type ISelectors<TShape extends { [key: string]: () => Element }> = {
+  [K in keyof TShape]: ISelectionController<ReturnType<TShape[K]>>
+}
+
+export class Selection<TShape extends { [key: string]: () => Element }> {
+  private selectors: ISelectors<TShape>
+
+  static create<TShape extends { [key: string]: () => Element }>(selectors: TShape) {
+    return new Selection<TShape>(selectors)
+  }
+
+  constructor(selectors: TShape) {
+    this.selectors = Object.keys(selectors).reduce((ret, key: keyof TShape) => {
+      // eslint-disable-next-line no-param-reassign
+      ret[key] = SelectionController.create(selectors[key])
+      return ret
+    }, {} as ISelectors<TShape>)
+  }
+
+  element<K extends keyof TShape>(key: K): ISelectors<TShape>[K] {
+    return this.selectors[key]
   }
 }
 

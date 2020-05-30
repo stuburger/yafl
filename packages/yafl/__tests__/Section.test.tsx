@@ -1,6 +1,7 @@
 import * as React from 'react'
-import { createFormContext, Contact } from '../src'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { render, fireEvent } from '@testing-library/react'
+import { createFormContext, Contact } from '../src'
 import { ErrorBoundary } from './ErrorBoundry'
 import { NO_PROVIDER } from '../src/useSafeContext'
 import { createFormRenderer, SelectionController } from './helpers'
@@ -38,13 +39,19 @@ describe('<Section />', () => {
             tel: '29878786754',
             address: {
               code: 'blah',
-              street: 'bleep'
-            }
-          }
-        }
+              street: 'bleep',
+            },
+          },
+        },
       },
       <Section<Contact> name="contact">
-        <button data-testid="action" onClick={() => (buttonWasClicked = true)}>
+        <button
+          type="button"
+          data-testid="action"
+          onClick={() => {
+            buttonWasClicked = true
+          }}
+        >
           click me
         </button>
       </Section>
@@ -64,10 +71,10 @@ describe('<Section />', () => {
             tel: '29878786754',
             address: {
               code: 'blah',
-              street: 'bleep'
-            }
-          }
-        }
+              street: 'bleep',
+            },
+          },
+        },
       },
       <Section<Contact> name="contact">
         {(_, { setValue }) => {
@@ -75,13 +82,14 @@ describe('<Section />', () => {
             <>
               <button
                 data-testid="action"
+                type="button"
                 onClick={() =>
                   setValue({
                     tel: '000000000',
                     address: {
                       code: 'beans',
-                      street: 'toast'
-                    }
+                      street: 'toast',
+                    },
                   })
                 }
               >
@@ -100,9 +108,9 @@ describe('<Section />', () => {
         tel: '000000000',
         address: {
           code: 'beans',
-          street: 'toast'
-        }
-      }
+          street: 'toast',
+        },
+      },
     })
   })
 
@@ -115,10 +123,10 @@ describe('<Section />', () => {
             tel: '29878786754',
             address: {
               code: 'blah',
-              street: 'bleep'
-            }
-          }
-        }
+              street: 'bleep',
+            },
+          },
+        },
       },
       <Section<Contact> name="contact">
         {(_, { setValue }) => {
@@ -126,10 +134,11 @@ describe('<Section />', () => {
             <>
               <button
                 data-testid="action"
+                type="button"
                 onClick={() =>
-                  setValue(prev => ({
+                  setValue((prev) => ({
                     ...prev,
-                    tel: '77777777777777'
+                    tel: '77777777777777',
                   }))
                 }
               >
@@ -148,9 +157,9 @@ describe('<Section />', () => {
         tel: '77777777777777',
         address: {
           code: 'blah',
-          street: 'bleep'
-        }
-      }
+          street: 'bleep',
+        },
+      },
     })
   })
 
@@ -163,10 +172,10 @@ describe('<Section />', () => {
             tel: '29878786754',
             address: {
               code: 'blah',
-              street: 'bleep'
-            }
-          }
-        }
+              street: 'bleep',
+            },
+          },
+        },
       },
       <Section<Contact> name="contact">
         <Field name="tel" data-testid="tel" component="input" />
@@ -198,17 +207,17 @@ describe('<Section />', () => {
               tel: '298787867545',
               address: {
                 code: 'blah',
-                street: 'bleep'
-              }
-            }
-          }
+                street: 'bleep',
+              },
+            },
+          },
         },
         <Section<Contact> name="contact">
           <Field<string>
             name="tel"
             data-testid="tel"
             component="input"
-            validate={value => {
+            validate={(value) => {
               if (value.length < 9) return 'tel too short'
               return undefined
             }}
@@ -218,7 +227,7 @@ describe('<Section />', () => {
               name="code"
               data-testid="code"
               component="input"
-              validate={value => {
+              validate={(value) => {
                 if (value === 'error') return 'code error'
                 return undefined
               }}
@@ -227,7 +236,7 @@ describe('<Section />', () => {
               name="street"
               data-testid="street"
               component="input"
-              validate={value => {
+              validate={(value) => {
                 if (value === 'error') return 'street error'
                 return undefined
               }}
@@ -257,9 +266,9 @@ describe('<Section />', () => {
           tel: ['tel too short'],
           address: {
             code: ['code error'],
-            street: ['street error']
-          }
-        }
+            street: ['street error'],
+          },
+        },
       })
     })
   })

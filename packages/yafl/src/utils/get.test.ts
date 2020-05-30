@@ -2,9 +2,10 @@ import get from './get'
 
 describe('get', () => {
   test('it should return the correct value', () => {
-    const obj = { a: { b: 'the correct value' } }
+    const obj = { a: { b: 'the correct value', c: 0 } }
     expect(get(obj, ['a', 'b'])).toBe('the correct value')
     expect(get(obj, 'a.b')).toBe('the correct value')
+    expect(get(obj, 'a.c')).toBe(0)
   })
 
   test('it should return the right value', () => {
@@ -12,11 +13,11 @@ describe('get', () => {
       a: {
         b: {
           c: {
-            d: [{ e: { f: ['wrong', 'wrong', 'right'] } }]
+            d: [{ e: { f: ['wrong', 'wrong', 'right'] } }],
           },
-          x: null
-        }
-      }
+          x: null,
+        },
+      },
     }
     expect(get(obj, ['a', 'b', 'c', 'd', 0, 'e', 'f', 2])).toBe('right')
     expect(get(obj, ['a', 'b', 'c', 'd', '0', 'e', 'f', '2'])).toBe('right')
@@ -30,14 +31,23 @@ describe('get', () => {
     expect(get(obj, ['a', 'x', 'c', 'd', 0, 'e', 'f', 2])).toBe(undefined)
     expect(get(obj, ['a', 'b', 'c', 'd', '0', 'e', 'f', 77])).toBe(undefined)
     expect(get(obj, 'x.b.c.d.1.e.f.2')).toBe(undefined)
+
+    expect(get({ a: null }, 'a.b.c')).toBe(undefined)
+    expect(get(null!, 'a.b.c')).toBe(undefined)
   })
 
   test('it should return the default value', () => {
     const obj = { a: { b: { c: { d: [{ e: { f: ['wrong', 'wrong', 'right'] } }] } } } }
+    expect(get(null!, 'a.b.c', 'blah')).toBe('blah')
     expect(get(obj, ['a', 'x', 'c', 'd', 0, 'e', 'f', 2], 'the default value')).toBe(
       'the default value'
     )
     expect(get(obj, ['a', 'b', 'c', 'd', '0', 'e', 'f', 77], 44)).toBe(44)
     expect(get(obj, 'x.b.c.d.1.e.f.2', null)).toBe(null)
+  })
+
+  test('it should return undefined', () => {
+    const obj = { a: { b: { c: 0 } } }
+    expect(get(obj, 'a.b.c.d')).toBe(undefined)
   })
 })

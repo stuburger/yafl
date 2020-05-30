@@ -1,5 +1,4 @@
 import * as React from 'react'
-import PropTypes from 'prop-types'
 import {
   FormProvider,
   InnerFieldProps,
@@ -9,11 +8,14 @@ import {
   FieldMeta,
   SetFieldValueFunc,
 } from './sharedTypes'
-import { toStrPath, validateName, branchByName, isSetFunc, toArray } from './utils'
-import { branchableProps } from './defaults'
+import { validateName, useBranch, isSetFunc, toArray } from './utils'
 import FieldSink from './FieldSink'
 import createFormError from './createFormError'
 import { useSafeContext } from './useSafeContext'
+
+function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
+  return type === 'radio' || type === 'checkbox'
+}
 
 function createFieldController(context: React.Context<FormProvider<any, any> | Symbol>) {
   const FormError = createFormError(context)
@@ -21,151 +23,132 @@ function createFieldController(context: React.Context<FormProvider<any, any> | S
   type IFP<F extends object, T> = InnerFieldProps<F, T>
 
   function FieldController<T, F extends object>(props: IFP<F, T>): React.ReactElement<IFP<F, T>> {
+    const { name, forwardProps, validate } = props
     const yafl = useSafeContext(context)
-    const path = yafl.path.concat(props.name)
+    const curr = useBranch<T>(name, yafl, undefined!)
 
+    const { path } = curr
+    const { registerField, unregisterField } = yafl
     React.useEffect(() => {
-      yafl.registerField(path)
-      return () => yafl.unregisterField(path)
-    }, [])
-
-    const b = branchByName<F, T, FormProvider<F, T>>(props.name, yafl, branchableProps)
-
-    const stringPath = toStrPath(path)
-    const currentValue = b.value
-
-    function collectMetaProps(): FieldMeta<F, T> {
-      return {
-        path: stringPath,
-        errors: (b.errors || []) as any,
-        visited: !!b.visited,
-        touched: !!b.touched,
-        setValue: setValue,
-        setTouched: touchField,
-        setVisited: visitField,
-        initialValue: b.initialValue,
-        isValid: ((b.errors || []) as any).length === 0,
-        isActive: b.activeField === stringPath,
-        isDirty: b.formIsDirty && b.initialValue !== b.value,
-        submit: b.submit,
-        formValue: b.formValue,
-        resetForm: b.resetForm,
-        setFormValue: b.setFormValue,
-        submitCount: b.submitCount,
-        forgetState: b.forgetState,
-        setFormVisited: b.setFormVisited,
-        setFormTouched: b.setFormTouched,
-      }
-    }
-
-    function collectInputProps(): InputProps {
-      const { forwardProps } = props
-      return {
-        name: props.name.toString(),
-        value: isCheckInput(forwardProps.type) ? forwardProps.value : b.value,
-        onFocus: onFocus,
-        onBlur: onBlur,
-        onChange: onChange,
-      }
-    }
-
-    function collectProps(): FieldProps<F, T> {
-      const { forwardProps } = props
-      return {
-        input: collectInputProps(),
-        meta: collectMetaProps(),
-        ...b.branchProps,
-        ...b.sharedProps,
-        ...forwardProps,
-      }
-    }
+      registerField(path)
+      return () => unregisterField(path)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [path, registerField, unregisterField])
 
     const setValue = React.useCallback(
       (value: T | SetFieldValueFunc<T>, touchField = true): void => {
-        yafl.setValue(path, isSetFunc(value) ? value(currentValue) : value, touchField)
+        yafl.setValue(path, isSetFunc(value) ? value(curr.value) : value, touchField)
       },
-      [currentValue]
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [yafl.setValue, path, curr.value]
     )
 
-    const touchField = React.useCallback((touched: boolean): void => {
-      yafl.touchField(path, touched)
-    }, [])
+    const touch = yafl.touchField
+    const touchField = React.useCallback(
+      (touched: boolean): void => {
+        touch(path, touched)
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [touch, path]
+    )
 
-    const visitField = React.useCallback((visited: boolean): void => {
-      yafl.visitField(path, visited)
-    }, [])
+    const visit = yafl.visitField
+    const visitField = React.useCallback(
+      (visited: boolean): void => {
+        visit(path, visited)
+      },
+      [visit, path]
+    )
 
-    const handleChange = props.onChange || b.sharedProps.onChange
-    const onChange = React.useCallback(
+    const handleChange = React.useCallback(
       (e: React.ChangeEvent<any>) => {
-        if (typeof handleChange === 'function') {
-          handleChange(e, collectProps())
-        }
-        if (e.isDefaultPrevented()) return
         const { value: val, type, checked } = e.target
 
         let value = val
         if (/number|range/.test(type)) {
           const par = parseFloat(value)
-          value = isNaN(par) ? '' : par
+          value = Number.isNaN(par) ? '' : par
         } else if (isCheckInput(type)) {
           value = checked
         }
 
         setValue(value)
       },
-      [handleChange]
+      [setValue]
     )
 
-    const handleFocus = props.onFocus || b.sharedProps.onFocus
-    const onFocus = React.useCallback(
-      (e: React.FocusEvent<any>): void => {
-        if (typeof handleFocus === 'function') {
-          handleFocus(e, collectProps())
-        }
-        if (e.isDefaultPrevented()) return
-        yafl.setActiveField(stringPath)
-      },
-      [handleFocus]
-    )
+    const { setActiveField } = yafl
+    const handleFocus = React.useCallback(() => {
+      setActiveField(curr.path)
+    }, [setActiveField, curr.path])
 
-    const handleBlur = props.onBlur || b.sharedProps.onBlur
-    const onBlur = React.useCallback(
-      (e: React.FocusEvent<any>) => {
-        if (typeof handleBlur === 'function') {
-          handleBlur(e, collectProps())
-        }
-        if (e.isDefaultPrevented()) return
-        if (b.visited) {
-          yafl.setActiveField(null)
-        } else {
-          yafl.visitField(path, true)
-        }
-      },
-      [b.visited]
-    )
+    const { visited } = curr
+    const handleBlur = React.useCallback(() => {
+      if (visited) {
+        setActiveField(null)
+      } else {
+        visit(path, true)
+      }
+    }, [setActiveField, visit, path, visited])
 
     const { render, component, forwardRef } = props
 
-    let ret: React.ReactNode[] = []
-
-    const jam = collectProps()
-    if (component && typeof component !== 'string') {
-      const Component = component
-      ret = [<Component key="comp" ref={forwardRef} {...jam} />]
-    } else if (render) {
-      ret.push(render(jam))
-    } else if (typeof component === 'string') {
-      const { input, meta, ...rest } = jam
-      ret = [React.createElement(component, { ...input, ...rest, ref: forwardRef, key: 'comp' })]
-    } else {
-      ret = [<FieldSink key="comp" path={jam.meta.path} {...jam} />]
+    const metaProps: FieldMeta<F, T> = {
+      setValue,
+      path: curr.path,
+      errors: (curr.errors || []) as any,
+      visited: !!curr.visited,
+      touched: !!curr.touched,
+      setTouched: touchField,
+      setVisited: visitField,
+      initialValue: curr.initialValue,
+      isValid: ((curr.errors || []) as any).length === 0,
+      isActive: yafl.activeField === curr.path,
+      isDirty: yafl.formIsDirty && curr.initialValue !== curr.value,
+      submit: yafl.submit,
+      formValue: yafl.formValue,
+      resetForm: yafl.resetForm,
+      setFormValue: yafl.setFormValue,
+      submitCount: yafl.submitCount,
+      forgetState: yafl.forgetState,
+      setFormVisited: yafl.setFormVisited,
+      setFormTouched: yafl.setFormTouched,
     }
 
-    const validators = toArray(props.validate)
+    const inputProps: InputProps = {
+      onBlur: handleBlur,
+      onFocus: handleFocus,
+      onChange: handleChange,
+      name: name.toString(),
+      value: isCheckInput(forwardProps.type) ? forwardProps.value : curr.value,
+    }
+
+    const collectedProps: FieldProps<F, T> = {
+      meta: metaProps,
+      input: inputProps,
+      ...curr.branchProps,
+      ...yafl.sharedProps,
+      ...forwardProps,
+    }
+
+    let ret: React.ReactNode[] = []
+
+    if (component && typeof component !== 'string') {
+      const Component = component
+      ret = [<Component key="comp" ref={forwardRef} {...collectedProps} />]
+    } else if (render) {
+      ret.push(render(collectedProps))
+    } else if (typeof component === 'string') {
+      const { input, meta, ...rest } = collectedProps
+      ret = [React.createElement(component, { ...input, ...rest, ref: forwardRef, key: 'comp' })]
+    } else {
+      ret = [<FieldSink key="comp" path={metaProps.path} {...collectedProps} />]
+    }
+
+    const validators = toArray(validate)
     const ln = validators.length
-    for (let i = 0; i < ln; i++) {
-      const msg = validators[i](currentValue, yafl.formValue)
+    for (let i = 0; i < ln; i += 1) {
+      const msg = validators[i](curr.value, yafl.formValue)
       if (msg) {
         ret.push(<FormError key={msg} path={path} msg={msg} />)
       }
@@ -183,10 +166,6 @@ function createField<F extends object>(context: React.Context<FormProvider<any, 
   function Field<T = any, F1 extends object = F>(
     props: FieldConfig<F1, T>
   ): React.ReactElement<FieldConfig<F1, T>> {
-    if (process.env.NODE_ENV !== 'production') {
-      validateName(props.name)
-    }
-
     const {
       name,
       render,
@@ -198,6 +177,10 @@ function createField<F extends object>(context: React.Context<FormProvider<any, 
       forwardRef,
       ...forwardProps
     } = props
+
+    if (process.env.NODE_ENV !== 'production') {
+      validateName(name)
+    }
 
     return (
       <FieldController<T, F1>
@@ -215,18 +198,7 @@ function createField<F extends object>(context: React.Context<FormProvider<any, 
     )
   }
 
-  Field.propTypes /* remove-proptypes */ = {
-    name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    type: PropTypes.string,
-    render: PropTypes.func,
-    component: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.node]),
-  }
-
   return Field
-}
-
-const isCheckInput = (type?: string): type is 'radio' | 'checkbox' => {
-  return type === 'radio' || type === 'checkbox'
 }
 
 export default createField
