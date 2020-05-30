@@ -12,6 +12,7 @@
   "scripts": {
     "lerna": "lerna",
     "build": "lerna run build",
+    "lint": "eslint 'packages/**/src/**/*.{ts,tsx}'",
     "prepublish": "lerna run prepublish",
     "publish-yafl": "lerna version --force-publish"
   },
