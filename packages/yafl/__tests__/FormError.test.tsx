@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { createFormContext } from '../src'
 import { cleanup, render } from '@testing-library/react'
+import { createFormContext } from '../src'
 import { ErrorBoundary } from './ErrorBoundry'
 import { NO_PROVIDER } from '../src/useSafeContext'
 
@@ -21,7 +21,7 @@ describe('<FormError />', () => {
       const { FormError } = createFormContext()
       const { queryByText } = render(
         <ErrorBoundary renderError={renderError}>
-          <FormError path={['test']}>{() => null}</FormError>
+          <FormError path="test">{() => null}</FormError>
         </ErrorBoundary>
       )
 

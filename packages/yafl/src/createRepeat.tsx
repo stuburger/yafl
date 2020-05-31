@@ -2,7 +2,6 @@ import * as React from 'react'
 import warning from 'tiny-warning'
 import { validateName, useBranch } from './utils'
 import { FormProvider, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
-import { useSafeContext } from './useSafeContext'
 
 function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
   function Repeat<T = any>(props: RepeatConfig<T>) {
@@ -12,22 +11,20 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
       validateName(name)
     }
 
-    const yafl = useSafeContext<F, T[]>(ctx)
-    const curr = useBranch<T[]>(name, yafl, fallback)
-
-    const { registerField, unregisterField } = yafl
+    const curr = useBranch<F, T[]>(name, ctx, fallback)
 
     React.useEffect(() => {
-      registerField(curr.path)
-      return () => unregisterField(curr.path)
-    }, [registerField, unregisterField, curr.path])
+      curr.registerField(curr.path)
+      return () => curr.unregisterField(curr.path)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [curr.registerField, curr.unregisterField, curr.path])
 
     const setValue = React.useCallback(
       (value: T[] | SetFieldValueFunc<T[]>): void => {
-        yafl.setValue(curr.path, typeof value === 'function' ? value(curr.value) : value, false)
+        curr.setValue(curr.path, typeof value === 'function' ? value(curr.value) : value, false)
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [curr.value, yafl.setValue, curr.path]
+      [curr.value, curr.setValue, curr.path]
     )
 
     const push = React.useCallback(
@@ -99,7 +96,7 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
     )
 
     return (
-      <ctx.Provider value={{ ...yafl, ...curr }}>
+      <ctx.Provider value={curr}>
         {typeof children === 'function'
           ? children(curr.value, {
               pop,

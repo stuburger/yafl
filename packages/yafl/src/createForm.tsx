@@ -195,9 +195,9 @@ function createForm<F extends object>(
       }))
     }
 
-    touchField(path: Path, touched: boolean) {
+    touchField(path: string, touched: boolean) {
       this.setState(({ touched: prev }) => ({
-        touched: immutable.set(prev, path as string[], touched),
+        touched: immutable.set(prev, path, touched),
       }))
     }
 
@@ -207,10 +207,10 @@ function createForm<F extends object>(
       }))
     }
 
-    visitField(path: Path, visited: boolean) {
+    visitField(path: string, visited: boolean) {
       this.setState(({ visited: prev }) => ({
         activeField: null,
-        visited: immutable.set(prev, path as string[], visited),
+        visited: immutable.set(prev, path, visited),
       }))
     }
 

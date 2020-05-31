@@ -10,7 +10,6 @@ import {
 import { validateName, useBranch, isSetFunc, toArray } from './utils'
 import FieldSink from './FieldSink'
 import createFormError from './createFormError'
-import { useSafeContext } from './useSafeContext'
 
 function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
   return type === 'radio' || type === 'checkbox'
@@ -30,35 +29,30 @@ function createField<FValue extends object>(
       validateName(name)
     }
 
-    const yafl = useSafeContext(context)
-    const curr = useBranch<T>(name, yafl, undefined!)
+    const curr = useBranch<F, T>(name, context)
+    const { path, registerField, unregisterField, setValue, setActiveField } = curr
 
-    const { path } = curr
-    const { registerField, unregisterField } = yafl
     React.useEffect(() => {
       registerField(path)
       return () => unregisterField(path)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [path, registerField, unregisterField])
 
-    const setValue = React.useCallback(
+    const setFieldValue = React.useCallback(
       (value: T | SetFieldValueFunc<T>, touchField = true): void => {
-        yafl.setValue(path, isSetFunc(value) ? value(curr.value) : value, touchField)
+        setValue(path, isSetFunc(value) ? value(curr.value) : value, touchField)
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [yafl.setValue, path, curr.value]
+      [curr.value, setValue, path]
     )
 
-    const touch = yafl.touchField
+    const touch = curr.touchField
     const touchField = React.useCallback(
       (touched: boolean): void => {
         touch(path, touched)
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       [touch, path]
     )
 
-    const visit = yafl.visitField
+    const visit = curr.visitField
     const visitField = React.useCallback(
       (visited: boolean): void => {
         visit(path, visited)
@@ -78,45 +72,43 @@ function createField<FValue extends object>(
           value = checked
         }
 
-        setValue(value)
+        setFieldValue(value)
       },
-      [setValue]
+      [setFieldValue]
     )
 
-    const { setActiveField } = yafl
     const handleFocus = React.useCallback(() => {
-      setActiveField(curr.path)
-    }, [setActiveField, curr.path])
+      setActiveField(path)
+    }, [setActiveField, path])
 
-    const { visited } = curr
     const handleBlur = React.useCallback(() => {
-      if (visited) {
+      if (curr.visited) {
         setActiveField(null)
       } else {
         visit(path, true)
       }
-    }, [setActiveField, visit, path, visited])
+    }, [setActiveField, visit, path, curr.visited])
 
-    const metaProps: FieldMeta<FValue, T> = {
-      setValue,
+    const metaProps: FieldMeta<F, T> = {
       path: curr.path,
+      setValue: setFieldValue,
+      submit: curr.submit,
       errors: (curr.errors || []) as any,
       visited: !!curr.visited,
       touched: !!curr.touched,
       setTouched: touchField,
       setVisited: visitField,
+      formValue: curr.formValue,
+      resetForm: curr.resetForm,
+      setFormValue: curr.setFormValue,
+      submitCount: curr.submitCount,
+      forgetState: curr.forgetState,
       initialValue: curr.initialValue,
+      setFormVisited: curr.setFormVisited,
+      setFormTouched: curr.setFormTouched,
+      isActive: curr.activeField === path,
       isValid: ((curr.errors || []) as any).length === 0,
-      isActive: yafl.activeField === curr.path,
-      isDirty: yafl.formIsDirty && curr.initialValue !== curr.value,
-      submit: yafl.submit,
-      formValue: yafl.formValue,
-      resetForm: yafl.resetForm,
-      setFormValue: yafl.setFormValue,
-      submitCount: yafl.submitCount,
-      forgetState: yafl.forgetState,
-      setFormVisited: yafl.setFormVisited,
-      setFormTouched: yafl.setFormTouched,
+      isDirty: curr.formIsDirty && curr.initialValue !== curr.value,
     }
 
     const inputProps: InputProps = {
@@ -131,7 +123,7 @@ function createField<FValue extends object>(
       meta: metaProps,
       input: inputProps,
       ...curr.branchProps,
-      ...yafl.sharedProps,
+      ...curr.sharedProps,
       ...forwardProps,
     }
 
@@ -152,7 +144,7 @@ function createField<FValue extends object>(
     const validators = toArray(validate)
     const ln = validators.length
     for (let i = 0; i < ln; i += 1) {
-      const msg = validators[i](curr.value, yafl.formValue)
+      const msg = validators[i](curr.value, curr.formValue)
       if (msg) {
         ret.push(<FormError key={msg} path={path} msg={msg} />)
       }

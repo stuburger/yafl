@@ -182,7 +182,6 @@ export class Selection<TShape extends { [key: string]: () => Element }> {
 
   constructor(selectors: TShape) {
     this.selectors = Object.keys(selectors).reduce((ret, key: keyof TShape) => {
-      // eslint-disable-next-line no-param-reassign
       ret[key] = SelectionController.create(selectors[key])
       return ret
     }, {} as ISelectors<TShape>)
