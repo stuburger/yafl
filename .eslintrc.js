@@ -22,5 +22,10 @@ module.exports = {
     'react/jsx-props-no-spreading': 'off',
     '@typescript-eslint/semi': ['error', 'never'],
     'react/static-property-placement': 'off',
+    'no-param-reassign': 'off',
+    'import/no-extraneous-dependencies': [
+      'error',
+      { devDependencies: ['**/*.test.ts', '**/*.test.tsx'] },
+    ],
   },
 }

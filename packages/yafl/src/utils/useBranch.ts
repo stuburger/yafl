@@ -1,8 +1,17 @@
 import * as React from 'react'
 import { isObject } from './checkType'
 import { Name, FormProvider } from '../sharedTypes'
+import { useSafeContext } from '../useSafeContext'
 
-function useBranch<T>(name: Name, yafl: FormProvider<any>, fallback: T) {
+const append = (path: string, name: Name) => (path ? path.concat(`.${name}`) : `${name}`)
+
+function useBranch<F extends object, T>(
+  name: Name,
+  ctx: React.Context<FormProvider<any, any> | Symbol>,
+  fallback?: T
+): FormProvider<F, T> {
+  const yafl = useSafeContext<any, any>(ctx)
+
   const {
     path,
     value = {},
@@ -13,21 +22,19 @@ function useBranch<T>(name: Name, yafl: FormProvider<any>, fallback: T) {
     initialValue = {},
   } = yafl
 
-  return React.useMemo(() => {
-    return {
-      path: path ? path.concat(`.${name}`) : `${name}`,
-      touched: touched[name] as any,
-      visited: visited[name] as any,
-      errors: errors[name] as any,
-      initialValue: initialValue[name],
-      value: value[name] === undefined ? fallback : (value[name] as T),
-      branchProps: Object.keys(branchProps).reduce((ret: any, key: string) => {
-        // eslint-disable-next-line no-param-reassign
-        ret[key] = isObject(branchProps[key]) ? branchProps[key][name] : undefined
-        return ret
-      }, {}),
-    }
-  }, [path, name, touched, visited, errors, initialValue, value, fallback, branchProps])
+  return {
+    ...yafl,
+    path: append(path, name),
+    touched: touched[name] as any,
+    visited: visited[name] as any,
+    errors: errors[name] as any,
+    initialValue: initialValue[name],
+    value: value[name] === undefined ? fallback : value[name],
+    branchProps: Object.keys(branchProps).reduce((ret: any, key: string) => {
+      ret[key] = isObject(branchProps[key]) ? branchProps[key][name] : undefined
+      return ret
+    }, {}),
+  }
 }
 
 export default useBranch

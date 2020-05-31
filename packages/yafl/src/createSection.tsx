@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { validateName, useBranch, isSetFunc } from './utils'
 import { Name, FormProvider, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
-import { useSafeContext } from './useSafeContext'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
   children: React.ReactNode | ((value: T, utils: SectionHelpers<T>) => React.ReactNode)
@@ -22,10 +21,9 @@ function createSection<F extends object>(ctx: React.Context<FormProvider<F, any>
 
     const { children, fallback = {} as T } = props
 
-    const yafl = useSafeContext<F, T>(ctx)
-    const curr = useBranch<T>(name, yafl, fallback)
+    const curr = useBranch<F, T>(name, ctx, fallback)
+    const { registerField, unregisterField } = curr
 
-    const { registerField, unregisterField } = yafl
     React.useEffect(() => {
       registerField(curr.path)
       return () => unregisterField(curr.path)
@@ -33,14 +31,14 @@ function createSection<F extends object>(ctx: React.Context<FormProvider<F, any>
 
     const setValue = React.useCallback(
       (value: T | SetFieldValueFunc<T>): void => {
-        yafl.setValue(curr.path, isSetFunc(value) ? value(curr.value) : value, false)
+        curr.setValue(curr.path, isSetFunc(value) ? value(curr.value) : value, false)
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [curr.path, curr.value, yafl.setValue]
+      [curr.path, curr.value, curr.setValue]
     )
 
     return (
-      <ctx.Provider value={{ ...yafl, ...curr }}>
+      <ctx.Provider value={curr}>
         {typeof children === 'function' ? children(curr.value, { setValue }) : children}
       </ctx.Provider>
     )

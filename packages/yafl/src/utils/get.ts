@@ -1,5 +1,7 @@
 import { isObject } from './checkType'
 
+type Path = (string | number)[] | string
+
 function baseGet<F>(obj: any, path: Path): F | undefined {
   let curr = obj
   let index = 0
@@ -13,7 +15,7 @@ function baseGet<F>(obj: any, path: Path): F | undefined {
   return index && index === len ? curr : undefined
 }
 
-export default function get<F>(obj: {}, path: string, def?: any): F {
+export default function get<F>(obj: {}, path: Path, def?: any): F {
   if (!isObject(obj)) return def
 
   const split = typeof path === 'string' ? path.split('.') : path
