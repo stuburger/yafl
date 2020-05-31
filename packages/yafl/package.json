@@ -24,13 +24,6 @@
     "jest:updatesnapshot": "jest --updateSnapshot",
     "precommit": "lint-staged"
   },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "prettier --parser typescript --write",
-      "tsdx lint",
-      "git add"
-    ]
-  },
   "author": "Stuart Bourhill",
   "license": "MIT",
   "dependencies": {
