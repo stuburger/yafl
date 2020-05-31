@@ -4,7 +4,9 @@ import Layout from '@theme/Layout'
 import Link from '@docusaurus/Link'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import useBaseUrl from '@docusaurus/useBaseUrl'
+import { Form, Field } from 'yafl'
 import styles from './styles.module.css'
+import { Section } from 'yafl'
 
 const features = [
   {
@@ -66,6 +68,57 @@ function Home() {
         <div className="container">
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
+          <Form
+            initialValue={{ test: 'blah', section: { contact: { name: 'test' } } }}
+            onSubmit={(value, stuff) => {
+              console.log(stuff)
+            }}
+          >
+            {(yafl) => {
+              return (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    yafl.submit()
+                  }}
+                >
+                  <Section name="section">
+                    <Section name="contact">
+                      <Field
+                        name="name"
+                        validate={(v) => (!v ? 'field is required' : undefined)}
+                        render={(p) => (
+                          <>
+                            <input {...p.input} />
+                            <br />
+                            {p.meta.errors[0]}{' '}
+                          </>
+                        )}
+                      />
+                    </Section>
+                  </Section>
+                  <Field
+                    name="test"
+                    validate={(v) => (v === ' ' ? 'spaces not allowed' : undefined)}
+                    render={(p) => (
+                      <>
+                        <input {...p.input} />
+                        <br />
+                        {p.meta.errors[0]}{' '}
+                      </>
+                    )}
+                  />
+                  <button type="submit">submit</button>
+                  <button type="button" onClick={yafl.resetForm}>
+                    reset
+                  </button>
+                  <button type="button" onClick={yafl.forgetState}>
+                    Forget
+                  </button>
+                </form>
+              )
+            }}
+          </Form>
           <div className={styles.buttons}>
             <Link
               className={classnames(
