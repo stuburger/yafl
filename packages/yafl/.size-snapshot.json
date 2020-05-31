@@ -1,8 +1,8 @@
 {
   "dist/yafl.cjs.production.js": {
-    "bundled": 25051,
-    "minified": 12971,
-    "gzipped": 3887
+    "bundled": 27603,
+    "minified": 12945,
+    "gzipped": 4015
   },
   "lib/yafl.umd.production.js": {
     "bundled": 29017,
@@ -15,23 +15,23 @@
     "gzipped": 4554
   },
   "dist/yafl.esm.js": {
-    "bundled": 26417,
-    "minified": 13898,
-    "gzipped": 4342,
+    "bundled": 28872,
+    "minified": 13780,
+    "gzipped": 4504,
     "treeshaked": {
       "rollup": {
-        "code": 10706,
-        "import_statements": 335
+        "code": 10433,
+        "import_statements": 320
       },
       "webpack": {
-        "code": 13076
+        "code": 13116
       }
     }
   },
   "dist/yafl.umd.production.js": {
-    "bundled": 28501,
-    "minified": 11970,
-    "gzipped": 3893
+    "bundled": 31665,
+    "minified": 11882,
+    "gzipped": 3988
   },
   "lib/dist/index.js": {
     "bundled": 27614,

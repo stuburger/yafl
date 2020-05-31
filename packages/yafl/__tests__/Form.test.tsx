@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Person } from '../src'
 import { createFormRenderer, createDataSetter } from './helpers'
+import { act } from 'react-dom/test-utils'
 
 type B = { x?: any[]; y?: Date }
 
@@ -23,10 +24,10 @@ const personData: Person = {
     tel: '07934449898',
     address: {
       code: 'SW9 1EF',
-      street: 'adsfa'
-    }
+      street: 'adsfa',
+    },
   },
-  hobbies: [{ type: 'art', name: 'print making' }]
+  hobbies: [{ type: 'art', name: 'print making' }],
 }
 
 const defaultPerson: Person = {
@@ -36,10 +37,10 @@ const defaultPerson: Person = {
     tel: '',
     address: {
       code: '',
-      street: ''
-    }
+      street: '',
+    },
   },
-  hobbies: []
+  hobbies: [],
 }
 
 describe('<Form />', () => {
@@ -50,8 +51,8 @@ describe('<Form />', () => {
       a: 12,
       b: {
         x: [{ name: 'Munk Jones' }],
-        y: date
-      }
+        y: date,
+      },
     }
 
     describe('when overriding the initial values of touched, visited, and submitCount', () => {
@@ -61,9 +62,9 @@ describe('<Form />', () => {
         initialVisited: {
           b: {
             x: [true],
-            y: true
-          }
-        }
+            y: true,
+          },
+        },
       }
 
       const { getFormProps, getRenderCount } = renderForm(
@@ -71,7 +72,7 @@ describe('<Form />', () => {
         <Field<number>
           name="a"
           component={TextInput}
-          validate={value => {
+          validate={(value) => {
             if (value < 15) {
               return 'number too small'
             }
@@ -108,7 +109,7 @@ describe('<Form />', () => {
         const { getFormProps } = renderForm({
           initialValue,
           onSubmit,
-          submitUnregisteredValues: true
+          submitUnregisteredValues: true,
         })
 
         const props = getFormProps()
@@ -134,7 +135,7 @@ describe('<Form />', () => {
           }
           const { getFormProps, getRenderCount } = renderForm({
             initialValue,
-            onSubmit
+            onSubmit,
           })
           expect(getRenderCount()).toEqual(2)
 
@@ -153,7 +154,7 @@ describe('<Form />', () => {
             const { getFormProps, getRenderCount } = renderForm(
               {
                 initialValue,
-                onSubmit
+                onSubmit,
               },
               <Field name="a" component="input" />
             )
@@ -170,7 +171,7 @@ describe('<Form />', () => {
           it('should call submit with the whole formValue', () => {
             const expectedStartingValue = {
               a: 12,
-              b: { x: [{ name: 'Munk Jones' }], y: date }
+              b: { x: [{ name: 'Munk Jones' }], y: date },
             }
             const submitMk = jest.fn()
             const onSubmit = (formValue: Thing) => {
@@ -179,7 +180,7 @@ describe('<Form />', () => {
             const { getFormProps } = renderForm({
               onSubmit,
               initialValue: expectedStartingValue,
-              submitUnregisteredValues: true
+              submitUnregisteredValues: true,
             })
 
             const { submit } = getFormProps()
@@ -210,7 +211,7 @@ describe('<Form />', () => {
             }
             const { getFormProps, getRenderCount } = renderForm({
               initialValue,
-              onSubmit
+              onSubmit,
             })
 
             expect(getRenderCount()).toEqual(2)
@@ -232,7 +233,7 @@ describe('<Form />', () => {
           const { renderForm } = createFormRenderer<Person>()
 
           const { getFormProps, getRenderCount } = renderForm({
-            initialValue: personData
+            initialValue: personData,
           })
 
           const { setFormValue } = getFormProps()
@@ -241,8 +242,8 @@ describe('<Form />', () => {
             tel: '1234567890',
             address: {
               code: '0878',
-              street: '2nd Road'
-            }
+              street: '2nd Road',
+            },
           }
 
           expect(getRenderCount()).toEqual(2)
@@ -262,13 +263,13 @@ describe('<Form />', () => {
         it('should set touched as supplied', () => {
           const { renderForm } = createFormRenderer<Person>()
           const { getFormProps, getRenderCount } = renderForm({
-            initialValue: personData
+            initialValue: personData,
           })
 
           expect(getRenderCount()).toEqual(2)
 
           const { setFormTouched } = getFormProps()
-          setFormTouched(touched => ({ ...touched, age: true }))
+          setFormTouched((touched) => ({ ...touched, age: true }))
           const { touched } = getFormProps()
           expect(touched).toEqual({ age: true })
           expect(getRenderCount()).toEqual(3)
@@ -279,13 +280,13 @@ describe('<Form />', () => {
         it('should set visited as supplied', () => {
           const { renderForm } = createFormRenderer<Person>()
           const { getFormProps, getRenderCount } = renderForm({
-            initialValue: personData
+            initialValue: personData,
           })
 
           expect(getRenderCount()).toEqual(2)
 
           const { setFormVisited } = getFormProps()
-          setFormVisited(visited => ({ ...visited, contact: { tel: true } }))
+          setFormVisited((visited) => ({ ...visited, contact: { tel: true } }))
           const { visited } = getFormProps()
           expect(visited).toEqual({ contact: { tel: true } })
           expect(getRenderCount()).toEqual(3)
@@ -299,15 +300,15 @@ describe('<Form />', () => {
             const overrides = {
               initialSubmitCount: 4,
               initialTouched: {
-                age: true
+                age: true,
               },
               initialVisited: {
-                age: true
-              }
+                age: true,
+              },
             }
             const { getFormProps, getRenderCount } = renderForm({
               initialValue: personData,
-              ...overrides
+              ...overrides,
             })
 
             expect(getRenderCount()).toEqual(2)
@@ -331,7 +332,7 @@ describe('<Form />', () => {
             const { renderForm } = createFormRenderer<Person>()
 
             const { getFormProps, getRenderCount } = renderForm({
-              initialValue: personData
+              initialValue: personData,
             })
 
             expect(getRenderCount()).toEqual(2)
@@ -357,16 +358,16 @@ describe('<Form />', () => {
           initialSubmitCount: 4,
           initialTouched: {
             age: true,
-            name: true
+            name: true,
           },
           initialVisited: {
             age: true,
-            name: true
-          }
+            name: true,
+          },
         }
         const { getFormProps, getRenderCount } = renderForm({
           initialValue: personData,
-          ...overrides
+          ...overrides,
         })
 
         expect(getRenderCount()).toEqual(2)
@@ -411,11 +412,13 @@ describe('<Form />', () => {
       describe('when initialValue is finally set', () => {
         it('should set the formValue', () => {
           const { getFormProps, setFormConfig } = renderForm({
-            initialValue: defaultPerson
+            initialValue: defaultPerson,
           })
           const p = getFormProps()
           expect(p.initialValue).toEqual(defaultPerson)
-          setFormConfig({ initialValue: personData })
+          act(() => {
+            setFormConfig({ initialValue: personData })
+          })
           const { formValue } = getFormProps()
           expect(formValue).toEqual(personData)
         })

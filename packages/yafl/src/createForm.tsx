@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable react/sort-comp */
 import * as React from 'react'
 import isEqual from 'react-fast-compare'
@@ -20,13 +21,160 @@ function childrenIsFunc<F extends object>(
   return typeof children === 'function'
 }
 
-function whenEnabled(this: React.Component<any, any>, func: Function) {
-  return (...params: any[]) => {
-    if (this.state.initialMount && !this.props.disabled) {
-      return func(...params)
-    }
-    return undefined
-  }
+// function whenEnabled(this: React.Component<any, any>, func: Function) {
+//   return (...params: any[]) => {
+//     if (this.state.initialMount && !this.props.disabled) {
+//       return func(...params)
+//     }
+//     return undefined
+//   }
+// }
+
+type Mount = { type: 'mount'; payload: undefined }
+type SetValue = { type: 'set_value'; payload: { path: string; value: any } }
+type SetTouched = { type: 'set_touched'; payload: { path: string; value: boolean } }
+type SetVisited = { type: 'set_visited'; payload: { path: string; value: boolean } }
+type UnsetTouched = { type: 'unset_touched'; payload: { path: string } }
+type UnsetVisited = { type: 'unset_visited'; payload: { path: string } }
+type SetError = { type: 'set_error'; payload: { path: string; error: string } }
+type SetFormValue<F extends object> = { type: 'set_form_value'; payload: { value: F } }
+type SetFormTouched = { type: 'set_form_touched'; payload: { value: BooleanTree<any> } }
+type SetFormVisited = { type: 'set_form_visited'; payload: { value: BooleanTree<any> } }
+type UnsetError = { type: 'unset_error'; payload: { path: string; error: string } }
+type IncSubmitCount = { type: 'inc_submit_count'; payload: { value: 1 } }
+type SetActiveField = { type: 'set_active_field'; payload: { path: string | null } }
+type SetSubmitCount = { type: 'set_submit_count'; payload: { value: number } }
+
+type Action<F extends object> =
+  | SetValue
+  | Mount
+  | UnsetTouched
+  | UnsetVisited
+  | SetError
+  | UnsetError
+  | IncSubmitCount
+  | SetTouched
+  | SetVisited
+  | SetFormValue<F>
+  | SetFormTouched
+  | SetFormVisited
+  | SetActiveField
+  | SetSubmitCount
+
+function formReducer<F extends object>(
+  state: FormState<F>,
+  actionOrActions: Action<F> | Action<F>[]
+): FormState<F> {
+  const actions = Array.isArray(actionOrActions) ? actionOrActions : [actionOrActions]
+
+  return actions.reduce(
+    (nextState, action) => {
+      switch (action.type) {
+        case 'mount': {
+          nextState.initialMount = true
+          break
+        }
+        case 'set_form_value': {
+          const { value } = action.payload
+          nextState.formValue = value
+          break
+        }
+        case 'set_active_field': {
+          const { path } = action.payload
+          nextState.activeField = path
+          break
+        }
+        case 'unset_touched': {
+          const { path } = action.payload
+          nextState.touched = immutable.del(nextState.touched, path)
+          break
+        }
+        case 'set_touched': {
+          const { path, value } = action.payload
+          nextState.touched = immutable.set(nextState.touched, path, value)
+
+          break
+        }
+        case 'set_visited': {
+          const { path, value } = action.payload
+          nextState.visited = immutable.set(nextState.visited, path, value)
+
+          break
+        }
+        case 'set_form_touched': {
+          const { value } = action.payload
+          nextState.touched = value
+
+          break
+        }
+        case 'set_form_visited': {
+          const { value } = action.payload
+          nextState.visited = value
+
+          break
+        }
+        case 'set_value': {
+          const { path, value } = action.payload
+          const { formValue } = nextState
+          nextState.formValue = immutable.set(formValue, path, value)
+          break
+        }
+        case 'unset_visited': {
+          const { path } = action.payload
+          nextState.visited = immutable.del(nextState.visited, path)
+          break
+        }
+        case 'set_error': {
+          const { errors, errorCount } = nextState
+          const { path, error } = action.payload
+          const curr = get(errors, path, [])
+          const errs = Array.isArray(curr) ? [...curr, error] : [error]
+
+          nextState.errorCount = errorCount + 1
+          nextState.errors = immutable.set(errors, path, errs)
+          break
+        }
+        case 'unset_error': {
+          const { errors, errorCount } = nextState
+          const { path, error } = action.payload
+          const curr: string[] = get(errors, path, [])
+          const next = curr.filter((x) => x !== error)
+
+          nextState.errorCount = errorCount - 1
+          nextState.errors = next.length
+            ? immutable.set(errors, path, next)
+            : immutable.del(errors, path)
+
+          break
+        }
+        case 'set_submit_count': {
+          const { value } = action.payload
+          nextState.submitCount = value
+          break
+        }
+        case 'inc_submit_count': {
+          const { submitCount } = nextState
+          const { value } = action.payload
+          nextState.submitCount = submitCount + value
+          break
+        }
+        default: {
+          throw new Error('unknown action')
+        }
+      }
+
+      return nextState
+    },
+    { ...state }
+  )
+}
+
+function usePrevious<T>(value: T) {
+  const ref = React.useRef<T>()
+  React.useEffect(() => {
+    ref.current = value
+  })
+  return ref.current
 }
 
 function createForm<F extends object>(
@@ -34,272 +182,279 @@ function createForm<F extends object>(
 ): React.ComponentType<FormConfig<F>> {
   type RFC = Required<FormConfig<F>>
 
-  class Form extends React.Component<FormConfig<F>, FormState<F>> {
-    registerCache: string[] = []
+  function Form(props: FormConfig<F>) {
+    const registerCache = React.useRef<string[]>([])
 
-    constructor(props: FormConfig<F>) {
-      super(props)
+    const {
+      disabled,
+      onSubmit,
+      initialValue,
+      initialSubmitCount = 0,
+      initialTouched = {},
+      initialVisited = {},
+      onStateChange,
+      persistFieldState,
+      onFormValueChange,
+      submitUnregisteredValues,
+      rememberStateOnReinitialize,
+    } = props as RFC
 
-      const disabledGuard = whenEnabled.bind(this)
-
-      this.submit = disabledGuard(this.submit.bind(this))
-      this.setValue = disabledGuard(this.setValue.bind(this))
-      this.visitField = disabledGuard(this.visitField.bind(this))
-      this.forgetState = disabledGuard(this.forgetState.bind(this))
-      this.touchField = disabledGuard(this.touchField.bind(this))
-      this.setActiveField = disabledGuard(this.setActiveField.bind(this))
-      this.resetForm = disabledGuard(this.resetForm.bind(this))
-      this.setFormValue = disabledGuard(this.setFormValue.bind(this))
-      this.setTouched = disabledGuard(this.setTouched.bind(this))
-      this.setVisited = disabledGuard(this.setVisited.bind(this))
-      this.registerField = this.registerField.bind(this)
-      this.unregisterField = this.unregisterField.bind(this)
-      this.registerError = this.registerError.bind(this)
-      this.unregisterError = this.unregisterError.bind(this)
-      this.incSubmitCount = this.incSubmitCount.bind(this)
-      this.collectFormProps = this.collectFormProps.bind(this)
-
-      const { initialValue: formValue } = props as RFC
-
-      this.state = {
-        formValue,
-        initialMount: false,
-        activeField: null,
-        errorCount: 0,
+    const [state, dispatch] = React.useReducer(
+      (s: FormState<F>, action: Action<F> | Action<F>[]) => formReducer<F>(s, action),
+      {
         errors: {},
-        touched: props.initialTouched || {},
-        visited: props.initialVisited || {},
-        submitCount: props.initialSubmitCount || 0,
+        errorCount: 0,
+        activeField: null,
+        initialMount: false,
+        touched: initialTouched,
+        visited: initialVisited,
+        submitCount: initialSubmitCount,
+        formValue: (initialValue || {}) as F,
       }
-    }
+    )
 
-    static defaultProps = {
-      rememberStateOnReinitialize: false,
-      submitUnregisteredValues: false,
-      initialValue: {} as F,
-      initialTouched: {} as BooleanTree<F>,
-      initialVisited: {} as BooleanTree<F>,
-      initialSubmitCount: 0,
-      onStateChange: () => false,
-    }
+    const {
+      formValue,
+      initialMount,
+      visited,
+      touched,
+      errorCount,
+      errors,
+      submitCount,
+      activeField,
+    } = state
 
-    componentDidMount() {
-      this.setState({ initialMount: true })
-    }
+    const isDisabled = disabled || !initialMount
 
-    componentDidUpdate(pp: FormConfig<F>, ps: FormState<F>) {
-      const {
-        onFormValueChange,
-        initialValue,
-        initialTouched,
-        initialVisited,
-        initialSubmitCount,
-        onStateChange,
-        rememberStateOnReinitialize,
-      } = this.props as RFC
+    const prevState = usePrevious(state)
+    const prevInitialValue = usePrevious(initialValue)
 
-      const { formValue } = this.state
+    React.useEffect(() => {
+      dispatch([{ type: 'mount', payload: undefined }])
+    }, [])
 
-      if (typeof onFormValueChange === 'function' && !isEqual(ps.formValue, formValue)) {
-        onFormValueChange(ps.formValue, formValue)
+    React.useEffect(() => {
+      if (!prevState) return
+      onStateChange(prevState, state)
+    }, [onStateChange, state, prevState])
+
+    const prevFormValue = prevState?.formValue
+    React.useEffect(() => {
+      if (!prevFormValue) return
+
+      if (typeof onFormValueChange === 'function' && !isEqual(prevFormValue, formValue)) {
+        onFormValueChange(prevFormValue, formValue)
       }
+    }, [onFormValueChange, formValue, prevFormValue])
 
-      if (ps !== this.state) {
-        onStateChange(ps, this.state)
-      }
-
-      if (!isEqual(pp.initialValue, initialValue)) {
-        const update = { formValue: initialValue } as FormState<F>
+    // const prevInitialValue = prevInitialValue || {}
+    React.useEffect(() => {
+      if (!isEqual(prevInitialValue, initialValue)) {
+        let actions: Action<F>[] = [{ type: 'set_form_value', payload: { value: initialValue } }]
 
         if (!rememberStateOnReinitialize) {
-          update.touched = initialTouched
-          update.visited = initialVisited
-          update.submitCount = initialSubmitCount
+          actions = actions.concat([
+            { type: 'set_form_touched', payload: { value: initialTouched } },
+            { type: 'set_form_visited', payload: { value: initialVisited } },
+            { type: 'set_submit_count', payload: { value: initialSubmitCount } },
+          ])
         }
 
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState(update)
+        dispatch(actions)
       }
-    }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+      initialValue,
+      initialTouched,
+      initialVisited,
+      initialSubmitCount,
+      rememberStateOnReinitialize,
+    ])
 
-    // eslint-disable-next-line react/sort-comp
-    registerField(path: string) {
-      this.registerCache.push(path)
-    }
+    const registerField = React.useCallback((path: string) => {
+      registerCache.current.push(path)
+    }, [])
 
-    unregisterField(path: string) {
-      const { persistFieldState } = this.props
-      this.registerCache = this.registerCache.filter((x) => !x.startsWith(path))
-      if (persistFieldState) return
-      this.setState(({ touched, visited }) => ({
-        touched: immutable.del(touched, path),
-        visited: immutable.del(visited, path),
-      }))
-    }
+    const unregisterField = React.useCallback(
+      (path: string) => {
+        registerCache.current = registerCache.current.filter((x) => !x.startsWith(path))
+        if (persistFieldState) return
 
-    registerError(path: string, error: string) {
-      this.setState(({ errors, errorCount }) => {
-        const curr = get(errors, path, [])
-        const errs = Array.isArray(curr) ? [...curr, error] : [error]
-        return {
-          errorCount: errorCount + 1,
-          errors: immutable.set(errors, path, errs),
-        }
-      })
-    }
+        dispatch([
+          { type: 'unset_touched', payload: { path } },
+          { type: 'unset_visited', payload: { path } },
+        ])
+      },
+      [persistFieldState]
+    )
 
-    unregisterError(path: string, error: string) {
-      this.setState(({ errors, errorCount }) => {
-        const curr: string[] = get(errors, path, [])
-        const next = curr.filter((x) => x !== error)
-        return {
-          errors: next.length ? immutable.set(errors, path, next) : immutable.del(errors, path),
-          errorCount: errorCount - 1,
-        }
-      })
-    }
+    const registerError = React.useCallback((path: string, error: string) => {
+      dispatch({ type: 'set_error', payload: { path, error } })
+    }, [])
 
-    incSubmitCount() {
-      this.setState(({ submitCount }) => ({
-        submitCount: submitCount + 1,
-      }))
-    }
+    const unregisterError = React.useCallback((path: string, error: string) => {
+      dispatch({ type: 'unset_error', payload: { path, error } })
+    }, [])
 
-    submit() {
-      const { submitUnregisteredValues, onSubmit } = this.props
+    const incSubmitCount = React.useCallback(() => {
+      dispatch({ type: 'inc_submit_count', payload: { value: 1 } })
+    }, [])
 
+    const submit = () => {
+      if (isDisabled) return
       if (!onSubmit) return
 
-      const { formValue } = this.state
-      const props = this.collectFormProps()
-
       const inc = submitUnregisteredValues
-        ? onSubmit(formValue, props)
-        : onSubmit(constructFrom(formValue, this.registerCache), props)
+        ? onSubmit(formValue, collectProps())
+        : onSubmit(constructFrom(formValue, registerCache.current), collectProps())
 
       if (inc !== false) {
-        this.incSubmitCount()
+        incSubmitCount()
       }
     }
 
-    setValue(path: Path, val: any, setTouched = true) {
-      this.setState(({ formValue, touched }) => ({
-        formValue: immutable.set(formValue, path as string[], val),
-        touched: setTouched ? immutable.set(touched, path as string[], true) : touched,
-      }))
+    const setValue = React.useCallback(
+      (path: string, val: any, touch = true) => {
+        if (isDisabled) return
+        const actions: Action<F>[] = [{ type: 'set_value', payload: { path, value: val } }]
+
+        if (touch) {
+          actions.push({ type: 'set_touched', payload: { path, value: touch } })
+        }
+
+        dispatch(actions)
+      },
+      [isDisabled]
+    )
+
+    const setFormValue = React.useCallback(
+      (setFunc: SetFormValueFunc<F>) => {
+        if (isDisabled) return
+        dispatch({ type: 'set_form_value', payload: { value: setFunc(formValue) } })
+      },
+      [formValue, isDisabled]
+    )
+
+    const touchField = (path: string, touch: boolean) => {
+      if (isDisabled) return
+      dispatch({ type: 'set_touched', payload: { path, value: touch } })
     }
 
-    setFormValue(setFunc: SetFormValueFunc<F>) {
-      this.setState(({ formValue }) => ({
-        formValue: setFunc(formValue),
-      }))
-    }
+    const setTouched = React.useCallback(
+      (setFunc: SetFormTouchedFunc<F>) => {
+        if (isDisabled) return
+        dispatch({ type: 'set_form_touched', payload: { value: setFunc(touched) } })
+      },
+      [isDisabled, touched]
+    )
 
-    touchField(path: string, touched: boolean) {
-      this.setState(({ touched: prev }) => ({
-        touched: immutable.set(prev, path, touched),
-      }))
-    }
+    const visitField = React.useCallback(
+      (path: string, visit: boolean) => {
+        if (isDisabled) return
+        dispatch([
+          { type: 'set_visited', payload: { path, value: visit } },
+          { type: 'set_active_field', payload: { path: null } },
+        ])
+      },
+      [isDisabled]
+    )
 
-    setTouched(setFunc: SetFormTouchedFunc<F>) {
-      this.setState(({ touched }) => ({
-        touched: setFunc(touched),
-      }))
-    }
+    const setVisited = React.useCallback(
+      (setFunc: SetFormVisitedFunc<F>) => {
+        if (isDisabled) return
+        dispatch({ type: 'set_form_visited', payload: { value: setFunc(visited) } })
+      },
+      [visited, isDisabled]
+    )
 
-    visitField(path: string, visited: boolean) {
-      this.setState(({ visited: prev }) => ({
-        activeField: null,
-        visited: immutable.set(prev, path, visited),
-      }))
-    }
+    const setActiveField = React.useCallback(
+      (path: string | null) => {
+        if (isDisabled) return
+        dispatch({ type: 'set_active_field', payload: { path } })
+      },
+      [isDisabled]
+    )
 
-    setVisited(setFunc: SetFormVisitedFunc<F>) {
-      this.setState(({ visited }) => ({
-        visited: setFunc(visited),
-      }))
-    }
+    const resetForm = React.useCallback(() => {
+      if (isDisabled) return
+      dispatch([
+        { type: 'set_form_value', payload: { value: initialValue } },
+        { type: 'set_form_touched', payload: { value: initialTouched } },
+        { type: 'set_form_visited', payload: { value: initialVisited } },
+        { type: 'set_submit_count', payload: { value: initialSubmitCount } },
+      ])
+    }, [initialSubmitCount, initialTouched, initialValue, initialVisited, isDisabled])
 
-    setActiveField(activeField: string | null) {
-      this.setState({ activeField })
-    }
+    const forgetState = React.useCallback(() => {
+      if (isDisabled) return
+      dispatch([
+        { type: 'set_form_touched', payload: { value: {} } },
+        { type: 'set_form_visited', payload: { value: {} } },
+        { type: 'set_submit_count', payload: { value: 0 } },
+      ])
+    }, [isDisabled])
 
-    resetForm() {
-      const { initialValue, initialVisited, initialTouched, initialSubmitCount } = this.props as RFC
-
-      this.setState({
-        formValue: initialValue,
-        visited: initialVisited,
-        touched: initialTouched,
-        submitCount: initialSubmitCount,
-      })
-    }
-
-    forgetState() {
-      this.setState({
-        touched: {},
-        visited: {},
-        submitCount: 0,
-      })
-    }
-
-    collectFormProps(): FormProps<F> {
-      const { formValue, errorCount, initialMount, ...state } = this.state
-      const { initialValue } = this.props as RFC
-
+    function collectProps(): FormProps<F> {
       const formIsValid = !initialMount || errorCount === 0
       const formIsDirty = initialMount && !isEqual(initialValue, formValue)
 
       return {
+        submit,
+        errors,
+        touched,
+        visited,
+        resetForm,
         formValue,
         errorCount,
+        forgetState,
         formIsDirty,
+        activeField,
+        submitCount,
         formIsValid,
         initialValue,
         initialMount,
-        errors: state.errors,
-        touched: state.touched,
-        visited: state.visited,
-        activeField: state.activeField,
-        submitCount: state.submitCount,
-        submit: this.submit,
-        resetForm: this.resetForm,
-        forgetState: this.forgetState,
-        setFormTouched: this.setTouched,
-        setFormVisited: this.setVisited,
-        setFormValue: this.setFormValue,
+        setFormValue,
+        setFormTouched: setTouched,
+        setFormVisited: setVisited,
       }
     }
 
-    render() {
-      const { children } = this.props
+    const { children } = props
 
-      const { formValue } = this.state
-      const props = this.collectFormProps()
+    const collectedProps = collectProps()
 
-      return (
-        <Provider
-          value={{
-            ...props,
-            path: '',
-            branchProps: {},
-            sharedProps: {},
-            value: formValue,
-            submit: this.submit,
-            setValue: this.setValue,
-            visitField: this.visitField,
-            touchField: this.touchField,
-            registerError: this.registerError,
-            registerField: this.registerField,
-            setActiveField: this.setActiveField,
-            unregisterError: this.unregisterError,
-            unregisterField: this.unregisterField,
-          }}
-        >
-          {childrenIsFunc<F>(children) ? children(props) : children}
-        </Provider>
-      )
-    }
+    return (
+      <Provider
+        value={{
+          ...collectedProps,
+          submit,
+          setValue,
+          path: '',
+          visitField,
+          touchField,
+          registerError,
+          registerField,
+          setActiveField,
+          unregisterError,
+          unregisterField,
+          branchProps: {},
+          sharedProps: {},
+          value: formValue as any,
+        }}
+      >
+        {childrenIsFunc<F>(children) ? children(collectedProps) : children}
+      </Provider>
+    )
+  }
+
+  Form.defaultProps = {
+    rememberStateOnReinitialize: false,
+    submitUnregisteredValues: false,
+    initialValue: {} as F,
+    initialTouched: {} as BooleanTree<F>,
+    initialVisited: {} as BooleanTree<F>,
+    initialSubmitCount: 0,
+    onStateChange: () => false,
   }
 
   return Form
