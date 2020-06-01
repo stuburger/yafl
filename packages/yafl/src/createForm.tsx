@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable react/sort-comp */
-import * as React from 'react'
+import React, { useCallback, useEffect } from 'react'
 import isEqual from 'react-fast-compare'
 import * as immutable from 'object-path-immutable'
 import { get, constructFrom } from './utils'
@@ -14,21 +14,6 @@ import {
   FormProps,
   BooleanTree,
 } from './sharedTypes'
-
-function childrenIsFunc<F extends object>(
-  children: Function | React.ReactNode
-): children is (props: FormProps<F>) => React.ReactNode {
-  return typeof children === 'function'
-}
-
-// function whenEnabled(this: React.Component<any, any>, func: Function) {
-//   return (...params: any[]) => {
-//     if (this.state.initialMount && !this.props.disabled) {
-//       return func(...params)
-//     }
-//     return undefined
-//   }
-// }
 
 type Mount = { type: 'mount'; payload: undefined }
 type SetValue = { type: 'set_value'; payload: { path: string; value: any } }
@@ -171,24 +156,24 @@ function formReducer<F extends object>(
 
 function usePrevious<T>(value: T) {
   const ref = React.useRef<T>()
-  React.useEffect(() => {
+  useEffect(() => {
     ref.current = value
   })
   return ref.current
 }
 
-function createForm<F extends object>(
-  Provider: React.Provider<FormProvider<F, F>>
-): React.ComponentType<FormConfig<F>> {
-  type RFC = Required<FormConfig<F>>
+const noop = () => {}
 
-  function Form(props: FormConfig<F>) {
+function createForm<FDefault extends object>(
+  Provider: React.Provider<FormProvider<any, any>>
+): React.ComponentType<FormConfig<FDefault>> {
+  function Form<F extends FDefault = FDefault>(props: FormConfig<F>) {
     const registerCache = React.useRef<string[]>([])
 
     const {
       disabled,
-      onSubmit,
-      initialValue,
+      onSubmit = noop,
+      initialValue = {} as F,
       initialSubmitCount = 0,
       initialTouched = {},
       initialVisited = {},
@@ -197,21 +182,20 @@ function createForm<F extends object>(
       onFormValueChange,
       submitUnregisteredValues,
       rememberStateOnReinitialize,
-    } = props as RFC
+    } = props as Required<FormConfig<F>>
 
-    const [state, dispatch] = React.useReducer(
-      (s: FormState<F>, action: Action<F> | Action<F>[]) => formReducer<F>(s, action),
-      {
-        errors: {},
-        errorCount: 0,
-        activeField: null,
-        initialMount: false,
-        touched: initialTouched,
-        visited: initialVisited,
-        submitCount: initialSubmitCount,
-        formValue: (initialValue || {}) as F,
-      }
-    )
+    const [state, dispatch] = React.useReducer<
+      React.Reducer<FormState<F>, Action<F> | Action<F>[]>
+    >(formReducer, {
+      errors: {},
+      errorCount: 0,
+      activeField: null,
+      initialMount: false,
+      touched: initialTouched,
+      visited: initialVisited,
+      submitCount: initialSubmitCount,
+      formValue: (initialValue || {}) as F,
+    })
 
     const {
       formValue,
@@ -229,17 +213,17 @@ function createForm<F extends object>(
     const prevState = usePrevious(state)
     const prevInitialValue = usePrevious(initialValue)
 
-    React.useEffect(() => {
+    useEffect(() => {
       dispatch([{ type: 'mount', payload: undefined }])
     }, [])
 
-    React.useEffect(() => {
-      if (!prevState) return
+    useEffect(() => {
+      if (!prevState || !onStateChange) return
       onStateChange(prevState, state)
     }, [onStateChange, state, prevState])
 
     const prevFormValue = prevState?.formValue
-    React.useEffect(() => {
+    useEffect(() => {
       if (!prevFormValue) return
 
       if (typeof onFormValueChange === 'function' && !isEqual(prevFormValue, formValue)) {
@@ -247,20 +231,17 @@ function createForm<F extends object>(
       }
     }, [onFormValueChange, formValue, prevFormValue])
 
-    // const prevInitialValue = prevInitialValue || {}
-    React.useEffect(() => {
+    useEffect(() => {
       if (!isEqual(prevInitialValue, initialValue)) {
-        let actions: Action<F>[] = [{ type: 'set_form_value', payload: { value: initialValue } }]
+        dispatch({ type: 'set_form_value', payload: { value: initialValue } })
 
         if (!rememberStateOnReinitialize) {
-          actions = actions.concat([
+          dispatch([
             { type: 'set_form_touched', payload: { value: initialTouched } },
             { type: 'set_form_visited', payload: { value: initialVisited } },
             { type: 'set_submit_count', payload: { value: initialSubmitCount } },
           ])
         }
-
-        dispatch(actions)
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -271,11 +252,11 @@ function createForm<F extends object>(
       rememberStateOnReinitialize,
     ])
 
-    const registerField = React.useCallback((path: string) => {
+    const registerField = useCallback((path: string) => {
       registerCache.current.push(path)
     }, [])
 
-    const unregisterField = React.useCallback(
+    const unregisterField = useCallback(
       (path: string) => {
         registerCache.current = registerCache.current.filter((x) => !x.startsWith(path))
         if (persistFieldState) return
@@ -288,21 +269,20 @@ function createForm<F extends object>(
       [persistFieldState]
     )
 
-    const registerError = React.useCallback((path: string, error: string) => {
+    const registerError = useCallback((path: string, error: string) => {
       dispatch({ type: 'set_error', payload: { path, error } })
     }, [])
 
-    const unregisterError = React.useCallback((path: string, error: string) => {
+    const unregisterError = useCallback((path: string, error: string) => {
       dispatch({ type: 'unset_error', payload: { path, error } })
     }, [])
 
-    const incSubmitCount = React.useCallback(() => {
+    const incSubmitCount = useCallback(() => {
       dispatch({ type: 'inc_submit_count', payload: { value: 1 } })
     }, [])
 
     const submit = () => {
       if (isDisabled) return
-      if (!onSubmit) return
 
       const inc = submitUnregisteredValues
         ? onSubmit(formValue, collectProps())
@@ -313,7 +293,7 @@ function createForm<F extends object>(
       }
     }
 
-    const setValue = React.useCallback(
+    const setValue = useCallback(
       (path: string, val: any, touch = true) => {
         if (isDisabled) return
         const actions: Action<F>[] = [{ type: 'set_value', payload: { path, value: val } }]
@@ -327,7 +307,7 @@ function createForm<F extends object>(
       [isDisabled]
     )
 
-    const setFormValue = React.useCallback(
+    const setFormValue = useCallback(
       (setFunc: SetFormValueFunc<F>) => {
         if (isDisabled) return
         dispatch({ type: 'set_form_value', payload: { value: setFunc(formValue) } })
@@ -340,7 +320,7 @@ function createForm<F extends object>(
       dispatch({ type: 'set_touched', payload: { path, value: touch } })
     }
 
-    const setTouched = React.useCallback(
+    const setTouched = useCallback(
       (setFunc: SetFormTouchedFunc<F>) => {
         if (isDisabled) return
         dispatch({ type: 'set_form_touched', payload: { value: setFunc(touched) } })
@@ -348,7 +328,7 @@ function createForm<F extends object>(
       [isDisabled, touched]
     )
 
-    const visitField = React.useCallback(
+    const visitField = useCallback(
       (path: string, visit: boolean) => {
         if (isDisabled) return
         dispatch([
@@ -359,7 +339,7 @@ function createForm<F extends object>(
       [isDisabled]
     )
 
-    const setVisited = React.useCallback(
+    const setVisited = useCallback(
       (setFunc: SetFormVisitedFunc<F>) => {
         if (isDisabled) return
         dispatch({ type: 'set_form_visited', payload: { value: setFunc(visited) } })
@@ -367,7 +347,7 @@ function createForm<F extends object>(
       [visited, isDisabled]
     )
 
-    const setActiveField = React.useCallback(
+    const setActiveField = useCallback(
       (path: string | null) => {
         if (isDisabled) return
         dispatch({ type: 'set_active_field', payload: { path } })
@@ -375,7 +355,7 @@ function createForm<F extends object>(
       [isDisabled]
     )
 
-    const resetForm = React.useCallback(() => {
+    const resetForm = useCallback(() => {
       if (isDisabled) return
       dispatch([
         { type: 'set_form_value', payload: { value: initialValue } },
@@ -385,7 +365,7 @@ function createForm<F extends object>(
       ])
     }, [initialSubmitCount, initialTouched, initialValue, initialVisited, isDisabled])
 
-    const forgetState = React.useCallback(() => {
+    const forgetState = useCallback(() => {
       if (isDisabled) return
       dispatch([
         { type: 'set_form_touched', payload: { value: {} } },
@@ -442,17 +422,18 @@ function createForm<F extends object>(
           value: formValue as any,
         }}
       >
-        {childrenIsFunc<F>(children) ? children(collectedProps) : children}
+        {typeof children === 'function' ? children(collectedProps) : children}
       </Provider>
     )
   }
 
   Form.defaultProps = {
+    onSubmit: noop,
     rememberStateOnReinitialize: false,
     submitUnregisteredValues: false,
-    initialValue: {} as F,
-    initialTouched: {} as BooleanTree<F>,
-    initialVisited: {} as BooleanTree<F>,
+    initialValue: {} as FDefault,
+    initialTouched: {} as BooleanTree<FDefault>,
+    initialVisited: {} as BooleanTree<FDefault>,
     initialSubmitCount: 0,
     onStateChange: () => false,
   }

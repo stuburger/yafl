@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { useEffect } from 'react'
 import warning from 'tiny-warning'
 import { FormProvider } from './sharedTypes'
 import { useSafeContext } from './useSafeContext'
@@ -10,7 +10,7 @@ export type InnerValidatorProps = FormProvider<any> & {
 
 export const InnerError: React.FC<InnerValidatorProps> = (props) => {
   const { msg, path, registerError, unregisterError } = props
-  React.useEffect(() => {
+  useEffect(() => {
     registerError(path, msg)
     return () => unregisterError(path, msg)
   }, [msg, path, registerError, unregisterError])

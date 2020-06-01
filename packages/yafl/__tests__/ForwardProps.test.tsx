@@ -1,11 +1,13 @@
+/* eslint-disable no-console */
+/* eslint-disable react/no-array-index-key */
 import * as React from 'react'
-import { createFormContext } from '../src'
 import { cleanup, render } from '@testing-library/react'
-import { ErrorBoundary } from './ErrorBoundry'
+import warning from 'tiny-warning'
+import { createFormContext } from '../src'
+import ErrorBoundary from './ErrorBoundry'
 import { NO_PROVIDER } from '../src/useSafeContext'
 import { createFormRenderer } from './helpers'
-import { TextInput } from './TextInput'
-import warning from 'tiny-warning'
+import TextInput from './TextInput'
 import { BRANCH_MODE_WARNING } from '../src/warnings'
 
 jest.mock('tiny-warning')
@@ -26,6 +28,17 @@ const renderError = (error: Error) => {
 
 describe('<ForwardProps />', () => {
   describe('when a ForwardProps is rendered outside of a Form Component', () => {
+    beforeEach(() => {
+      jest.spyOn(console, 'error')
+      // @ts-ignore
+      console.error.mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      // @ts-ignore
+      console.error.mockRestore()
+    })
+
     it('throws an error stating that a ForwardProps can only be rendered inside of a Form component', () => {
       const { ForwardProps } = createFormContext()
       const { queryByText } = render(
@@ -67,9 +80,9 @@ describe('<ForwardProps />', () => {
         field1: 'pigs',
         field2: 'say',
         section: {
-          field3: 'oink'
+          field3: 'oink',
         },
-        repeat: ['sweet', 'potatoes']
+        repeat: ['sweet', 'potatoes'],
       }
 
       const { renderForm, Field, Section, Repeat, ForwardProps } = createFormRenderer<any>()
@@ -77,8 +90,8 @@ describe('<ForwardProps />', () => {
       const { getByTestId } = renderForm(
         {
           initialValue: {
-            repeat: ['', '']
-          }
+            repeat: ['', ''],
+          },
         },
         <ForwardProps mode="branch" branch={branch}>
           <Field name="field1" component={TextInput} />
@@ -87,7 +100,7 @@ describe('<ForwardProps />', () => {
             <Field name="field3" component={TextInput} />
           </Section>
           <Repeat name="repeat">
-            {arr => arr.map((_, i) => <Field key={i} name={i} component={TextInput} />)}
+            {(arr) => arr.map((_, i) => <Field key={i} name={i} component={TextInput} />)}
           </Repeat>
         </ForwardProps>
       )

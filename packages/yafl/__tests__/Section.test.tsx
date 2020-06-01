@@ -1,8 +1,8 @@
+/* eslint-disable no-console */
 import * as React from 'react'
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { render, fireEvent } from '@testing-library/react'
 import { createFormContext, Contact } from '../src'
-import { ErrorBoundary } from './ErrorBoundry'
+import ErrorBoundary from './ErrorBoundry'
 import { NO_PROVIDER } from '../src/useSafeContext'
 import { createFormRenderer, SelectionController } from './helpers'
 
@@ -17,6 +17,17 @@ const renderError = (error: Error) => {
 
 describe('<Section />', () => {
   describe('when a Section is rendered outside of a Form Component', () => {
+    beforeEach(() => {
+      jest.spyOn(console, 'error')
+      // @ts-ignore
+      console.error.mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      // @ts-ignore
+      console.error.mockRestore()
+    })
+
     it('throws an error stating that a Section can only be rendered inside of a Form component', () => {
       const { Section } = createFormContext()
       const { queryByText } = render(

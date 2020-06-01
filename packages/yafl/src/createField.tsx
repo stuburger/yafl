@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { useEffect, useCallback } from 'react'
 import {
   FormProvider,
   FieldProps,
@@ -32,12 +32,12 @@ function createField<FValue extends object>(
     const curr = useBranch<F, T>(name, context)
     const { path, registerField, unregisterField, setValue, setActiveField } = curr
 
-    React.useEffect(() => {
+    useEffect(() => {
       registerField(path)
       return () => unregisterField(path)
     }, [path, registerField, unregisterField])
 
-    const setFieldValue = React.useCallback(
+    const setFieldValue = useCallback(
       (value: T | SetFieldValueFunc<T>, touchField = true): void => {
         setValue(path, isSetFunc(value) ? value(curr.value) : value, touchField)
       },
@@ -45,7 +45,7 @@ function createField<FValue extends object>(
     )
 
     const touch = curr.touchField
-    const touchField = React.useCallback(
+    const touchField = useCallback(
       (touched: boolean): void => {
         touch(path, touched)
       },
@@ -53,14 +53,14 @@ function createField<FValue extends object>(
     )
 
     const visit = curr.visitField
-    const visitField = React.useCallback(
+    const visitField = useCallback(
       (visited: boolean): void => {
         visit(path, visited)
       },
       [visit, path]
     )
 
-    const handleChange = React.useCallback(
+    const handleChange = useCallback(
       (e: React.ChangeEvent<any>) => {
         const { value: val, type, checked } = e.target
 
@@ -77,11 +77,11 @@ function createField<FValue extends object>(
       [setFieldValue]
     )
 
-    const handleFocus = React.useCallback(() => {
+    const handleFocus = useCallback(() => {
       setActiveField(path)
     }, [setActiveField, path])
 
-    const handleBlur = React.useCallback(() => {
+    const handleBlur = useCallback(() => {
       if (curr.visited) {
         setActiveField(null)
       } else {
@@ -133,7 +133,7 @@ function createField<FValue extends object>(
       const Component = component
       ret = [<Component key="comp" ref={forwardRef} {...collectedProps} />]
     } else if (render) {
-      ret.push(render(collectedProps))
+      ret.push(<React.Fragment key="comp">{render(collectedProps)}</React.Fragment>)
     } else if (typeof component === 'string') {
       const { input, meta, ...rest } = collectedProps
       ret = [React.createElement(component, { ...input, ...rest, ref: forwardRef, key: 'comp' })]

@@ -1,18 +1,17 @@
 import * as React from 'react'
+import { act } from '@testing-library/react'
 import { Person } from '../src'
 import { createFormRenderer, createDataSetter } from './helpers'
-import { act } from 'react-dom/test-utils'
 
 type B = { x?: any[]; y?: Date }
 
 type Thing = { a?: number; b?: B }
-const { renderForm, Field } = createFormRenderer<Thing>()
 
-function TextInput(props: any) {
+function TextInput({ label, input }: any) {
   return (
     <div>
-      <label>{props.label}</label>
-      <input {...props.input} />
+      <label htmlFor={input.name}>{label}</label>
+      <input {...input} />
     </div>
   )
 }
@@ -66,6 +65,7 @@ describe('<Form />', () => {
           },
         },
       }
+      const { renderForm, Field } = createFormRenderer<Thing>()
 
       const { getFormProps, getRenderCount } = renderForm(
         { initialValue, ...overrides },
@@ -76,7 +76,8 @@ describe('<Form />', () => {
             if (value < 15) {
               return 'number too small'
             }
-            return
+
+            return undefined
           }}
         />
       )
@@ -106,6 +107,9 @@ describe('<Form />', () => {
         const onSubmit = (formValue: Thing) => {
           submitMk(formValue)
         }
+
+        const { renderForm } = createFormRenderer<Thing>()
+
         const { getFormProps } = renderForm({
           initialValue,
           onSubmit,
@@ -133,6 +137,9 @@ describe('<Form />', () => {
           const onSubmit = (formValue: Thing) => {
             submitMk(formValue)
           }
+
+          const { renderForm } = createFormRenderer<Thing>()
+
           const { getFormProps, getRenderCount } = renderForm({
             initialValue,
             onSubmit,
@@ -151,6 +158,9 @@ describe('<Form />', () => {
             const onSubmit = (formValue: Thing) => {
               submitMk(formValue)
             }
+
+            const { renderForm, Field } = createFormRenderer<Thing>()
+
             const { getFormProps, getRenderCount } = renderForm(
               {
                 initialValue,
@@ -177,6 +187,9 @@ describe('<Form />', () => {
             const onSubmit = (formValue: Thing) => {
               submitMk(formValue)
             }
+
+            const { renderForm } = createFormRenderer<Thing>()
+
             const { getFormProps } = renderForm({
               onSubmit,
               initialValue: expectedStartingValue,
@@ -193,6 +206,8 @@ describe('<Form />', () => {
 
         describe('when onSubmit returns nothing', () => {
           it('should update submitCount', () => {
+            const { renderForm } = createFormRenderer<Thing>()
+
             const { getFormProps } = renderForm()
             const { submit } = getFormProps()
             submit()
@@ -204,6 +219,8 @@ describe('<Form />', () => {
         describe('when onSubmit returns false', () => {
           it('should not update submitCount', () => {
             const submitMk = jest.fn()
+
+            const { renderForm } = createFormRenderer<Thing>()
 
             const onSubmit = (formValue: Thing) => {
               submitMk(formValue)

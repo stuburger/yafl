@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { validateName, useBranch, isSetFunc } from './utils'
 import { Name, FormProvider, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
 
@@ -24,12 +24,12 @@ function createSection<F extends object>(ctx: React.Context<FormProvider<F, any>
     const curr = useBranch<F, T>(name, ctx, fallback)
     const { registerField, unregisterField } = curr
 
-    React.useEffect(() => {
+    useEffect(() => {
       registerField(curr.path)
       return () => unregisterField(curr.path)
     }, [curr.path, registerField, unregisterField])
 
-    const setValue = React.useCallback(
+    const setValue = useCallback(
       (value: T | SetFieldValueFunc<T>): void => {
         curr.setValue(curr.path, isSetFunc(value) ? value(curr.value) : value, false)
       },

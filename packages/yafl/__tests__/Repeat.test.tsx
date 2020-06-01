@@ -1,9 +1,9 @@
+/* eslint-disable no-console */
 /* eslint-disable react/no-array-index-key */
 import * as React from 'react'
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { render, fireEvent } from '@testing-library/react'
 import { createFormContext } from '../src'
-import { ErrorBoundary } from './ErrorBoundry'
+import ErrorBoundary from './ErrorBoundry'
 import { NO_PROVIDER } from '../src/useSafeContext'
 import { createFormRenderer } from './helpers'
 
@@ -18,6 +18,17 @@ const renderError = (error: Error) => {
 
 describe('<Repeat />', () => {
   describe('when a Repeat is rendered outside of a Form Component', () => {
+    beforeEach(() => {
+      jest.spyOn(console, 'error')
+      // @ts-ignore
+      console.error.mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      // @ts-ignore
+      console.error.mockRestore()
+    })
+
     it('throws an error stating that a Repeat can only be rendered inside of a Form component', () => {
       const { Repeat } = createFormContext()
       const { queryByText } = render(

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { FieldProps } from '../src'
 
-export function TextInput(props: FieldProps<any>) {
+function TextInput(props: FieldProps<any>) {
   const { meta, input, ...rest } = props
   const { touched, errors, isValid } = meta
   return (
@@ -21,3 +21,5 @@ export function TextInput(props: FieldProps<any>) {
     </div>
   )
 }
+
+export default TextInput
