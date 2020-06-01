@@ -25,7 +25,13 @@ module.exports = {
     'no-param-reassign': 'off',
     'import/no-extraneous-dependencies': [
       'error',
-      { devDependencies: ['**/*.test.ts', '**/*.test.tsx'] },
+      {
+        devDependencies: [
+          'packages/**/*.test.ts',
+          'packages/**/*.test.tsx',
+          'packages/yafl/__tests__/*',
+        ],
+      },
     ],
   },
 }

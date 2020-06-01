@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { useEffect, useCallback } from 'react'
 import warning from 'tiny-warning'
 import { validateName, useBranch } from './utils'
 import { FormProvider, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
@@ -13,13 +13,13 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
 
     const curr = useBranch<F, T[]>(name, ctx, fallback)
 
-    React.useEffect(() => {
+    useEffect(() => {
       curr.registerField(curr.path)
       return () => curr.unregisterField(curr.path)
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [curr.registerField, curr.unregisterField, curr.path])
 
-    const setValue = React.useCallback(
+    const setValue = useCallback(
       (value: T[] | SetFieldValueFunc<T[]>): void => {
         curr.setValue(curr.path, typeof value === 'function' ? value(curr.value) : value, false)
       },
@@ -27,7 +27,7 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
       [curr.value, curr.setValue, curr.path]
     )
 
-    const push = React.useCallback(
+    const push = useCallback(
       (...items: T[]) => {
         const arr = [...curr.value]
         const ret = arr.push(...items)
@@ -37,14 +37,14 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
       [curr.value, setValue]
     )
 
-    const pop = React.useCallback(() => {
+    const pop = useCallback(() => {
       const nextValue = [...curr.value]
       const popped = nextValue.pop()
       setValue(nextValue)
       return popped
     }, [curr.value, setValue])
 
-    const insert = React.useCallback(
+    const insert = useCallback(
       (index: number, ...items: T[]) => {
         const nextValue = [...curr.value]
         nextValue.splice(index, 0, ...items)
@@ -54,7 +54,7 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
       [curr.value, setValue]
     )
 
-    const remove = React.useCallback(
+    const remove = useCallback(
       (index: number) => {
         const nextValue = [...curr.value]
         const ret = nextValue.splice(index, 1)
@@ -64,14 +64,14 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
       [curr.value, setValue]
     )
 
-    const shift = React.useCallback(() => {
+    const shift = useCallback(() => {
       const nextValue = [...curr.value]
       const temp = nextValue[0]
       setValue(nextValue.splice(1))
       return temp
     }, [curr.value, setValue])
 
-    const swap = React.useCallback(
+    const swap = useCallback(
       (i1: number, i2: number) => {
         if (process.env.NODE_ENV !== 'production') {
           warning(i1 >= 0, `Array index out of bounds: ${i1}`)
@@ -85,7 +85,7 @@ function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> 
       [curr.value, setValue]
     )
 
-    const unshift = React.useCallback(
+    const unshift = useCallback(
       (...items: T[]) => {
         const arr = [...curr.value]
         const ret = arr.unshift(...items)

@@ -8,8 +8,12 @@ interface BoundaryState {
   error: Error | null
 }
 
-export class ErrorBoundary extends React.Component<BoundaryConfig, BoundaryState> {
-  state: BoundaryState = { error: null }
+class ErrorBoundary extends React.Component<BoundaryConfig, BoundaryState> {
+  constructor(props: BoundaryConfig) {
+    super(props)
+    this.state = { error: null }
+  }
+
   componentDidCatch(error: Error) {
     this.setState({ error })
   }
@@ -24,3 +28,5 @@ export class ErrorBoundary extends React.Component<BoundaryConfig, BoundaryState
     return renderError(error)
   }
 }
+
+export default ErrorBoundary

@@ -1,10 +1,11 @@
+/* eslint-disable no-console */
 import * as React from 'react'
 import { cleanup, render } from '@testing-library/react'
 import { createFormContext } from '../src'
 import { NO_PROVIDER } from '../src/useSafeContext'
-import { ErrorBoundary } from './ErrorBoundry'
+import ErrorBoundary from './ErrorBoundry'
 import { createFormRenderer, SelectionController, Selection, Toggler } from './helpers'
-import { TextInput } from './TextInput'
+import TextInput from './TextInput'
 
 afterEach(cleanup)
 
@@ -22,17 +23,29 @@ const LABEL_SELECTOR = 'Field Under Test'
 
 describe('<Field />', () => {
   describe('when a Field is rendered outside of a Form Component', () => {
+    beforeEach(() => {
+      jest.spyOn(console, 'error')
+      // @ts-ignore
+      console.error.mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      // @ts-ignore
+      console.error.mockRestore()
+    })
+
     it('throws an error stating that a Field can only be rendered inside of a Form component', () => {
       const { Field } = createFormContext<any>()
       const api = render(
         <ErrorBoundary renderError={renderError}>
           <Field<string>
             name="test"
-            render={(props) => {
+            render={({ input }) => {
               return (
                 <>
-                  <label htmlFor={props.input.name} />
-                  <input {...props.input} />
+                  <label htmlFor={input.name}>
+                    <input {...input} />
+                  </label>
                 </>
               )
             }}
@@ -54,8 +67,10 @@ describe('<Field />', () => {
             render={(props) => {
               return (
                 <>
-                  <label htmlFor={props.input.name}>Test Field</label>
-                  <input id={props.input.name} {...props.input} />
+                  <label htmlFor={props.input.name}>
+                    Test Field
+                    <input id={props.input.name} {...props.input} />
+                  </label>
                 </>
               )
             }}
@@ -386,13 +401,16 @@ describe('<Field />', () => {
   describe('unmountring a Field', () => {
     it('sanity check/test: Toggler renders the Field', () => {
       const { renderForm, Field } = createFormRenderer()
+      const initialValue = { [TEST_FIELD_NAME]: '', otherField: 42 }
       const api = renderForm(
-        {},
-        <Toggler initialValue={true}>
+        { initialValue },
+        <Toggler initialValue>
           {({ toggle, value }) => {
             return (
               <>
-                <button onClick={toggle}>Toggle</button>
+                <button type="button" onClick={toggle}>
+                  Toggle
+                </button>
                 {value && (
                   <Field name={TEST_FIELD_NAME} label={LABEL_SELECTOR} component={TextInput} />
                 )}
@@ -413,13 +431,16 @@ describe('<Field />', () => {
 
     it('removes the Field from the dom', () => {
       const { renderForm, Field } = createFormRenderer()
+      const initialValue = { [TEST_FIELD_NAME]: '', otherField: 42 }
       const api = renderForm(
-        {},
-        <Toggler initialValue={true}>
+        { initialValue },
+        <Toggler initialValue>
           {({ toggle, value }) => {
             return (
               <>
-                <button onClick={toggle}>Toggle</button>
+                <button type="button" onClick={toggle}>
+                  Toggle
+                </button>
                 {value && (
                   <Field name={TEST_FIELD_NAME} label={LABEL_SELECTOR} component={TextInput} />
                 )}
@@ -443,13 +464,16 @@ describe('<Field />', () => {
 
     it('resets the touched value for the Field when the field unmounts', () => {
       const { renderForm, Field } = createFormRenderer<{ [TEST_FIELD_NAME]: boolean }>()
+      const initialValue = { [TEST_FIELD_NAME]: true }
       const api = renderForm(
-        {},
+        { initialValue },
         <Toggler initialValue>
           {({ toggle, value }) => {
             return (
               <>
-                <button onClick={toggle}>Toggle</button>
+                <button type="button" onClick={toggle}>
+                  Toggle
+                </button>
                 {value && (
                   <Field name={TEST_FIELD_NAME} label={LABEL_SELECTOR} component={TextInput} />
                 )}
@@ -476,13 +500,16 @@ describe('<Field />', () => {
 
     it('resets the visited value for the Field when the Field unmounts', () => {
       const { renderForm, Field } = createFormRenderer<{ [TEST_FIELD_NAME]: boolean }>()
+      const initialValue = { [TEST_FIELD_NAME]: true }
       const api = renderForm(
-        {},
+        { initialValue },
         <Toggler initialValue>
           {({ toggle, value }) => {
             return (
               <>
-                <button onClick={toggle}>Toggle</button>
+                <button type="button" onClick={toggle}>
+                  Toggle
+                </button>
                 {value && (
                   <Field name={TEST_FIELD_NAME} label={LABEL_SELECTOR} component={TextInput} />
                 )}
@@ -519,7 +546,9 @@ describe('<Field />', () => {
           {({ toggle, value }) => {
             return (
               <>
-                <button onClick={toggle}>Toggle</button>
+                <button type="button" onClick={toggle}>
+                  Toggle
+                </button>
                 <Field
                   name={value ? TEST_FIELD_NAME : 'other'}
                   label={value ? LABEL_SELECTOR : 'Other Label'}
@@ -563,7 +592,9 @@ describe('<Field />', () => {
           {({ toggle, value }) => {
             return (
               <>
-                <button onClick={toggle}>Toggle</button>
+                <button type="button" onClick={toggle}>
+                  Toggle
+                </button>
                 {value && (
                   <Field name={TEST_FIELD_NAME} label={LABEL_SELECTOR} component={TextInput} />
                 )}

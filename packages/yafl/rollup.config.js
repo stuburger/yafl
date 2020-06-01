@@ -1,5 +1,5 @@
 import replace from '@rollup/plugin-replace'
-// import { terser } from 'rollup-plugin-terser'
+import { terser } from 'rollup-plugin-terser'
 import commonjs from '@rollup/plugin-commonjs'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import resolve from '@rollup/plugin-node-resolve'
@@ -64,19 +64,19 @@ function buildUmd({ env }) {
       }),
       sourcemaps(),
       env === 'production' && sizeSnapshot(),
-      // env === 'production' &&
-      //   terser({
-      //     sourcemap: true,
-      //     output: { comments: false },
-      //     compress: {
-      //       keep_infinity: true,
-      //       pure_getters: true,
-      //       passes: 10,
-      //     },
-      //     ecma: 5,
-      //     toplevel: true,
-      //     warnings: true,
-      //   }),
+      env === 'production' &&
+        terser({
+          sourcemap: true,
+          output: { comments: false },
+          compress: {
+            keep_infinity: true,
+            pure_getters: true,
+            passes: 10,
+          },
+          ecma: 5,
+          toplevel: true,
+          warnings: true,
+        }),
     ],
   }
 }
