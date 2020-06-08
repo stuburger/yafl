@@ -6,6 +6,7 @@ function createHooks<F extends object>(context: React.Context<FormProvider<F> | 
   function useYaflContext() {
     return useSafeContext(context)
   }
+
   return { useYaflContext }
 }
 

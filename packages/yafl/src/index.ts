@@ -6,6 +6,7 @@ import createField from './createField'
 import createRepeat from './createRepeat'
 import createFormError from './createFormError'
 import createForwardProps from './createForwardProps'
+import createUseField from './createUseField'
 import createHooks from './createHooks'
 import { BLOCKER } from './useSafeContext'
 
@@ -14,21 +15,25 @@ export function createFormContext<F extends object>() {
 
   const { Provider } = context
 
+  const useField = createUseField<F>(context)
   const hooks = createHooks<F>(context)
+
   return {
     ...hooks,
-    Form: createForm<F>(Provider as React.Provider<FormProvider<F, F>>),
+    useField,
+    Form: createForm<F>(Provider),
     Section: createSection<F>(context),
     Repeat: createRepeat<F>(context),
-    Field: createField<F>(context),
+    Field: createField<F>(useField),
     FormError: createFormError(context),
-    ForwardProps: createForwardProps(context as any),
+    ForwardProps: createForwardProps(context),
   }
 }
 
 export const {
   Field,
   Form,
+  useField,
   ForwardProps,
   Repeat,
   Section,

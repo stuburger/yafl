@@ -81,6 +81,10 @@ export interface InputProps<T = any> {
   onChange: (e: React.ChangeEvent<any>) => void
 }
 
+export interface UseFieldConfig<F extends object, T = any> {
+  validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
+}
+
 export interface FieldConfig<F extends object, T = any> {
   name: Name
   forwardRef?: React.Ref<any>
@@ -89,11 +93,13 @@ export interface FieldConfig<F extends object, T = any> {
   component?: React.ComponentType<FieldProps<F, T>> | string
   [key: string]: any
 }
-export interface FieldProps<F extends object, T = any> {
+
+export interface UseFieldProps<F extends object, T = any> {
   input: InputProps<T>
   meta: FieldMeta<F, T>
-  [key: string]: any
 }
+
+export type FieldProps<F extends object, T = any> = UseFieldProps<F, T> | Record<string, any>
 
 export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
   /**
@@ -249,8 +255,8 @@ export interface FormProvider<F extends object, T = F> {
   setActiveField: (path: string | null) => void
   touchField: (path: string, touched: boolean) => void
   visitField: (path: string, visited: boolean) => void
-  registerError: (path: string, error: string) => void
-  unregisterError: (path: string, error: string) => void
+  registerErrors: (path: string, error: string[]) => void
+  unregisterErrors: (path: string) => void
   setFormValue: (setFunc: SetFormValueFunc<F>) => void
   setValue: (path: string, value: any, setTouched?: boolean) => void
   setFormTouched: (setFunc: SetFormTouchedFunc<F>) => void

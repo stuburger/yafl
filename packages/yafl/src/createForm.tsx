@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable react/sort-comp */
 import React, { useCallback, useEffect } from 'react'
 import isEqual from 'react-fast-compare'
 import * as immutable from 'object-path-immutable'
-import { get, constructFrom } from './utils'
+import { constructFrom, usePrevious } from './utils'
 import {
   FormState,
   FormProvider,
@@ -21,11 +20,11 @@ type SetTouched = { type: 'set_touched'; payload: { path: string; value: boolean
 type SetVisited = { type: 'set_visited'; payload: { path: string; value: boolean } }
 type UnsetTouched = { type: 'unset_touched'; payload: { path: string } }
 type UnsetVisited = { type: 'unset_visited'; payload: { path: string } }
-type SetError = { type: 'set_error'; payload: { path: string; error: string } }
+type SetErrors = { type: 'set_errors'; payload: { path: string; errors: string[] } }
 type SetFormValue<F extends object> = { type: 'set_form_value'; payload: { value: F } }
 type SetFormTouched = { type: 'set_form_touched'; payload: { value: BooleanTree<any> } }
 type SetFormVisited = { type: 'set_form_visited'; payload: { value: BooleanTree<any> } }
-type UnsetError = { type: 'unset_error'; payload: { path: string; error: string } }
+type UnsetErrors = { type: 'unset_errors'; payload: { path: string } }
 type IncSubmitCount = { type: 'inc_submit_count'; payload: { value: 1 } }
 type SetActiveField = { type: 'set_active_field'; payload: { path: string | null } }
 type SetSubmitCount = { type: 'set_submit_count'; payload: { value: number } }
@@ -35,8 +34,8 @@ type Action<F extends object> =
   | Mount
   | UnsetTouched
   | UnsetVisited
-  | SetError
-  | UnsetError
+  | SetErrors
+  | UnsetErrors
   | IncSubmitCount
   | SetTouched
   | SetVisited
@@ -109,27 +108,19 @@ function formReducer<F extends object>(
           nextState.visited = immutable.del(nextState.visited, path)
           break
         }
-        case 'set_error': {
-          const { errors, errorCount } = nextState
-          const { path, error } = action.payload
-          const curr = get(errors, path, [])
-          const errs = Array.isArray(curr) ? [...curr, error] : [error]
+        case 'set_errors': {
+          const { path, errors } = action.payload
 
-          nextState.errorCount = errorCount + 1
-          nextState.errors = immutable.set(errors, path, errs)
+          nextState.errorCount = errors.length
+          nextState.errors = immutable.set(nextState.errors, path, errors)
           break
         }
-        case 'unset_error': {
+        case 'unset_errors': {
           const { errors, errorCount } = nextState
-          const { path, error } = action.payload
-          const curr: string[] = get(errors, path, [])
-          const next = curr.filter((x) => x !== error)
+          const { path } = action.payload
 
           nextState.errorCount = errorCount - 1
-          nextState.errors = next.length
-            ? immutable.set(errors, path, next)
-            : immutable.del(errors, path)
-
+          nextState.errors = immutable.set(errors, path, [])
           break
         }
         case 'set_submit_count': {
@@ -154,18 +145,10 @@ function formReducer<F extends object>(
   )
 }
 
-function usePrevious<T>(value: T) {
-  const ref = React.useRef<T>()
-  useEffect(() => {
-    ref.current = value
-  })
-  return ref.current
-}
-
 const noop = () => {}
 
 function createForm<FDefault extends object>(
-  Provider: React.Provider<FormProvider<any, any>>
+  Provider: React.Provider<FormProvider<any, any> | Symbol>
 ): React.ComponentType<FormConfig<FDefault>> {
   function Form<F extends FDefault = FDefault>(props: FormConfig<F>) {
     const registerCache = React.useRef<string[]>([])
@@ -269,12 +252,12 @@ function createForm<FDefault extends object>(
       [persistFieldState]
     )
 
-    const registerError = useCallback((path: string, error: string) => {
-      dispatch({ type: 'set_error', payload: { path, error } })
+    const registerErrors = useCallback((path: string, errs: string[]) => {
+      dispatch({ type: 'set_errors', payload: { path, errors: errs } })
     }, [])
 
-    const unregisterError = useCallback((path: string, error: string) => {
-      dispatch({ type: 'unset_error', payload: { path, error } })
+    const unregisterErrors = useCallback((path: string) => {
+      dispatch({ type: 'unset_errors', payload: { path } })
     }, [])
 
     const incSubmitCount = useCallback(() => {
@@ -412,10 +395,10 @@ function createForm<FDefault extends object>(
           path: '',
           visitField,
           touchField,
-          registerError,
           registerField,
+          registerErrors,
           setActiveField,
-          unregisterError,
+          unregisterErrors,
           unregisterField,
           branchProps: {},
           sharedProps: {},

@@ -2,13 +2,10 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
 import React, { Component } from 'react'
-import { createFormContext } from 'yafl'
+import { Form, Section, FormError, useYaflContext } from 'yafl'
 import Input from './Input'
-import Select from './Select'
 import { required, minLength, email, min } from './validators'
 import FormatJson from './FormatJson'
-
-const { Form, Section, Field, FormError, useYaflContext } = createFormContext()
 
 const defaultValue = {
   fullName: '',
@@ -110,39 +107,30 @@ class DemoForm extends Component {
                 </div>
                 <div className="col col--4">
                   <p className="hero__subtitle">Demo Form</p>
-                  <Field
+                  <Input
                     name="fullName"
                     label="Full Name"
                     placeholder="E.g. John Smith"
                     validate={[required, minLength(3)]}
-                    component={Input}
                   />
-                  <Field
+                  <Input
                     name="age"
                     type="number"
-                    parse={Number.parseInt}
                     label="Age"
                     validate={[required, min(5, 'Must be at least 5 years old!')]}
                     placeholder="E.g. 29"
-                    component={Input}
                   />
                   <Section name="contact">
-                    <Field
+                    <Input
                       name="email"
                       label="Email"
                       placeholder="E.g. example@email.com"
                       validate={[required, email()]}
-                      component={Input}
                       busy={asyncValidating}
                     />
                     <FormError path="contact.email" msg={asyncEmailError} />
                     <Section name="address">
-                      <Field
-                        name="postalCode"
-                        label="Postal Code"
-                        placeholder="Postal Code"
-                        component={Input}
-                      />
+                      <Input name="postalCode" label="Postal Code" placeholder="Postal Code" />
                     </Section>
                   </Section>
                   <Submit submitting={submitting} fetching={fetching} />

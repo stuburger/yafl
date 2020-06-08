@@ -9,11 +9,11 @@ export type InnerValidatorProps = FormProvider<any> & {
 }
 
 export const InnerError: React.FC<InnerValidatorProps> = (props) => {
-  const { msg, path, registerError, unregisterError } = props
+  const { msg, path, registerErrors, unregisterErrors } = props
   useEffect(() => {
-    registerError(path, msg)
-    return () => unregisterError(path, msg)
-  }, [msg, path, registerError, unregisterError])
+    registerErrors(path, [msg])
+    return () => unregisterErrors(path)
+  }, [msg, path, registerErrors, unregisterErrors])
 
   return null
 }
