@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
 import React from 'react'
 import classnames from 'classnames'
+import { useField } from 'yafl'
 
 export default function TextInput(props) {
-  const { input, meta, busy, label, type, placeholder } = props
+  const { name, busy, label, type, placeholder, validate } = props
+  const { meta, input } = useField(name, { validate })
   const { isValid, visited, submitCount, errors = [] } = meta
   const showError = !isValid && (visited || submitCount > 0)
 

@@ -1,7 +1,11 @@
 import * as React from 'react'
 import { FieldProps } from '../src'
 
-function TextInput(props: FieldProps<any>) {
+interface Props {
+  label: string
+}
+
+function TextInput(props: FieldProps<any> & Props) {
   const { meta, input, ...rest } = props
   const { touched, errors, isValid } = meta
   return (
