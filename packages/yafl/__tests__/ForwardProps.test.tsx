@@ -53,13 +53,13 @@ describe('<ForwardProps />', () => {
     })
   })
 
-  describe('default mode', () => {
+  describe('shared prop', () => {
     it('whole prop values are forwarded to and arrive unchanged at all children Field components', () => {
       const { renderForm, Field, Section, ForwardProps } = createFormRenderer<any>()
 
       const { getByTestId } = renderForm(
         {},
-        <ForwardProps superImportantThing="wow">
+        <ForwardProps shared={{ superImportantThing: 'wow' }}>
           <Field name="field1" component={TextInput} />
           <Field name="field2" component={TextInput} />
           <Section name="section">
@@ -93,7 +93,7 @@ describe('<ForwardProps />', () => {
             repeat: ['', ''],
           },
         },
-        <ForwardProps mode="branch" branch={branch}>
+        <ForwardProps branch={{ branch }}>
           <Field name="field1" component={TextInput} />
           <Field name="field2" component={TextInput} />
           <Section name="section">
@@ -112,12 +112,17 @@ describe('<ForwardProps />', () => {
       expect(getByTestId('extra_1').innerHTML).toMatch(branch.repeat[1])
     })
 
-    it('warns the user that one or more of the props supplied are not compatible with branch mode', () => {
+    it.only('warns the user that one or more of the props supplied are not compatible with branch mode', () => {
       const { renderForm, Field, Section, ForwardProps } = createFormRenderer<any>()
       renderForm(
         {},
         <ErrorBoundary renderError={() => null}>
-          <ForwardProps mode="branch" good={{ field1: 'wow' }} bad="wow">
+          <ForwardProps
+            branch={{
+              good: { field1: 'wow' },
+              bad: 'wow',
+            }}
+          >
             <Field name="field1" component={TextInput} />
             <Field name="field2" component={TextInput} />
             <Section name="section">

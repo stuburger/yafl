@@ -1,11 +1,13 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react'
 import { FieldProps } from '../src'
 
-interface Props {
-  label: string
-}
+// interface Props {
+//   label: string
+//   size: 'xxs' | 'xs'
+// }
 
-function TextInput(props: FieldProps<any> & Props) {
+const TextInput = (props: FieldProps<any, any>) => {
   const { meta, input, ...rest } = props
   const { touched, errors, isValid } = meta
   return (
