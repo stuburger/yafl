@@ -7,27 +7,25 @@ import { BRANCH_MODE_WARNING } from './warnings'
 
 function createForwardProps<F extends object>(context: React.Context<FormProvider<F, F> | Symbol>) {
   const { Provider } = context
-  function ForwardProps(props: PropForwarderConfig) {
+  function ForwardProps<TBranch extends object = {}, TShared extends object = {}>(
+    props: PropForwarderConfig<TBranch, TShared>
+  ) {
     const yafl = useSafeContext(context)
 
     const value = { ...yafl }
-    const { children, mode, ...rest } = props
-    if (mode === 'branch') {
-      if (process.env.NODE_ENV !== 'production') {
-        warning(
-          Object.keys(rest).every((key) => isObject(rest[key])),
-          BRANCH_MODE_WARNING
-        )
-      }
-      value.branchProps = { ...value.branchProps, ...rest }
-    } else {
-      value.sharedProps = { ...value.sharedProps, ...rest }
-    }
-    return <Provider value={value}>{children}</Provider>
-  }
+    const { children, branch = {} as TBranch, shared = {} } = props
 
-  ForwardProps.defaultProps = {
-    mode: 'default',
+    if (process.env.NODE_ENV !== 'production') {
+      warning(
+        (Object.keys(branch) as Array<keyof TBranch>).every((key) => isObject(branch[key])),
+        BRANCH_MODE_WARNING
+      )
+    }
+
+    value.branchProps = { ...value.branchProps, ...branch }
+    value.sharedProps = { ...value.sharedProps, ...shared }
+
+    return <Provider value={value}>{children}</Provider>
   }
 
   return ForwardProps

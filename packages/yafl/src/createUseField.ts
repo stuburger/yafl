@@ -136,12 +136,7 @@ function createUseField<FValue extends object>(
       value: curr.value,
     }
 
-    return {
-      input,
-      meta,
-      ...curr.branchProps,
-      ...curr.sharedProps,
-    }
+    return [input, meta]
   }
 
   return useField

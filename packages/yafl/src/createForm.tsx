@@ -402,7 +402,7 @@ function createForm<FDefault extends object>(
           unregisterField,
           branchProps: {},
           sharedProps: {},
-          value: formValue as any,
+          value: formValue,
         }}
       >
         {typeof children === 'function' ? children(collectedProps) : children}

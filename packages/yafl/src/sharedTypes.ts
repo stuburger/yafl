@@ -63,10 +63,6 @@ export interface SetFormTouchedFunc<T extends object> {
   (previousTouched: BooleanTree<T>): BooleanTree<T>
 }
 
-export type ComponentTypes<F extends object> = {
-  [key: string]: React.ComponentType<FieldProps<F, any>>
-}
-
 export interface InputProps<T = any> {
   /**
    * The name of this Field.
@@ -88,18 +84,28 @@ export interface UseFieldConfig<F extends object, T = any> {
 export interface FieldConfig<F extends object, T = any> {
   name: Name
   forwardRef?: React.Ref<any>
-  render?: (props: FieldProps<F, T>) => React.ReactNode
+  render?: (props: FieldProps<F, T>) => JSX.Element
   validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
   component?: React.ComponentType<FieldProps<F, T>> | string
   [key: string]: any
 }
 
-export interface UseFieldProps<F extends object, T = any> {
+export type UseFieldFn<T, F extends object> = (
+  name: Name,
+  props: UseFieldConfig<F, T>
+) => UseFieldProps<F, T>
+
+export type UseForwardPropsFn<TBranch extends object = {}, TShared extends object = {}> = (
+  name: Name
+) => [TBranch, TShared]
+
+export type UseFieldProps<F extends object, T = any> = [InputProps<T>, FieldMeta<F, T>]
+
+export interface FieldProps<F extends object, T = any> {
   input: InputProps<T>
   meta: FieldMeta<F, T>
+  [key: string]: any
 }
-
-export type FieldProps<F extends object, T = any> = UseFieldProps<F, T> | Record<string, any>
 
 export interface FieldMeta<F extends object, T = any> extends FormMeta<F> {
   /**
@@ -347,8 +353,8 @@ export interface FormConfig<T extends object> {
   onFormValueChange?: (prev: T, next: T) => void
 }
 
-export interface PropForwarderConfig {
+export interface PropForwarderConfig<TBranch extends object = {}, TShared = any> {
   children: React.ReactNode
-  mode?: 'default' | 'branch'
-  [key: string]: any
+  branch?: TBranch
+  shared?: TShared
 }
