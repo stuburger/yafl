@@ -66,7 +66,6 @@ function buildUmd({ env }) {
       env === 'production' && sizeSnapshot(),
       env === 'production' &&
         terser({
-          sourcemap: true,
           output: { comments: false },
           compress: {
             keep_infinity: true,
