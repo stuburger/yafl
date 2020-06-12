@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import React, { useCallback, useEffect } from 'react'
 import isEqual from 'react-fast-compare'
-import * as immutable from 'object-path-immutable'
+import { get, set, del } from 'object-path-immutable'
 import { constructFrom, usePrevious } from './utils'
 import {
   FormState,
@@ -70,18 +70,18 @@ function formReducer<F extends object>(
         }
         case 'unset_touched': {
           const { path } = action.payload
-          nextState.touched = immutable.del(nextState.touched, path)
+          nextState.touched = del(nextState.touched, path)
           break
         }
         case 'set_touched': {
           const { path, value } = action.payload
-          nextState.touched = immutable.set(nextState.touched, path, value)
+          nextState.touched = set(nextState.touched, path, value)
 
           break
         }
         case 'set_visited': {
           const { path, value } = action.payload
-          nextState.visited = immutable.set(nextState.visited, path, value)
+          nextState.visited = set(nextState.visited, path, value)
 
           break
         }
@@ -100,27 +100,28 @@ function formReducer<F extends object>(
         case 'set_value': {
           const { path, value } = action.payload
           const { formValue } = nextState
-          nextState.formValue = immutable.set(formValue, path, value)
+          nextState.formValue = set(formValue, path, value)
           break
         }
         case 'unset_visited': {
           const { path } = action.payload
-          nextState.visited = immutable.del(nextState.visited, path)
+          nextState.visited = del(nextState.visited, path)
           break
         }
         case 'set_errors': {
           const { path, errors } = action.payload
 
-          nextState.errorCount = errors.length
-          nextState.errors = immutable.set(nextState.errors, path, errors)
+          nextState.errorCount += errors.length
+          nextState.errors = set(nextState.errors, path, errors)
           break
         }
         case 'unset_errors': {
-          const { errors, errorCount } = nextState
+          const { errors } = nextState
           const { path } = action.payload
 
-          nextState.errorCount = errorCount - 1
-          nextState.errors = immutable.set(errors, path, [])
+          const fieldErrors = get<string[]>(nextState.errors as any, path, [])
+          nextState.errorCount -= fieldErrors.length
+          nextState.errors = set(errors, path, [])
           break
         }
         case 'set_submit_count': {
