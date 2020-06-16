@@ -1,5 +1,5 @@
 import React from 'react'
-import { FieldProps, InputProps, FieldConfig, UseFieldFn, UseForwardPropsFn } from './sharedTypes'
+import { FieldProps, InputProps, FieldConfig, UseFieldFn, UseDeliveryFn } from './sharedTypes'
 import FieldSink from './FieldSink'
 
 function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
@@ -8,7 +8,7 @@ function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
 
 function createField<FValue extends object>(
   useField: UseFieldFn<any, any>,
-  useForwardProps: UseForwardPropsFn<any, any>
+  useDelivery: UseDeliveryFn<any, any>
 ) {
   function Field<T = any, F extends object = FValue>(
     props: FieldConfig<F, T>
@@ -16,7 +16,7 @@ function createField<FValue extends object>(
     const { name, render, validate, component, forwardRef, ...fieldProps } = props
 
     const [inputProps, meta] = useField(name, { validate })
-    const [branchProps, sharedProps] = useForwardProps(name)
+    const [branchProps, sharedProps] = useDelivery(name)
 
     const input: InputProps = {
       ...inputProps,

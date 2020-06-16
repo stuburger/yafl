@@ -8,7 +8,7 @@ module.exports = {
       'section',
       'repeat',
       'form-error',
-      'forwardProps',
+      'useDelivery',
       'createFormContext',
       'useYaflContext',
     ],

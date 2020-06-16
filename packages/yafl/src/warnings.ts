@@ -1,7 +1,4 @@
-export const BRANCH_MODE_WARNING =
-  'When using mode="branch" on the <ForwardProps /> ' +
-  'component, all additional props must be of type object'
-
+// eslint-disable-next-line import/prefer-default-export
 export const VALIDATOR_PATH_WARNING =
   "Invalid path. The 'path' prop on the Validator component is required when rendering a FormError " +
   'outside of the component hierarchy of any Field, Section or Repeat components. ' +

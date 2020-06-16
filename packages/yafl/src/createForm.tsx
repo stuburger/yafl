@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect } from 'react'
 import isEqual from 'react-fast-compare'
 import { get, set, del } from 'object-path-immutable'
-import { constructFrom, usePrevious } from './utils'
+import { constructFrom, usePrevious, isFunction } from './utils'
 import {
   FormState,
   FormProvider,
@@ -265,8 +265,16 @@ function createForm<FDefault extends object>(
       dispatch({ type: 'inc_submit_count', payload: { value: 1 } })
     }, [])
 
-    const submit = () => {
+    const submit = (e?: React.FormEvent<HTMLFormElement>) => {
       if (isDisabled) return
+
+      if (e && isFunction(e?.preventDefault)) {
+        e.preventDefault()
+      }
+
+      if (e && isFunction(e?.stopPropagation)) {
+        e.stopPropagation()
+      }
 
       const inc = submitUnregisteredValues
         ? onSubmit(formValue, collectProps())
@@ -383,7 +391,7 @@ function createForm<FDefault extends object>(
       }
     }
 
-    const { children } = props
+    const { children, commonValues = {}, branchValues = {} } = props
 
     const collectedProps = collectProps()
 
@@ -401,8 +409,8 @@ function createForm<FDefault extends object>(
           setActiveField,
           unregisterErrors,
           unregisterField,
-          branchProps: {},
-          sharedProps: {},
+          branchProps: isFunction(branchValues) ? branchValues({ formValue }) : branchValues,
+          sharedProps: isFunction(commonValues) ? commonValues({ formValue }) : commonValues,
           value: formValue,
         }}
       >
@@ -413,6 +421,8 @@ function createForm<FDefault extends object>(
 
   Form.defaultProps = {
     onSubmit: noop,
+    branchValues: {},
+    commonValues: {},
     rememberStateOnReinitialize: false,
     submitUnregisteredValues: false,
     initialValue: {} as FDefault,
