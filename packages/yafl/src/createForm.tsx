@@ -24,7 +24,7 @@ type SetErrors = { type: 'set_errors'; payload: { path: string; errors: string[]
 type SetFormValue<F extends object> = { type: 'set_form_value'; payload: { value: F } }
 type SetFormTouched = { type: 'set_form_touched'; payload: { value: BooleanTree<any> } }
 type SetFormVisited = { type: 'set_form_visited'; payload: { value: BooleanTree<any> } }
-type UnsetErrors = { type: 'unset_errors'; payload: { path: string } }
+type UnsetErrors = { type: 'unset_errors'; payload: { path: string; errors: string[] } }
 type IncSubmitCount = { type: 'inc_submit_count'; payload: { value: 1 } }
 type SetActiveField = { type: 'set_active_field'; payload: { path: string | null } }
 type SetSubmitCount = { type: 'set_submit_count'; payload: { value: number } }
@@ -110,18 +110,22 @@ function formReducer<F extends object>(
         }
         case 'set_errors': {
           const { path, errors } = action.payload
+          const fieldErrors = get<string[]>(nextState.errors as any, path, [])
+          const fieldErrorCount = fieldErrors.length
 
-          nextState.errorCount += errors.length
-          nextState.errors = set(nextState.errors, path, errors)
+          const fieldErrorSet = new Set(fieldErrors.concat(errors))
+
+          nextState.errorCount = nextState.errorCount - fieldErrorCount + fieldErrorSet.size
+          nextState.errors = set(nextState.errors, path, Array.from(fieldErrorSet))
           break
         }
         case 'unset_errors': {
-          const { errors } = nextState
-          const { path } = action.payload
+          const { path, errors } = action.payload
 
           const fieldErrors = get<string[]>(nextState.errors as any, path, [])
-          nextState.errorCount -= fieldErrors.length
-          nextState.errors = set(errors, path, [])
+          const nextFieldErrors = fieldErrors.filter((x) => !errors.includes(x))
+          nextState.errorCount -= errors.length
+          nextState.errors = set(nextState.errors, path, nextFieldErrors)
           break
         }
         case 'set_submit_count': {
@@ -257,8 +261,8 @@ function createForm<FDefault extends object>(
       dispatch({ type: 'set_errors', payload: { path, errors: errs } })
     }, [])
 
-    const unregisterErrors = useCallback((path: string) => {
-      dispatch({ type: 'unset_errors', payload: { path } })
+    const unregisterErrors = useCallback((path: string, errs: string[]) => {
+      dispatch({ type: 'unset_errors', payload: { path, errors: errs } })
     }, [])
 
     const incSubmitCount = useCallback(() => {

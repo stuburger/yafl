@@ -12,7 +12,7 @@ export const InnerError: React.FC<InnerValidatorProps> = (props) => {
   const { msg, path, registerErrors, unregisterErrors } = props
   useEffect(() => {
     registerErrors(path, [msg])
-    return () => unregisterErrors(path)
+    return () => unregisterErrors(path, [msg])
   }, [msg, path, registerErrors, unregisterErrors])
 
   return null

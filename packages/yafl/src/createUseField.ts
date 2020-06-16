@@ -48,11 +48,10 @@ function createUseField<FValue extends object>(
       .map((test) => test(curr.value, curr.formValue))
       .filter(Boolean) as string[]
 
-    const fe = errors.join('')
     useEffect(() => {
       registerErrors(path, errors)
-      return () => unregisterErrors(path)
-    }, [path, fe, unregisterErrors, registerErrors]) // eslint-disable-line react-hooks/exhaustive-deps
+      return () => unregisterErrors(path, errors)
+    }, [path, errors.join(''), unregisterErrors, registerErrors]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const setFieldValue = useCallback(
       (value: T | SetFieldValueFunc<T>, touchField = true): void => {

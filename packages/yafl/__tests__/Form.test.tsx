@@ -147,7 +147,9 @@ describe('<Form />', () => {
           expect(getRenderCount()).toEqual(2)
 
           const { submit } = getFormProps()
-          submit()
+          act(() => {
+            submit()
+          })
           expect(getRenderCount()).toEqual(3)
           expect(submitMk).toBeCalledTimes(1)
         })
@@ -171,7 +173,9 @@ describe('<Form />', () => {
 
             expect(getRenderCount()).toEqual(2)
             const { submit } = getFormProps()
-            submit()
+            act(() => {
+              submit()
+            })
             expect(getRenderCount()).toEqual(3)
             expect(submitMk).toHaveBeenCalledWith({ a: 12 })
           })
@@ -197,7 +201,9 @@ describe('<Form />', () => {
             })
 
             const { submit } = getFormProps()
-            submit()
+            act(() => {
+              submit()
+            })
             const { submitCount } = getFormProps()
             expect(submitCount).toEqual(1)
             expect(submitMk).toHaveBeenCalledWith(expectedStartingValue)
@@ -210,7 +216,9 @@ describe('<Form />', () => {
 
             const { getFormProps } = renderForm()
             const { submit } = getFormProps()
-            submit()
+            act(() => {
+              submit()
+            })
             const { submitCount } = getFormProps()
             expect(submitCount).toEqual(1)
           })
@@ -264,7 +272,9 @@ describe('<Form />', () => {
           }
 
           expect(getRenderCount()).toEqual(2)
-          setFormValue(({ contact, ...value }) => ({ ...value, contact: newContact }))
+          act(() => {
+            setFormValue(({ contact, ...value }) => ({ ...value, contact: newContact }))
+          })
 
           const { formValue, formIsDirty, errorCount, touched, visited } = getFormProps()
           expect(formValue.contact).toEqual(newContact)
@@ -286,7 +296,9 @@ describe('<Form />', () => {
           expect(getRenderCount()).toEqual(2)
 
           const { setFormTouched } = getFormProps()
-          setFormTouched((touched) => ({ ...touched, age: true }))
+          act(() => {
+            setFormTouched((touched) => ({ ...touched, age: true }))
+          })
           const { touched } = getFormProps()
           expect(touched).toEqual({ age: true })
           expect(getRenderCount()).toEqual(3)
@@ -303,7 +315,9 @@ describe('<Form />', () => {
           expect(getRenderCount()).toEqual(2)
 
           const { setFormVisited } = getFormProps()
-          setFormVisited((visited) => ({ ...visited, contact: { tel: true } }))
+          act(() => {
+            setFormVisited((visited) => ({ ...visited, contact: { tel: true } }))
+          })
           const { visited } = getFormProps()
           expect(visited).toEqual({ contact: { tel: true } })
           expect(getRenderCount()).toEqual(3)
@@ -334,7 +348,9 @@ describe('<Form />', () => {
             expect(p.touched).toEqual({ age: true })
             expect(p.visited).toEqual({ age: true })
 
-            p.resetForm()
+            act(() => {
+              p.resetForm()
+            })
 
             const p2 = getFormProps()
 
@@ -358,7 +374,9 @@ describe('<Form />', () => {
             expect(p.touched).toEqual({})
             expect(p.visited).toEqual({})
 
-            p.resetForm()
+            act(() => {
+              p.resetForm()
+            })
 
             const p2 = getFormProps()
 
@@ -396,7 +414,9 @@ describe('<Form />', () => {
         expect(p.touched).toEqual({ age: true, name: true })
         expect(p.visited).toEqual({ age: true, name: true })
 
-        p.forgetState() // forget the values of submitCount, touched and visited
+        act(() => {
+          p.forgetState() // forget the values of submitCount, touched and visited
+        })
 
         it('should clear touched and visited', () => {
           const { touched, visited } = getFormProps()

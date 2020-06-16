@@ -57,7 +57,7 @@ class DemoForm extends Component {
   validateEmailAsync(emailAddress) {
     this.setState({ asyncValidating: true })
     setTimeout(() => {
-      if (emailAddress === 'admin@admin.com') {
+      if (emailAddress.includes('admin')) {
         this.setState({ asyncEmailError: 'Nice try!', asyncValidating: false })
       } else {
         this.setState({ asyncEmailError: null, asyncValidating: false })
@@ -146,7 +146,7 @@ class DemoForm extends Component {
                 </div>
                 <div className="col col--12">
                   <p className="hero__subtitle">Errors</p>
-                  <FormatJson value={{ errors: yafl.errors }} />
+                  <FormatJson value={{ errorCount: yafl.errorCount, errors: yafl.errors }} />
                 </div>
               </div>
             </form>
