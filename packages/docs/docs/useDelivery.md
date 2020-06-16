@@ -1,7 +1,7 @@
 ---
-id: forwardProps
-title: <ForwardProps />
-sidebar_label: <ForwardProps />
+id: useDelivery
+title: useDelivery()
+sidebar_label: useDelivery()
 ---
 
 Yafl uses React's context API to make values available to all Field components and the `<ForwardProps />` provides a simple but effective way to pass or *forward* certain common props to all of your Fields. These components can be nested so that a `<FowardProps />` component rendered further down the component hierarchy will override any values that might already be forwarded from a parent `<ForwardProps />` component. Any props forwarded to your Fields will arrive on the Field's rendered component on the same object as `input` and `meta`.

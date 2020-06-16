@@ -8,20 +8,15 @@ Let's face it, form libraries are a dime a dozen. There's no shortage of options
 
 ## Motivation
 
-I didn't build Yafl because I saw the need for yet another form library. Instead, Yafl started out as an idea that has evolved throughout development. It has gone through many iterations (I dare you to go through the commit history) and on a number of occations I almost had to start from the beginning when I realized that the current code structure didn't accommodate a specific use case. Validation in particular was handled in multiple wildly different ways before I stumbled on - for better or worse - the idea of rendering a Validator.
-
-So there you have it, the motivation for the existence of this library was pretty much of the "eh, why not" variety as opposed to the often touted "I saw a need for it" variety. That said however, I've have found Yafl extremely fun and flexible over the last 2 years - even more so, I dare say, than the alternatives.
+I certainly didn't build Yafl because I saw the need for yet another form library. There are already a number of great implementations of form libraries in React, and I hope this is yet another addition to that list. So while the motivation for building this library was very much of the "eh, why not" variety (as opposed to the often touted "I saw a need for it" variety), I've have found Yafl extremely fun and flexible - even more so, I dare say, than the alternatives.
 
 ## Philosophy
 
-Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out of the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use. At the start of Yafl's development, the decision was made to leave as much of the implementation of your form up to you, the developer. Yafl aims to provide the tools to build forms without caring too much about the specific use case.
-
-You can write content using [GitHub-flavored Markdown syntax](https://github.github.com/gfm/).
+Yafl's philosophy is to "keep it super simple". While it provides a lot of functionality out of the box, it aims to keep it's API surface area as small as possible while still remaining flexible and easy to use.
 
 ## Why use YAFL?
 
 * Use TypeScript to create strongly typed forms that give you peace of mind and a good nights sleep. 😴
-* Create multi-page forms without needing to use specialized components or a state management library like flux or redux. 😮
 * Structure your components to match the shape of your data. This means no more accessing field values using string paths! 🤯
 * Deeply nested forms and forms within forms! 🎁
 * Render an Error! 😱
@@ -68,7 +63,7 @@ function ExampleForm (props) {
 
   return (
     <Form initialValue={formData} onSubmit={handleSubmit}>
-      {yafl => (
+      {(yafl) => (
         <form onSubmit={yafl.submit}>
           <Field name="fullName" component="input" />
           <Section name="contact">

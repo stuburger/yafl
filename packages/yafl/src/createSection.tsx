@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react'
-import { validateName, useBranch, isSetFunc } from './utils'
+import { validateName, useBranch, isFunction } from './utils'
 import { Name, FormProvider, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
@@ -31,7 +31,7 @@ function createSection<F extends object>(ctx: React.Context<FormProvider<F, any>
 
     const setValue = useCallback(
       (value: T | SetFieldValueFunc<T>): void => {
-        curr.setValue(curr.path, isSetFunc(value) ? value(curr.value) : value, false)
+        curr.setValue(curr.path, isFunction(value) ? value(curr.value) : value, false)
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [curr.path, curr.value, curr.setValue]

@@ -95,7 +95,7 @@ export type UseFieldFn<T, F extends object> = (
   props: UseFieldConfig<F, T>
 ) => UseFieldProps<F, T>
 
-export type UseForwardPropsFn<TBranch extends object = {}, TShared extends object = {}> = (
+export type UseDeliveryFn<TBranch extends object = {}, TShared extends object = {}> = (
   name: Name
 ) => [TBranch, TShared]
 
@@ -341,6 +341,8 @@ export interface Address {
 export interface FormConfig<T extends object> {
   initialValue?: T
   disabled?: boolean
+  commonValues?: ((state: { formValue: T }) => Record<string, any>) | Record<string, any>
+  branchValues?: ((state: { formValue: T }) => Record<string, any>) | Record<string, any>
   initialSubmitCount?: number
   initialTouched?: BooleanTree<T>
   initialVisited?: BooleanTree<T>
@@ -351,10 +353,4 @@ export interface FormConfig<T extends object> {
   rememberStateOnReinitialize?: boolean
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
   onFormValueChange?: (prev: T, next: T) => void
-}
-
-export interface PropForwarderConfig<TBranch extends object = {}, TShared = any> {
-  children: React.ReactNode
-  branch?: TBranch
-  shared?: TShared
 }

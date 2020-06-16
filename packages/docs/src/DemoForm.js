@@ -94,12 +94,7 @@ class DemoForm extends Component {
       >
         {(yafl) => {
           return (
-            <form
-              onSubmit={(e) => {
-                yafl.submit()
-                e.preventDefault()
-              }}
-            >
+            <form onSubmit={yafl.submit}>
               <div className="row">
                 <div className="col col--4">
                   <p className="hero__subtitle">Form Value</p>

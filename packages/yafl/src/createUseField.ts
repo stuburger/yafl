@@ -8,7 +8,7 @@ import {
   UseFieldProps,
   Name,
 } from './sharedTypes'
-import { validateName, useBranch, isSetFunc, toArray } from './utils'
+import { validateName, useBranch, isFunction, toArray } from './utils'
 
 function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
   return type === 'radio' || type === 'checkbox'
@@ -19,7 +19,7 @@ function createUseField<FValue extends object>(
 ) {
   function useField<T = any, F extends object = FValue>(
     name: Name,
-    props: UseFieldConfig<F, T>
+    props: UseFieldConfig<F, T> = {}
   ): UseFieldProps<F, T> {
     const { validate } = props
 
@@ -56,7 +56,7 @@ function createUseField<FValue extends object>(
 
     const setFieldValue = useCallback(
       (value: T | SetFieldValueFunc<T>, touchField = true): void => {
-        setValue(path, isSetFunc(value) ? value(curr.value) : value, touchField)
+        setValue(path, isFunction(value) ? value(curr.value) : value, touchField)
       },
       [curr.value, setValue, path]
     )
