@@ -20,7 +20,7 @@ Like a Field, a Section also requires a name prop! Corresponds to the name of th
 
 ### `children: React.ReactNode`
 
-This usually would not warrent an explanation, but it is important to note if any of the children of a Section (that occur anywhere in the hierarchy) that are of type Section, Field or Repeat will be correctly assigned a corresponding value on the object that this Section will produce.
+This usually would not warrant an explanation, but it is important to note if any of the children of a Section (that occur anywhere in the hierarchy) that are of type Section, Field or Repeat will be correctly assigned a corresponding value on the object that this Section will produce.
 
 ## Section Helpers
 

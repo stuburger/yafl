@@ -4,7 +4,7 @@ title: <Form />
 sidebar_label: <Form />
 ---
 
-The `<Form />` component contains all the state that tracks what's going on in your form. This state includes things like whether or not a field `isDirty` or has been `touched` and serves as a state Provider to other Yafl components. All other Yafl components *have* to be rendered inside the `<Form />`. For example, attempting to render a Field outside of a Form will cause an error to be thrown.
+The `<Form>` component contains all the state that tracks what's going on in your form. This state includes things like whether or not a field `isDirty` or has been `touched` and serves as a state Provider to other Yafl components. All other Yafl components *have* to be rendered inside the `<Form>`. For example, attempting to render a Field outside of a Form will cause an error to be thrown.
 
 ## Props
 
@@ -26,7 +26,7 @@ The initial number of times the form has been submitted. Defaults to `0`.
 
 ### `onSubmit?: (formValue: T) => boolean | void`
 
-The function to call on form submission. By default the `formValue` argument will contain only fields that are actually mounted. To include all values in your form you can use the `submitUnregisteredValues` prop. If you return false from this function, `submitCount` will not be incremented. Returning nothing or a value of any other type will have no effect on the default behaviour.
+The function to call on form submission. By default the `formValue` argument will contain only fields that are actually mounted. To include all values in your form you can use the `submitUnregisteredValues` prop. If you return false from this function, `submitCount` will not be incremented. Returning nothing or a value of any other type will have no effect on the default behavior.
 
 ### `submitUnregisteredValues?: boolean`
 

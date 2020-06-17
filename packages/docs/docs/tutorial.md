@@ -41,7 +41,7 @@ import TextInput from './TextInput'
 const initialValue = {
   email: '',
   password: '',
-  confimPassword: ''
+  confirmPassword: ''
 }
 
 function SignupForm(props) {
@@ -71,7 +71,7 @@ function SignupForm(props) {
 </TabItem>
 <TabItem value="ts">
 
-```ts title="/src/SignupForm.ts"
+```ts title="/src/SignupForm.tsx"
 import React from 'react'
 import { Form } from 'yafl'
 import TextInput from './TextInput'
@@ -85,7 +85,7 @@ interface FormValue {
 const initialValue: FormValue = {
   email: '',
   password: '',
-  confimPassword: ''
+  confirmPassword: ''
 }
 
 function SignupForm(props: {}) {
@@ -118,9 +118,9 @@ function SignupForm(props: {}) {
 
 ### Explanation
 
-First let's talk about the `<Form />` component. In a way this is the most important component exported by Yafl as it contains all of your form's state as well as the behaviours that make Yafl work. It remembers things like which fields you've `visited` and `touched`, the `errors` produced when validating your form and it knows how to set these values when reacting to user input.
+First let's talk about the `<Form>` component. In a way this is the most important component exported by Yafl as it contains all of your form's state as well as the behaviors that make Yafl work. It remembers things like which fields you've `visited` and `touched`, the `errors` produced when validating your form and it knows how to set these values when reacting to user input.
 
-The `<Form />` component renders is children as a function which accepts a parameter (`yafl`) containing helper functions such as `resetForm()` and form state such as `formIsDirty`, etc. Read more about the `FormProps` that are available [here](./form#form-props).
+The `<Form>` component renders is children as a function which accepts a parameter (`yafl`) containing helper functions such as `resetForm()` and form state such as `formIsDirty`, etc. Read more about the `FormProps` that are available [here](./form#form-props).
 
 The second component that we're importing is a custom component called `TextInput` and it represents a text field on our form that can be used to capture user input.
 
@@ -167,7 +167,7 @@ export default TextInput
 </TabItem>
 <TabItem value="ts">
 
-```ts title="/src/TextInput.ts"
+```ts title="/src/TextInput.tsx"
 import React from 'react'
 import { useField } from 'yafl'
 
@@ -202,4 +202,4 @@ export default TextInput
 </TabItem>
 </Tabs>
 
-So what's going on here? Notice is that we're importing and using yafl's `useField` hook. This hook returns a tuple that can be destructured to pull out a fields "input" props (the first value) that can be spread over your inputs. The second value contains form state and utility functions that are made available for convenience. You can read more about the `useField` hook [here](./usefield) 
+So what's going on here? Notice is that we're importing and using Yafl's `useField` hook. This hook returns a tuple that can be destructured to pull out a fields "input" props (the first value) that can be spread over your inputs. The second value contains form state and utility functions that are made available for convenience. You can read more about the `useField` hook [here](./usefield) 
