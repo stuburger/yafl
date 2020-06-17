@@ -4,13 +4,13 @@ title: <Section />
 sidebar_label: <Section />
 ---
 
-Section components give your forms depth. The `name` prop of a `<Section />` will become the key of an object value in your Form. If a `<Field />` appears anywhere in a Section's children it will be a property of that Section. So, for example, the following piece of JSX
+Section components give your forms depth. The `name` prop of a `<Section>` will become the key of an object value in your Form. If a `<Field>` appears anywhere in a Section's children it will be a property of that Section.
 
 ## Props
 
 ### `name: Name`
 
-Like a Field, a Section also requires a name prop! Corresponds to the name of the object this Section will create on the `formValue`.
+Like a Field, a Section also requires a name prop! This name corresponds to the name of the object this Section will create on the `formValue`.
 
 ### `fallback?: T`
 

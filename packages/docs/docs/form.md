@@ -24,6 +24,19 @@ The initially "visited" fields of the form. Defaults to `{}`.
 
 The initial number of times the form has been submitted. Defaults to `0`.
 
+### `disabled?: boolean` 
+
+Whether or not the form is disabled. If the form is disabled common behaviors will not work. The functions will be disabled:
+
+* submitting the form via `submit()`
+* all functions that make changes the `fromValue`
+* resetting the form via `resetForm()`
+* forgetting state via `forgetState()`
+* setting the `activeField`
+* all functions that set `touched` or `visited` values
+
+Defaults to `false`.
+
 ### `onSubmit?: (formValue: T) => boolean | void`
 
 The function to call on form submission. By default the `formValue` argument will contain only fields that are actually mounted. To include all values in your form you can use the `submitUnregisteredValues` prop. If you return false from this function, `submitCount` will not be incremented. Returning nothing or a value of any other type will have no effect on the default behavior.
@@ -42,7 +55,7 @@ Specify whether the `touched` and `visited` state of your `<Field />` components
 
 
 :::note Why you might need this
-You're not likely to use the `persistFieldState` prop very often, but it may come in handy when you are working with multi-route forms. By default, whenever a Field's is unmounted, the Field will be removed from the Form component's internal state and along with it, any state that is associated with that Field. When creating a multi-page Form, for example, you'll probably want to keep this state around while visiting different routes. This is useful for any time when some of your Fields may not currently be mounted but you want their state to be "remembered" when they're remounted!
+You're not likely to use the `persistFieldState` prop very often, but it may come in handy when you are working with multi-route forms. By default, whenever a Field is unmounted, the Field will be removed from the Form component's internal state and along with it, any state that is associated with that Field. When creating a multi-page Form, for example, you'll probably want to keep this state around while visiting different routes. This is useful for any time when some of your Fields may not currently be mounted but you want their state to be "remembered" when they're remounted!
 :::
 
 ### `rememberStateOnReinitialize?: boolean`
@@ -63,3 +76,42 @@ Will get called every time the Form state changes.
 ### `children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)`
 
 The children of your Form. Can be a `ReactNode` or a function with a single parameter which contains props packed with goodies. 
+
+
+### `commonValues?: ((state: { formValue: T }) => Record<string, any>) | Record<string, any>`
+
+An object containing shared state or functionality you wish to deliver to your fields. This prop is really just a wrapper around a Provider value and accomplishes much the same thing.
+
+```js
+<Form commonValues={{ isSubmitting: true }}>
+  ...
+</Form>
+```
+
+Which can then extracted using the [`useDelivery` hook:](./usedelivery)
+
+```js
+const [, commonValues] = useDelivery('fullname')
+console.log(commonValues)
+/**
+ * {
+ *   isSubmitting: true
+ * } 
+ */
+```
+
+It is also possible to supply a function to `commonValues` that intercepts the fromValue so that you can deliver derived state to your fields:
+
+```js
+<Form 
+  commonValues={({ formValue }) => ({
+    saveProgress() {
+      localStorage.setItem(JSON.stringify('progress', formValue))
+    }
+  })}
+>
+  ...
+</Form>
+```
+
+### `branchValues?: ((state: { formValue: T }) => Record<string, any>) | Record<string, any>`
