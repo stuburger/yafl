@@ -4,7 +4,7 @@ title: Validating user input
 sidebar_label: Validation
 ---
 
-Validation in Yalf is opinionated but straight forward and is usually done at the field-level. Most form libraries provide form-level validation as a means to give access to the entire form's values by way of a `validate` prop on the Form component. That's great, but Yafl gives you access to the form value at the field-level, so form-level validation becomes somewhat redundant. Futhuremore there are some benefits to favouring field-level validation:
+Validation in Yafl is opinionated but straight forward and is usually done at the field-level. Most form libraries provide form-level validation as a means to give access to the entire form's values by way of a `validate` prop on the Form component. That's great, but Yafl gives you access to the form value at the field-level, so form-level validation becomes somewhat redundant. Futhermore there are some benefits to favouring field-level validation:
 
 1. Validation logic is always co-located with the field that it's validating. This means when you delete a field, for example, you are only removing code from one place and not two.
 2. Easier to reason about and easier to debug form validation.
@@ -52,7 +52,7 @@ export default TextInput
 </TabItem>
 <TabItem value="ts">
 
-```ts title="/src/TextInput.ts"
+```ts title="/src/TextInput.tsx"
 import { useField, FieldValidator } from 'yafl'
 
 interface TextInputProps<T, F extends object> {
@@ -94,7 +94,7 @@ In this particular case we're saying, only show errors when:
 
 
 > \* **Note:**
-> That's right, validation errors in Yafl are derived any time a field's value changes. Field errors, and by extension form errors, are determined by simply looking at the values of a field and running them through a validation function or set of validation functions. In other words, there is no such thing as (and no need for) a `validateOnBlur` or `validateOnChange` prop in Yafl. Validation is declaritive and validity is described only by the current values that the form holds. 
+> That's right, validation errors in Yafl are derived any time a field's value changes. Field errors, and by extension form errors, are determined by simply looking at the values of a field and running them through a validation function or set of validation functions. In other words, there is no such thing as (and no need for) a `validateOnBlur` or `validateOnChange` prop in Yafl. Validation is declarative and validity is described only by the current values that the form holds. 
 >
 > It is up to you to decide when to display these errors based on the metadata of your form. For example you might display errors for a field based on whether a field is `touched` or not, or perhaps a little later on in the user's workflow - for example, once the user has attempted form submission.
 
@@ -118,7 +118,7 @@ import TextInput from './TextInput'
 const initialValue = {
   email: '',
   password: '',
-  confimPassword: ''
+  confirmPassword: ''
 }
 
 function SignupForm(props) {
@@ -171,7 +171,7 @@ function SignupForm(props) {
 </TabItem>
 <TabItem value="ts">
 
-```ts title="/src/SignupForm.ts"
+```ts title="/src/SignupForm.tsx"
 import React from 'react'
 import { Form } from 'yafl'
 import TextInput from './TextInput'
@@ -185,7 +185,7 @@ interface FormValue {
 const initialValue: FormValue = {
   email: '',
   password: '',
-  confimPassword: ''
+  confirmPassword: ''
 }
 
 function SignupForm(props: {}) {
@@ -294,7 +294,7 @@ function validate(value) {
 const initialValue = {
   email: '',
   password: '',
-  confimPassword: ''
+  confirmPassword: ''
 }
 
 function SignupForm(props) {
@@ -324,7 +324,7 @@ function SignupForm(props) {
 </TabItem>
 <TabItem value="ts">
 
-```ts title="/src/SignupForm.ts"
+```ts title="/src/SignupForm.tsx"
 import React from 'react'
 import { Form } from 'yafl'
 import * as yup from 'yup'
@@ -371,7 +371,7 @@ function yupValidate(value: FormValue) {
 const initialValue: FormValue = {
   email: '',
   password: '',
-  confimPassword: ''
+  confirmPassword: ''
 }
 
 function SignupForm(props: {}) {
@@ -445,7 +445,7 @@ export default TextInput
 </TabItem>
 <TabItem value="ts">
 
-```ts title="/src/TextInput.ts"
+```ts title="/src/TextInput.tsx"
 import { useField, useDelivery } from 'yafl'
 
 interface TextInputProps<T, F extends object> {
@@ -485,7 +485,7 @@ The most noteworthy change here is the addition of the `useDelivery` hook to gra
 
 ## Async validation
 
-And then there is the elephant in the room: async validation. Let's say the requirement came in to enable asynchronously checking if a username or email address was available before the user attempted to submit the form. This would require calling some backend api to check if the email is availabile.
+And then there is the elephant in the room: async validation. Let's say the requirement came in to enable asynchronously checking if a username or email address was available before the user attempted to submit the form. This would require calling some backend api to check if the email is available.
 
 So how does yafl handle this async validation? As with form-level validation, Yafl does not support async validation out of the box, but provides two mechanisms that effectively enable it. 
 
@@ -517,7 +517,7 @@ import TextInput from './TextInput'
 const initialValue = {
   email: '',
   password: '',
-  confimPassword: ''
+  confirmPassword: ''
 }
 
 function SignupForm(props) {
@@ -563,7 +563,7 @@ function SignupForm(props) {
 </TabItem>
 <TabItem value="ts">
 
-```ts title="/src/SignupForm.ts"
+```ts title="/src/SignupForm.tsx"
 import React, { useState } from 'react'
 import { Form, FormError } from 'yafl'
 import TextInput from './TextInput'
@@ -581,7 +581,7 @@ interface SignupFormProps {
 const initialValue: FormValue = {
   email: '',
   password: '',
-  confimPassword: ''
+  confirmPassword: ''
 }
 
 function SignupForm(props: SignupFormProps) {
@@ -642,4 +642,9 @@ Nope. Yafl does not allow you to manually trigger validation this is because err
 
 There is no such thing in Yafl. Validation is happening all the time - or at least any time a values changes. Yafl also does not rely on any magic to make validation work - like touching all fields on submission. This means there is on need to keep track of `isValidating` or to do `setSubmitting(false)`. 
 
-Since you, the developer, are best positioned to know when the form is validating (in the case of asynchronous validation) and when the from is submitting and it is Yafl's opinion that this behaviour is implemented in Userland.
+Since you, the developer, are best positioned to know when the form is validating (in the case of asynchronous validation) and when the from is submitting and it is Yafl's opinion that this behavior is implemented in Userland.
+
+
+## Validation gotchas
+
+Yafl tries very hard to avoid gotchas that increase cognitive load, but there is one around validation to be aware of - validation errors are assumed to be unique per field. Yafl will remove de-dupe error messages if they occur multiple times for an individual field. However this is a fairly edge casey requirement, but it is something to be aware of!

@@ -19,4 +19,4 @@ Any number of values can be passed to - and forwarded by - the `<ForwardProps />
 
 ### `mode?: 'default' | 'branch'`
 
-The only configurable prop on the ForwardProps component is `mode`. By default all props will be forwarded *as is* to every `<Field />` in your `<Form />`. However, by specifying `mode="branch"` you are saying that you want all the *additional* props to be *branched* by `name` every time it encounters a `name` prop on a `<Section />`, `<Repeat />` or `<Field />`.
+The only configurable prop on the ForwardProps component is `mode`. By default all props will be forwarded *as is* to every `<Field>` in your `<Form>`. However, by specifying `mode="branch"` you are saying that you want all the *additional* props to be *branched* by `name` every time it encounters a `name` prop on a `<Section>`, `<Repeat>` or `<Field>`.

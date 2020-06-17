@@ -1,7 +1,7 @@
 module.exports = {
   main: {
     'Getting Started': ['overview', 'tutorial'],
-    Guides: ['validation', 'typescript'],
+    Guides: ['validation', 'arrays-and-objects', 'createFormContext'],
     'API Reference': [
       'form',
       'field',
@@ -9,7 +9,6 @@ module.exports = {
       'repeat',
       'form-error',
       'useDelivery',
-      'createFormContext',
       'useYaflContext',
     ],
   },

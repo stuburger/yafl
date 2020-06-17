@@ -62,7 +62,7 @@ TypeScript: `FieldMeta<F, T>` where `F` and `T` correspond to the generic types 
 | `isValid: boolean` | Indicates whether this Field is valid based on whether there are any Validators rendered that match the `path` of this Field. |
 | `errors: string[]` |  An array containing any errors for this Field based on whether there are any Validators rendered that match the path of this Field. |
 | `initialValue: T` | The value this Field was initialized with. |
-| `setValue: (value: T, touch?: boolean) => void` | Sets the value for this Field.<br />Optionally specify if this Field should be touched when this function is called.<br />*If the `touch` paramater is not provided it defaults to `true`.* |
+| `setValue: (value: T, touch?: boolean) => void` | Sets the value for this Field.<br />Optionally specify if this Field should be touched when this function is called.<br />*If the `touch` parameter is not provided it defaults to `true`.* |
 | `formValue: F` | The current value of the Form |
 | `submitCount: number` | The number of times the Form has been submitted.  |
 | `resetForm: () => void` |  Clears all Form state. `formValue` is reset to its initialValue. |
