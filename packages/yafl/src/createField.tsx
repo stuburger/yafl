@@ -1,5 +1,5 @@
 import React from 'react'
-import { FieldProps, InputProps, FieldConfig, UseFieldFn, UseDeliveryFn } from './sharedTypes'
+import { FieldProps, InputProps, FieldConfig, UseFieldFn, Name } from './sharedTypes'
 import FieldSink from './FieldSink'
 
 function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
@@ -8,15 +8,17 @@ function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
 
 function createField<FValue extends object>(
   useField: UseFieldFn<any, any>,
-  useDelivery: UseDeliveryFn<any, any>
+  useCommonValues: (name: Name) => any,
+  useBranchValues: (name: Name) => any
 ) {
   function Field<T = any, F extends object = FValue>(
     props: FieldConfig<F, T>
   ): React.ReactElement<FieldConfig<F, T>> {
-    const { name, render, validate, component, forwardRef, ...fieldProps } = props
+    const { name, render, validate, component, ...fieldProps } = props
 
     const [inputProps, meta] = useField(name, { validate })
-    const [branchProps, sharedProps] = useDelivery(name)
+    const branchProps = useBranchValues(name)
+    const sharedProps = useCommonValues(name)
 
     const input: InputProps = {
       ...inputProps,
@@ -33,7 +35,7 @@ function createField<FValue extends object>(
 
     if (component && typeof component !== 'string') {
       const Component = component as React.ComponentClass<any>
-      return <Component key="comp" ref={forwardRef} {...collectedProps} />
+      return <Component key="comp" {...collectedProps} />
     }
 
     if (render) {
@@ -41,7 +43,7 @@ function createField<FValue extends object>(
     }
 
     if (typeof component === 'string') {
-      return React.createElement(component, { ...input, ...fieldProps, ref: forwardRef })
+      return React.createElement(component, { ...input, ...fieldProps })
     }
 
     return <FieldSink key="comp" path={meta.path} {...collectedProps} />

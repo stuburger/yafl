@@ -83,7 +83,15 @@ export function createDataSetter<T extends object>() {
 }
 
 export function createFormRenderer<T extends object>() {
-  const { Form, Section, Field, Repeat, useYaflContext, useDelivery } = createFormContext<T>()
+  const {
+    Form,
+    Section,
+    Field,
+    Repeat,
+    useYaflContext,
+    useCommonValues,
+    useBranchValues,
+  } = createFormContext<T>()
   function noop() {}
   function renderForm(
     config: Partial<FormConfig<T>> = {},
@@ -117,7 +125,8 @@ export function createFormRenderer<T extends object>() {
     Section,
     Field,
     Repeat,
-    useDelivery,
+    useCommonValues,
+    useBranchValues,
     useYaflContext,
   }
 }

@@ -403,13 +403,13 @@ function SignupForm(props: {}) {
 
 There is a lot to unpack here so lets go through it bit by bit. Firstly, notice that there is no `validate` function on the `TextInput` anymore. All validation is now done using Yup. We are effectively opting out of Yafl's internal implementation for form validation and we've replaced it entirely with something else. 
 
-Next, notice that there is a new Form prop in play and is curiously named `branchValues`. `branchValues` represents one of two possible mechanisms with which Yafl can distribute or "deliver" values to your fields. You can read more about the `branchValues` prop and its corresponding hook, `useDelivery` [here](./usedelivery) and [here](./form#branchvalues). But in a nutshell, `branchValues` will intelligently split an object's values and distribute them to the fields with the paths that match the locations of the values of the object supplied.
+Next, notice that there is a new Form prop in play and is curiously named `branchValues`. `branchValues` represents one of two possible mechanisms with which Yafl can distribute or "deliver" values to your fields. You can read more about the `branchValues` prop and its corresponding hook, `useBranchValues` [here](./usebranchvalues) and [here](./form#branchvalues). But in a nutshell, `branchValues` will intelligently split an object's values and distribute them to the fields with the paths that match the locations of the values of the object supplied.
 
 The rest is really just implementation detail - the new `validate()` function is simply there to run our `formValue` through Yup and then transform these errors into a format that enables delivery to your fields.
 
 But this is only half the story, next let's see how we would have to adapt our `TextInput` to receive and correctly work with these errors.
 
-### useDelivery to grab errors
+### useBranchValues to grab errors
 
 <Tabs
   defaultValue="js"
@@ -420,12 +420,12 @@ But this is only half the story, next let's see how we would have to adapt our `
  <TabItem value="js">
 
 ```js title="/src/TextInput.js"
-import { useField, useDelivery } from 'yafl'
+import { useField, useBranchValues } from 'yafl'
 
 function TextInput(props) {
   const { name, label, type = 'text' } = props
   const [input, meta] = useField(name);
-  const [{ error }] = useDelivery(name)
+  const { error } = useBranchValues(name)
 
   const { touched, submitCount } = meta;
   const showError = !!error && (touched || submitCount > 0);
@@ -446,7 +446,7 @@ export default TextInput
 <TabItem value="ts">
 
 ```ts title="/src/TextInput.tsx"
-import { useField, useDelivery } from 'yafl'
+import { useField, useBranchValues } from 'yafl'
 
 interface TextInputProps<T, F extends object> {
   name: string;
@@ -457,7 +457,7 @@ interface TextInputProps<T, F extends object> {
 function TextInput<T, F extends object = {}>(props: TextInputProps<T, F>) {
   const { name, label, type = 'text' } = props
   const [input, meta] = useField<T, F>(name);
-  const [{ error }] = useDelivery<{ error: string }>(name)
+  const { error } = useBranchValues<{ error: string }>(name)
 
   const { touched, submitCount } = meta;
   const showError = !!error && (touched || submitCount > 0);
@@ -477,7 +477,7 @@ export default TextInput
 </TabItem>
 </Tabs>
 
-The most noteworthy change here is the addition of the `useDelivery` hook to grab the error for this field. Note that this value is simply a `string` and not a `string[]`. Again, this is an implementation detail and it's up to you whether you feel it's necessary to supply an array errors or a single error message to your fields.
+The most noteworthy change here is the addition of the `useBranchValues` hook to grab the error for this field. Note that this value is simply a `string` and not a `string[]`. Again, this is an implementation detail and it's up to you whether you feel it's necessary to supply an array errors or a single error message to your fields.
 
 > **Note:**
 > `meta.errors` will simply contain be an empty array since you will have opted out of Yafl's error handling implementation.
@@ -489,7 +489,7 @@ And then there is the elephant in the room: async validation. Let's say the requ
 
 So how does yafl handle this async validation? As with form-level validation, Yafl does not support async validation out of the box, but provides two mechanisms that effectively enable it. 
 
-The first option is to use the same `useDelivery` mechanism as with the above with Yup example above. 
+The first option is to use the same `useBranchValues` or `useCommonValues` mechanism as with the above with Yup example above. 
 
 > **Note:** 
 > Remember that you can supply multiple values to `branchValues` that will then be delivered to your fields so you can use Yup and still supply any number of other arbitrary values to `branchValues`
@@ -498,7 +498,7 @@ The second and preferred way to "enable" async validation is by rendering a `<Fo
 
 ### Using a `<FormError />`
 
-Since we've already covered `branchProps` and `useDelivery` as a method of value distribution let's look how to accomplish async validation by rendering a `<FormError />`:
+Since we've already covered `branchValues` and `useBranchValues` as a method of value distribution let's look how to accomplish async validation by rendering a `<FormError />`:
 
 
 <Tabs

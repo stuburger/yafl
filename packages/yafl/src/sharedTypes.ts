@@ -83,7 +83,6 @@ export interface UseFieldConfig<F extends object, T = any> {
 
 export interface FieldConfig<F extends object, T = any> {
   name: Name
-  forwardRef?: React.Ref<any>
   render?: (props: FieldProps<F, T>) => JSX.Element
   validate?: FieldValidator<T, F> | Array<FieldValidator<T, F>>
   component?: React.ComponentType<FieldProps<F, T>> | string
@@ -94,10 +93,6 @@ export type UseFieldFn<T, F extends object> = (
   name: Name,
   props: UseFieldConfig<F, T>
 ) => UseFieldProps<F, T>
-
-export type UseDeliveryFn<TBranch extends object = {}, TShared extends object = {}> = (
-  name: Name
-) => [TBranch, TShared]
 
 export type UseFieldProps<F extends object, T = any> = [InputProps<T>, FieldMeta<F, T>]
 
