@@ -234,13 +234,11 @@ export interface SectionHelpers<T> {
   setValue: (value: T | SetFieldValueFunc<T>) => void
 }
 
-export interface FormProvider<F extends object, T = F> {
-  path: string
+export interface YaflBaseContext<F extends object, T = F> {
   value: T
   initialValue: T
   errorCount: number
   formValue: F
-  branchProps: any
   initialMount: boolean
   touched: BooleanTree<any>
   visited: BooleanTree<any>
@@ -252,7 +250,6 @@ export interface FormProvider<F extends object, T = F> {
   submit: () => void
   resetForm: () => void
   forgetState: () => void
-  sharedProps: Record<string, any>
   setActiveField: (path: string | null) => void
   touchField: (path: string, touched: boolean) => void
   visitField: (path: string, visited: boolean) => void
@@ -264,6 +261,12 @@ export interface FormProvider<F extends object, T = F> {
   setFormVisited: (setFunc: SetFormVisitedFunc<F>) => void
   unregisterField: (path: string) => void
   registerField: (path: string) => void
+}
+
+export interface FormProvider<F extends object, T = F> extends YaflBaseContext<F, T> {
+  path: string
+  branchValues: any
+  commonValues: Record<string, any>
 }
 
 export interface FormProps<F extends object> extends FormMeta<F> {
@@ -333,19 +336,22 @@ export interface Address {
   street: string
 }
 
-export interface FormConfig<T extends object> {
+export interface UseFormConfig<T extends object> {
   initialValue?: T
   disabled?: boolean
-  commonValues?: ((state: { formValue: T }) => Record<string, any>) | Record<string, any>
-  branchValues?: ((state: { formValue: T }) => Record<string, any>) | Record<string, any>
   initialSubmitCount?: number
   initialTouched?: BooleanTree<T>
   initialVisited?: BooleanTree<T>
-  children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)
   submitUnregisteredValues?: boolean
   persistFieldState?: boolean
   onSubmit?: (formValue: T, props: FormProps<T>) => boolean | void
   rememberStateOnReinitialize?: boolean
   onStateChange?: (previousState: FormState<T>, nextState: FormState<T>) => void
   onFormValueChange?: (prev: T, next: T) => void
+}
+
+export interface FormConfig<T extends object> extends UseFormConfig<T> {
+  commonValues?: ((state: { formValue: T }) => Record<string, any>) | Record<string, any>
+  branchValues?: ((state: { formValue: T }) => Record<string, any>) | Record<string, any>
+  children: React.ReactNode | ((props: FormProps<T>) => React.ReactNode)
 }

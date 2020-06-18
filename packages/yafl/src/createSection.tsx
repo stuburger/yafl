@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react'
-import { validateName, useBranch, isFunction } from './utils'
+import { useBranch, isFunction } from './utils'
 import { Name, FormProvider, SectionHelpers, SetFieldValueFunc } from './sharedTypes'
 
 export interface ForkProviderConfig<F extends object, T> extends FormProvider<F, T> {
@@ -15,9 +15,6 @@ export interface SectionConfig<T> {
 function createSection<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
   function Section<T extends object>(props: SectionConfig<T>) {
     const { name } = props
-    if (process.env.NODE_ENV !== 'production') {
-      validateName(name)
-    }
 
     const { children, fallback = {} as T } = props
 

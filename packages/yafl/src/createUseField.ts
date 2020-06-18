@@ -7,30 +7,26 @@ import {
   UseFieldConfig,
   UseFieldProps,
   Name,
+  YaflBaseContext,
 } from './sharedTypes'
-import { validateName, useBranch, isFunction, toArray } from './utils'
+import { useBranch, isFunction, toArray } from './utils'
 
 function isCheckInput(type?: string): type is 'radio' | 'checkbox' {
   return type === 'radio' || type === 'checkbox'
 }
 
-function createUseField<FValue extends object>(
+function createUseField<FValue extends object = any>(
   context: React.Context<FormProvider<any, any> | Symbol>
 ) {
-  function useField<T = any, F extends object = FValue>(
+  function useFieldBase<T, F extends FValue = FValue>(
     name: Name,
-    props: UseFieldConfig<F, T> = {}
-  ): UseFieldProps<F, T> {
+    curr: YaflBaseContext<any, any>,
+    props: UseFieldConfig<any, any> = {}
+  ): UseFieldProps<any, any> {
     const { validate } = props
-
-    if (process.env.NODE_ENV !== 'production') {
-      validateName(name)
-    }
-
-    const curr = useBranch<F, T>(name, context)
+    const path = name as string
 
     const {
-      path,
       setValue,
       registerField,
       unregisterField,
@@ -106,7 +102,7 @@ function createUseField<FValue extends object>(
     }, [setActiveField, visit, path, curr.visited])
 
     const meta: FieldMeta<F, T> = {
-      path: curr.path,
+      path,
       setValue: setFieldValue,
       submit: curr.submit,
       errors: (curr.errors || []) as any,
@@ -138,7 +134,14 @@ function createUseField<FValue extends object>(
     return [input, meta]
   }
 
-  return useField
+  function useField<T = any, F extends object = FValue>(
+    name: Name,
+    props: UseFieldConfig<F, T> = {}
+  ): UseFieldProps<F, T> {
+    const curr = useBranch<F, T>(name, context)
+    return useFieldBase(curr.path, curr, props)
+  }
+  return { useField, useFieldBase }
 }
 
 export default createUseField

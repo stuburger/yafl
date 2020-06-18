@@ -1,6 +1,6 @@
 export * from './checkType'
 export { default as toArray } from './toArray'
-export { default as validateName } from './validateName'
 export { default as constructFrom } from './objectFromPath'
 export { default as usePrevious } from './usePrevious'
 export { default as useBranch } from './useBranch'
+export { default as append } from './append'

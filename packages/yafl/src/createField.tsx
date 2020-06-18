@@ -17,8 +17,8 @@ function createField<FValue extends object>(
     const { name, render, validate, component, ...fieldProps } = props
 
     const [inputProps, meta] = useField(name, { validate })
-    const branchProps = useBranchValues(name)
-    const sharedProps = useCommonValues(name)
+    const branchValues = useBranchValues(name)
+    const commonValues = useCommonValues(name)
 
     const input: InputProps = {
       ...inputProps,
@@ -29,8 +29,8 @@ function createField<FValue extends object>(
       input,
       meta,
       ...fieldProps,
-      ...branchProps,
-      ...sharedProps,
+      ...branchValues,
+      ...commonValues,
     }
 
     if (component && typeof component !== 'string') {
