@@ -15,6 +15,7 @@
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
     "react-fast-compare": "^3.2.0",
+    "react-tooltip": "^4.2.7",
     "yafl": "../yafl"
   },
   "browserslist": {
