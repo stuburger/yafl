@@ -2,8 +2,7 @@ import * as React from 'react'
 import { isObject } from './checkType'
 import { Name, FormProvider } from '../sharedTypes'
 import { useSafeContext } from '../useSafeContext'
-
-const append = (path: string, name: Name) => (path ? path.concat(`.${name}`) : `${name}`)
+import append from './append'
 
 function useBranch<F extends object, T>(
   name: Name,
@@ -18,7 +17,7 @@ function useBranch<F extends object, T>(
     errors = {},
     visited = {},
     touched = {},
-    branchProps = {},
+    branchValues = {},
     initialValue = {},
   } = yafl
 
@@ -30,8 +29,8 @@ function useBranch<F extends object, T>(
     errors: errors[name] as any,
     initialValue: initialValue[name],
     value: value[name] === undefined ? fallback : value[name],
-    branchProps: Object.keys(branchProps).reduce((ret: any, key: string) => {
-      ret[key] = isObject(branchProps[key]) ? branchProps[key][name] : undefined
+    branchValues: Object.keys(branchValues).reduce((ret: any, key: string) => {
+      ret[key] = isObject(branchValues[key]) ? branchValues[key][name] : undefined
       return ret
     }, {}),
   }

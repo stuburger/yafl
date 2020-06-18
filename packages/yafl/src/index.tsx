@@ -1,40 +1,60 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react'
-import { FormProvider, Name } from './sharedTypes'
+import { FormProvider, Name, YaflBaseContext } from './sharedTypes'
 import createForm from './createForm'
 import createSection from './createSection'
 import createField from './createField'
 import createRepeat from './createRepeat'
 import createFormError from './createFormError'
 import createUseField from './createUseField'
-import createHooks from './createHooks'
 import { BLOCKER, useSafeContext } from './useSafeContext'
 import { useBranch } from './utils'
+import createUseForm from './createUseForm'
 
 export function createFormContext<F extends object>() {
   const context = React.createContext<FormProvider<F> | Symbol>(BLOCKER)
 
   const { Provider } = context
 
-  const useField = createUseField<F>(context)
+  const { useField } = createUseField<F>(context)
+  const useForm = createUseForm()
 
   function useCommonValues<T = any>(): T {
-    const { sharedProps } = useSafeContext<any, any>(context)
-    return sharedProps as any
+    const { commonValues } = useSafeContext<any, any>(context)
+    return commonValues as any
   }
 
   function useBranchValues<T extends object = any>(name: Name): T {
-    const { branchProps } = useBranch<any, any>(name, context)
-    return branchProps
+    const { branchValues } = useBranch<any, any>(name, context)
+    return branchValues
   }
 
-  const hooks = createHooks<F>(context)
+  function useYaflContext() {
+    return useSafeContext(context)
+  }
+
+  const YaflProvider: React.FC<{
+    value: YaflBaseContext<F> & {
+      branchValues?: Record<string, any>
+      commonValues?: Record<string, any>
+    }
+  }> = (props) => {
+    const { children, value } = props
+    const { branchValues = {}, commonValues = {} } = value
+
+    return (
+      <Provider value={{ ...value, path: '', branchValues, commonValues }}>{children}</Provider>
+    )
+  }
 
   return {
-    ...hooks,
     useField,
+    useForm,
     useCommonValues,
     useBranchValues,
-    Form: createForm<F>(Provider),
+    useYaflContext,
+    YaflProvider,
+    Form: createForm<F>(useForm, Provider),
     Section: createSection<F>(context),
     Repeat: createRepeat<F>(context),
     Field: createField<F>(useField, useCommonValues, useBranchValues),
@@ -47,8 +67,10 @@ export const {
   Form,
   useField,
   Repeat,
+  useForm,
   Section,
   FormError,
+  YaflProvider,
   useYaflContext,
   useCommonValues,
   useBranchValues,

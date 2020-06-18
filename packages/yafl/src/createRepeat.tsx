@@ -1,15 +1,11 @@
 import React, { useEffect, useCallback } from 'react'
 import warning from 'tiny-warning'
-import { validateName, useBranch } from './utils'
+import { useBranch } from './utils'
 import { FormProvider, RepeatConfig, SetFieldValueFunc } from './sharedTypes'
 
 function createRepeat<F extends object>(ctx: React.Context<FormProvider<F, any> | Symbol>) {
   function Repeat<T = any>(props: RepeatConfig<T>) {
     const { name, children, fallback = [] } = props
-
-    if (process.env.NODE_ENV !== 'production') {
-      validateName(name)
-    }
 
     const curr = useBranch<F, T[]>(name, ctx, fallback)
 
