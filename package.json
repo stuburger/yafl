@@ -12,6 +12,7 @@
   "scripts": {
     "lerna": "lerna",
     "build": "lerna run build",
+    "test": "lerna run test -- --no-cache --coverage",
     "toc": "doctoc README.md",
     "lint": "eslint 'packages/**/src/**/*.{ts,tsx}'",
     "prepublish": "lerna run prepublish",

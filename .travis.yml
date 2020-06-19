@@ -1,8 +1,17 @@
 language: node_js
 node_js:
   - '10'
-env:
-  - CI=true
+stages:
+  - name: lint and test
 
-script:
-  - yarn test -i --no-cache --coverage
+jobs:
+  include:
+    - stage: lint and test
+      name: lint
+      script:
+        - lerna bootstrap
+        - yarn lint
+    - script:
+        - lerna bootstrap
+        - yarn test
+      name: test
