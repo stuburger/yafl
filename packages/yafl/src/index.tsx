@@ -1,15 +1,15 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react'
 import { FormProvider, Name, YaflBaseContext } from './sharedTypes'
-import createForm from './createForm'
-import createSection from './createSection'
-import createField from './createField'
-import createRepeat from './createRepeat'
-import createFormError from './createFormError'
-import createUseField from './createUseField'
+import createForm from './Form'
+import createSection from './Section'
+import createField from './Field'
+import createRepeat from './Repeat'
+import createFormError from './FormError'
+import createUseField from './useField'
 import { BLOCKER, useSafeContext } from './useSafeContext'
 import { useBranch } from './utils'
-import createUseForm from './createUseForm'
+import createUseForm from './useForm'
 
 export function createFormContext<F extends object>() {
   const context = React.createContext<FormProvider<F> | Symbol>(BLOCKER)
