@@ -37,7 +37,7 @@ function DemoForm() {
   })
 
   return (
-    <YaflProvider value={{ ...yafl, branchValues: {}, commonValues: {} }}>
+    <YaflProvider value={yafl}>
       <form onSubmit={yafl.submit}>
         <div className="row">
           <div className="col col--4">

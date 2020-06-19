@@ -3,6 +3,7 @@
   "include": ["src", "types"],
   "exclude": ["**/*.test.ts"],
   "compilerOptions": {
+    "removeComments": true,
     "declarationDir": "dist",
     "target": "es5",
     "outDir": "compiled",

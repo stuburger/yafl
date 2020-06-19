@@ -164,7 +164,6 @@ export interface FormState<F extends object> {
   errorCount: number
   submitCount: number
   errors: FormErrors<F>
-  initialMount: boolean
   touched: BooleanTree<F>
   visited: BooleanTree<F>
   activeField: string | null
@@ -239,7 +238,6 @@ export interface YaflBaseContext<F extends object, T = F> {
   initialValue: T
   errorCount: number
   formValue: F
-  initialMount: boolean
   touched: BooleanTree<any>
   visited: BooleanTree<any>
   activeField: string | null
@@ -271,10 +269,6 @@ export interface FormProvider<F extends object, T = F> extends YaflBaseContext<F
 
 export interface FormProps<F extends object> extends FormMeta<F> {
   /**
-   * Indicates if the Form has mounted. Field's are only registerd once initialMount becomes true.
-   */
-  initialMount: boolean
-  /**
    * The initial value of the Form.
    */
   initialValue: F
@@ -288,7 +282,7 @@ export interface FormProps<F extends object> extends FormMeta<F> {
   formIsDirty: boolean
   /**
    * The string path of the currently active (focused) Field.
-   * Correct behaviour requires that a Field's onFocus and onBlur are correctly called.
+   * Correct behavior requires that a Field's onFocus and onBlur are correctly called.
    */
   activeField: string | null
   /**

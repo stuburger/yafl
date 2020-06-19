@@ -67,7 +67,7 @@ describe('<Form />', () => {
       }
       const { renderForm, Field } = createFormRenderer<Thing>()
 
-      const { getFormProps, getRenderCount } = renderForm(
+      const { getFormProps } = renderForm(
         { initialValue, ...overrides },
         <Field<number>
           name="a"
@@ -82,10 +82,6 @@ describe('<Form />', () => {
         />
       )
       const { submitCount, touched, visited, errors, errorCount, formIsValid } = getFormProps()
-
-      it('should only render twice (once before cDM, and once for setting initialMount)', () => {
-        expect(getRenderCount()).toEqual(2)
-      })
 
       it(`should set submitCount, touched and visited as supplied by initialSubmitCount,
         initialTouched and initialVisited, respectively`, () => {
@@ -122,7 +118,6 @@ describe('<Form />', () => {
         expect(props.errors).toEqual({})
         expect(props.errorCount).toEqual(0)
         expect(props.formIsDirty).toEqual(false)
-        expect(props.initialMount).toEqual(true)
         expect(props.formIsValid).toEqual(true)
         expect(props.submitCount).toEqual(0)
         expect(props.touched).toEqual({})
