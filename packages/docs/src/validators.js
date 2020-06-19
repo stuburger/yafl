@@ -6,7 +6,7 @@ export const required = (value) => {
 }
 
 export const minLength = (length) => (value) => {
-  if (value.length < length) {
+  if (value && value.length < length) {
     return `This field should be at least ${length} characters.`
   }
   return undefined

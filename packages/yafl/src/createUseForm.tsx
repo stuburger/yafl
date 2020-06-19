@@ -25,7 +25,6 @@ type SetFormValue<F extends object> = { type: 'set_form_value'; payload: { value
 type SetFormTouched = { type: 'set_form_touched'; payload: { value: BooleanTree<any> } }
 type SetFormVisited = { type: 'set_form_visited'; payload: { value: BooleanTree<any> } }
 type UnsetErrors = { type: 'unset_errors'; payload: { path: string; errors: string[] } }
-type IncSubmitCount = { type: 'inc_submit_count'; payload: { value: 1 } }
 type SetActiveField = { type: 'set_active_field'; payload: { path: string | null } }
 type SetSubmitCount = { type: 'set_submit_count'; payload: { value: number } }
 
@@ -36,7 +35,6 @@ type Action<F extends object> =
   | UnsetVisited
   | SetErrors
   | UnsetErrors
-  | IncSubmitCount
   | SetTouched
   | SetVisited
   | SetFormValue<F>
@@ -45,6 +43,27 @@ type Action<F extends object> =
   | SetActiveField
   | SetSubmitCount
 
+/** Form state is updated using this reducer. Pretty straight forward but note that:
+ * 1. It supports dispatching of both single and multiple actions
+ * 2. Each part of state for the most part is updated by a single action. This makes state updates easier to
+ *    reason about because I don't have to think about abstract actions and their corresponding payloads.
+ *    In the past I've found that dispatching an action (like "reset_form") would require an arbitrary payload that
+ *    was harder to reason about. Instead we run a reduce over the dispatched comments to update each piece of state
+ *    at a time. One action should only update one piece of state - however there are some places I've broken this rule.
+ *
+ *    For example, the resetForm() function has to update 4 "pieces" of state
+ *    so we simply dispatch 4 actions:
+ *
+ *   dispatch([
+ *     { type: 'set_form_value', payload: { value: initialValue } },
+ *     { type: 'set_form_touched', payload: { value: initialTouched } },
+ *     { type: 'set_form_visited', payload: { value: initialVisited } },
+ *     { type: 'set_submit_count', payload: { value: initialSubmitCount } },
+ *   ])
+ *
+ * 3. Setting field values is the norm usually using the path of the field being updated. Actions that update the form are
+ *    in the format "set_form__" and are usually done when performing macro actions like state resets, reinitialization, etc
+ */
 function formReducer<F extends object>(
   state: FormState<F>,
   actionOrActions: Action<F> | Action<F>[]
@@ -54,10 +73,6 @@ function formReducer<F extends object>(
   return actions.reduce(
     (nextState, action) => {
       switch (action.type) {
-        case 'mount': {
-          nextState.initialMount = true
-          break
-        }
         case 'set_form_value': {
           const { value } = action.payload
           nextState.formValue = value
@@ -111,11 +126,12 @@ function formReducer<F extends object>(
         case 'set_errors': {
           const { path, errors } = action.payload
           const fieldErrors = get<string[]>(nextState.errors as any, path, [])
-          const fieldErrorCount = fieldErrors.length
+          const prevErrorCount = fieldErrors.length
 
+          // field error messages must be unique per field
           const fieldErrorSet = new Set(fieldErrors.concat(errors))
 
-          nextState.errorCount = nextState.errorCount - fieldErrorCount + fieldErrorSet.size
+          nextState.errorCount = nextState.errorCount - prevErrorCount + fieldErrorSet.size
           nextState.errors = set(nextState.errors, path, Array.from(fieldErrorSet))
           break
         }
@@ -131,12 +147,6 @@ function formReducer<F extends object>(
         case 'set_submit_count': {
           const { value } = action.payload
           nextState.submitCount = value
-          break
-        }
-        case 'inc_submit_count': {
-          const { submitCount } = nextState
-          const { value } = action.payload
-          nextState.submitCount = submitCount + value
           break
         }
         default: {
@@ -163,7 +173,7 @@ function createUseForm<FDefault extends object>() {
       initialSubmitCount = 0,
       initialTouched = {},
       initialVisited = {},
-      onStateChange,
+      onStateChange = noop,
       persistFieldState,
       onFormValueChange,
       submitUnregisteredValues = false,
@@ -176,35 +186,20 @@ function createUseForm<FDefault extends object>() {
       errors: {},
       errorCount: 0,
       activeField: null,
-      initialMount: false,
       touched: initialTouched,
       visited: initialVisited,
       submitCount: initialSubmitCount,
       formValue: (initialValue || {}) as F,
     })
 
-    const {
-      formValue,
-      initialMount,
-      visited,
-      touched,
-      errorCount,
-      errors,
-      submitCount,
-      activeField,
-    } = state
+    const { formValue, visited, touched, errorCount, errors, submitCount, activeField } = state
 
-    const isDisabled = disabled || !initialMount
-
+    const dispatchIfEnabled = disabled ? noop : dispatch
     const prevState = usePrevious(state)
     const prevInitialValue = usePrevious(initialValue)
 
     useEffect(() => {
-      dispatch([{ type: 'mount', payload: undefined }])
-    }, [])
-
-    useEffect(() => {
-      if (!prevState || !onStateChange) return
+      if (!prevState) return
       onStateChange(prevState, state)
     }, [onStateChange, state, prevState])
 
@@ -212,12 +207,15 @@ function createUseForm<FDefault extends object>() {
     useEffect(() => {
       if (!prevFormValue) return
 
+      // don't compare formValues if not necessary
       if (typeof onFormValueChange === 'function' && !isEqual(prevFormValue, formValue)) {
         onFormValueChange(prevFormValue, formValue)
       }
     }, [onFormValueChange, formValue, prevFormValue])
 
     useEffect(() => {
+      // Automatically reinitialize form when initialValue changes. This is usually the desired behavior
+      // when submitting a form and the form transitions from "Unsaved" -> "Saved"
       if (!isEqual(prevInitialValue, initialValue)) {
         dispatch({ type: 'set_form_value', payload: { value: initialValue } })
 
@@ -229,11 +227,11 @@ function createUseForm<FDefault extends object>() {
           ])
         }
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
       initialValue,
       initialTouched,
       initialVisited,
+      prevInitialValue,
       initialSubmitCount,
       rememberStateOnReinitialize,
     ])
@@ -255,6 +253,10 @@ function createUseForm<FDefault extends object>() {
       [persistFieldState]
     )
 
+    // Errors are fairly simple in Yafl - a useField hook validates its value
+    // inline (inside the hook) and if it produces errors we "register" them
+    // and store them in state even though errors are technically derived state.
+    // Therefore there should only be one way to set and one way to unset errors.
     const registerErrors = useCallback((path: string, errs: string[]) => {
       dispatch({ type: 'set_errors', payload: { path, errors: errs } })
     }, [])
@@ -263,12 +265,12 @@ function createUseForm<FDefault extends object>() {
       dispatch({ type: 'unset_errors', payload: { path, errors: errs } })
     }, [])
 
-    const incSubmitCount = useCallback(() => {
-      dispatch({ type: 'inc_submit_count', payload: { value: 1 } })
-    }, [])
+    const incSubmitCount = () => {
+      dispatch({ type: 'set_submit_count', payload: { value: submitCount + 1 } })
+    }
 
     const submit = (e?: React.FormEvent<HTMLFormElement>) => {
-      if (isDisabled) return
+      if (disabled) return
 
       if (e && isFunction(e?.preventDefault)) {
         e.preventDefault()
@@ -279,98 +281,93 @@ function createUseForm<FDefault extends object>() {
       }
 
       const inc = submitUnregisteredValues
-        ? onSubmit(formValue, collectProps())
-        : onSubmit(constructFrom(formValue, registerCache.current), collectProps())
+        ? // submit formValue as is
+          onSubmit(formValue, collectProps())
+        : // only submit the values of the Fields currently mounted
+          onSubmit(constructFrom(formValue, registerCache.current), collectProps())
 
       if (inc !== false) {
+        // only increment submitCount if the client didn't
+        // specifically return false from the onSubmit handler
         incSubmitCount()
       }
     }
 
     const setValue = useCallback(
       (path: string, val: any, touch = true) => {
-        if (isDisabled) return
         const actions: Action<F>[] = [{ type: 'set_value', payload: { path, value: val } }]
 
         if (touch) {
           actions.push({ type: 'set_touched', payload: { path, value: touch } })
         }
 
-        dispatch(actions)
+        dispatchIfEnabled(actions)
       },
-      [isDisabled]
+      [dispatchIfEnabled]
     )
 
     const setFormValue = useCallback(
       (setFunc: SetFormValueFunc<F>) => {
-        if (isDisabled) return
-        dispatch({ type: 'set_form_value', payload: { value: setFunc(formValue) } })
+        dispatchIfEnabled({ type: 'set_form_value', payload: { value: setFunc(formValue) } })
       },
-      [formValue, isDisabled]
+      [dispatchIfEnabled, formValue]
     )
 
     const touchField = (path: string, touch: boolean) => {
-      if (isDisabled) return
-      dispatch({ type: 'set_touched', payload: { path, value: touch } })
+      dispatchIfEnabled({ type: 'set_touched', payload: { path, value: touch } })
     }
 
     const setTouched = useCallback(
       (setFunc: SetFormTouchedFunc<F>) => {
-        if (isDisabled) return
-        dispatch({ type: 'set_form_touched', payload: { value: setFunc(touched) } })
+        dispatchIfEnabled({ type: 'set_form_touched', payload: { value: setFunc(touched) } })
       },
-      [isDisabled, touched]
+      [dispatchIfEnabled, touched]
     )
 
     const visitField = useCallback(
       (path: string, visit: boolean) => {
-        if (isDisabled) return
-        dispatch([
+        dispatchIfEnabled([
           { type: 'set_visited', payload: { path, value: visit } },
           { type: 'set_active_field', payload: { path: null } },
         ])
       },
-      [isDisabled]
+      [dispatchIfEnabled]
     )
 
     const setVisited = useCallback(
       (setFunc: SetFormVisitedFunc<F>) => {
-        if (isDisabled) return
-        dispatch({ type: 'set_form_visited', payload: { value: setFunc(visited) } })
+        dispatchIfEnabled({ type: 'set_form_visited', payload: { value: setFunc(visited) } })
       },
-      [visited, isDisabled]
+      [dispatchIfEnabled, visited]
     )
 
     const setActiveField = useCallback(
       (path: string | null) => {
-        if (isDisabled) return
-        dispatch({ type: 'set_active_field', payload: { path } })
+        dispatchIfEnabled({ type: 'set_active_field', payload: { path } })
       },
-      [isDisabled]
+      [dispatchIfEnabled]
     )
 
     const resetForm = useCallback(() => {
-      if (isDisabled) return
-      dispatch([
+      dispatchIfEnabled([
         { type: 'set_form_value', payload: { value: initialValue } },
         { type: 'set_form_touched', payload: { value: initialTouched } },
         { type: 'set_form_visited', payload: { value: initialVisited } },
         { type: 'set_submit_count', payload: { value: initialSubmitCount } },
       ])
-    }, [initialSubmitCount, initialTouched, initialValue, initialVisited, isDisabled])
+    }, [dispatchIfEnabled, initialSubmitCount, initialTouched, initialValue, initialVisited])
 
     const forgetState = useCallback(() => {
-      if (isDisabled) return
-      dispatch([
+      dispatchIfEnabled([
         { type: 'set_form_touched', payload: { value: {} } },
         { type: 'set_form_visited', payload: { value: {} } },
         { type: 'set_submit_count', payload: { value: 0 } },
       ])
-    }, [isDisabled])
+    }, [dispatchIfEnabled])
 
     function collectProps(): FormProps<F> {
-      const formIsValid = !initialMount || errorCount === 0
-      const formIsDirty = initialMount && !isEqual(initialValue, formValue)
+      const formIsValid = errorCount === 0
+      const formIsDirty = !isEqual(initialValue, formValue)
 
       return {
         submit,
@@ -386,7 +383,6 @@ function createUseForm<FDefault extends object>() {
         submitCount,
         formIsValid,
         initialValue,
-        initialMount,
         setFormValue,
         setFormTouched: setTouched,
         setFormVisited: setVisited,
@@ -406,7 +402,10 @@ function createUseForm<FDefault extends object>() {
       setActiveField,
       unregisterErrors,
       unregisterField,
-      value: formValue, // TODO
+      // technically an alias for formValue at this point in time
+      // but this value is usually split at every intersection component
+      // (i.e. Section, Repeat) and is delivered to individual fields
+      value: formValue,
     }
   }
 
