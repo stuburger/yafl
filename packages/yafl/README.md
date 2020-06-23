@@ -16,8 +16,8 @@ npm i yafl
 ## API Docs
 
 * [Docs](https://stuburger.github.io/yafl/)
-* [Get Started](https://stuburger.github.io/yafl/overview)
-* [API Reference](https://stuburger.github.io/yafl/form)
+* [Get Started](https://stuburger.github.io/yafl/docs/overview)
+* [API Reference](https://stuburger.github.io/yafl/docs/form)
 
 
 ## Demos

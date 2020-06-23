@@ -22,11 +22,11 @@ jobs:
         - lerna bootstrap
         - yarn build
       before_deploy:
-        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" >> $HOME/.npmrc 2> /dev/null
+        - echo "//registry.npmjs.org/:_authToken=\${NPM_API_TOKEN}" >> $HOME/.npmrc 2> /dev/null
       deploy:
         provider: script
         script: 'yarn run publish'
-        cleanup: false
+        skip_cleanup: true
         on:
           node: '10'
           tags: true
