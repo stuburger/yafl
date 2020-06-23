@@ -13,12 +13,12 @@ function useBranch<F extends object, T>(
 
   const {
     path,
-    value = {},
+    value,
     errors = {},
     visited = {},
     touched = {},
     branchValues = {},
-    initialValue = {},
+    initialValue,
   } = yafl
 
   return {
@@ -27,9 +27,9 @@ function useBranch<F extends object, T>(
     touched: touched[name] as any,
     visited: visited[name] as any,
     errors: errors[name] as any,
-    initialValue: initialValue[name],
-    value: value[name] === undefined ? fallback : value[name],
-    branchValues: Object.keys(branchValues).reduce((ret: any, key: string) => {
+    initialValue: initialValue?.[name],
+    value: value?.[name] === undefined ? fallback : value?.[name],
+    branchValues: Object.keys(branchValues || {}).reduce((ret: any, key: string) => {
       ret[key] = isObject(branchValues[key]) ? branchValues[key][name] : undefined
       return ret
     }, {}),

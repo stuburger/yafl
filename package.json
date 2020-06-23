@@ -16,7 +16,7 @@
     "toc": "doctoc README.md",
     "lint": "eslint 'packages/**/src/**/*.{ts,tsx}'",
     "prepublish": "lerna run prepublish",
-    "publish-yafl": "lerna version --force-publish"
+    "publish": "lerna publish from-git --yes --dist-tag latest"
   },
   "devDependencies": {
     "@babel/core": "^7.10.2",

@@ -10,7 +10,7 @@
     },
     "publish": {
       "message": "chore(release): publish %s",
-      "npmClient": "npm",
+      "npmClient": "yarn",
       "allowBranch": [
         "master"
       ],

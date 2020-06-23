@@ -433,7 +433,7 @@ describe('<Form />', () => {
   })
 
   describe('FormConfig: what happens when the props passed to the <Form /> component change', () => {
-    const { renderForm } = createDataSetter<Person>()
+    const { renderForm, Field, Section } = createDataSetter<Person>()
     describe('asynchronously setting initialValue to imitate async api calls', () => {
       it('should have correct initialValue', () => {
         const { getFormProps } = renderForm({ initialValue: defaultPerson })
@@ -441,8 +441,48 @@ describe('<Form />', () => {
         expect(initialValue).toEqual(defaultPerson)
       })
 
-      describe('when initialValue is finally set', () => {
-        it('should set the formValue', () => {
+      describe('regression: when initialValue is initially set to null', () => {
+        it('should set the formValue with new incoming value when it arrives', () => {
+          const { getFormProps, setFormConfig } = renderForm(
+            {
+              initialValue: null!,
+            },
+            <Section name="contact">
+              <Field name="tel" component="input" />
+            </Section>
+          )
+          const p = getFormProps()
+          expect(p.initialValue).toEqual(null)
+          act(() => {
+            setFormConfig({ initialValue: personData })
+          })
+          const { formValue } = getFormProps()
+          expect(formValue).toEqual(personData)
+        })
+      })
+
+      describe('regression: when initialValue is initially set to undefined', () => {
+        it('should set the formValue with new incoming value when it arrives', () => {
+          const { getFormProps, setFormConfig } = renderForm(
+            {
+              initialValue: undefined!,
+            },
+            <Section name="contact">
+              <Field name="tel" component="input" />
+            </Section>
+          )
+          const p = getFormProps()
+          expect(p.initialValue).toEqual(undefined)
+          act(() => {
+            setFormConfig({ initialValue: personData })
+          })
+          const { formValue } = getFormProps()
+          expect(formValue).toEqual(personData)
+        })
+      })
+
+      describe('when initialValue is initially set to a default value', () => {
+        it('should set the formValue with new incoming value', () => {
           const { getFormProps, setFormConfig } = renderForm({
             initialValue: defaultPerson,
           })

@@ -15,3 +15,18 @@ jobs:
         - lerna bootstrap
         - yarn test
       name: test
+    - stage: deploy
+      if: tag IS present
+      name: deploy stage [name]
+      script:
+        - lerna bootstrap
+        - yarn build
+      before_deploy:
+        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" >> $HOME/.npmrc 2> /dev/null
+      deploy:
+        provider: script
+        script: 'yarn run publish'
+        cleanup: false
+        on:
+          node: '10'
+          tags: true

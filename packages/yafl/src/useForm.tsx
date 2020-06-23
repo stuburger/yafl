@@ -169,7 +169,7 @@ function createUseForm<FDefault extends object>() {
     const {
       disabled,
       onSubmit = noop,
-      initialValue = {} as F,
+      initialValue,
       initialSubmitCount = 0,
       initialTouched = {},
       initialVisited = {},
@@ -217,7 +217,11 @@ function createUseForm<FDefault extends object>() {
       // Automatically reinitialize form when initialValue changes. This is usually the desired behavior
       // when submitting a form and the form transitions from "Unsaved" -> "Saved"
       if (!isEqual(prevInitialValue, initialValue)) {
-        dispatch({ type: 'set_form_value', payload: { value: initialValue } })
+        // We still reset the form if the incoming initialValue is null or undefined.
+        // I think this behavior is more consistent i.e. we reset the form value no matter
+        // what the new initialValue is - rather than the caveat of not resetting in the case
+        // where the new initialValue is null or undefined
+        dispatch({ type: 'set_form_value', payload: { value: initialValue || {} } })
 
         if (!rememberStateOnReinitialize) {
           dispatch([

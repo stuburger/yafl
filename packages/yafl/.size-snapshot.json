@@ -53,26 +53,26 @@
     }
   },
   "yafl.cjs.production.js": {
-    "bundled": 27709,
-    "minified": 13237,
-    "gzipped": 3965
+    "bundled": 27765,
+    "minified": 13238,
+    "gzipped": 3959
   },
   "yafl.umd.production.js": {
-    "bundled": 31760,
-    "minified": 11882,
-    "gzipped": 3994
+    "bundled": 31804,
+    "minified": 11881,
+    "gzipped": 3993
   },
   "yafl.esm.js": {
-    "bundled": 27744,
-    "minified": 13152,
+    "bundled": 27800,
+    "minified": 13153,
     "gzipped": 4175,
     "treeshaked": {
       "rollup": {
-        "code": 10504,
+        "code": 10503,
         "import_statements": 302
       },
       "webpack": {
-        "code": 12910
+        "code": 12909
       }
     }
   }

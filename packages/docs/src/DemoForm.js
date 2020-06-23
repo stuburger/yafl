@@ -1,7 +1,7 @@
 /* eslint-disable react/sort-comp */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { YaflProvider, Section, FormError, useYaflContext, useForm } from 'yafl'
 import Input from './Input'
 import { required, minLength, email, min } from './validators'
