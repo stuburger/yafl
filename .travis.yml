@@ -17,7 +17,7 @@ jobs:
       name: test
     - stage: deploy
       if: tag IS present
-      name: deploy stage [name]
+      name: deploy npm
       script:
         - lerna bootstrap
         - yarn build
@@ -30,3 +30,22 @@ jobs:
         on:
           node: '10'
           tags: true
+    - stage: deploy
+      if: tag IS present
+      name: deploy docs
+      script:
+        - lerna bootstrap
+        - lerna run build --scope yafl
+      before_deploy:
+        - git config --global user.name "${GITHUB_NAME}"
+        - git config --global user.email "${GITHUB_EMAIL}"
+        - echo "machine github.com login ${GITHUB_NAME} password ${GITHUB_TOKEN}" > ~/.netrc
+      deploy:
+        provider: script
+        script: 'cd packages/docs && GIT_USER="${GITHUB_NAME}" yarn deploy'
+        skip_cleanup: true
+        on:
+          node: '10'
+          tags: true
+        
+          
