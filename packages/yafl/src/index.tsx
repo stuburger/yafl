@@ -33,14 +33,15 @@ export function createFormContext<F extends object>() {
     return useSafeContext(context)
   }
 
-  const YaflProvider: React.FC<{
-    value: YaflBaseContext<F> & {
+  const YaflProvider: React.FC<
+    {
+      value: YaflBaseContext<F>
+    } & {
       branchValues?: Record<string, any>
       commonValues?: Record<string, any>
     }
-  }> = (props) => {
-    const { children, value } = props
-    const { branchValues = {}, commonValues = {} } = value
+  > = (props) => {
+    const { children, value, branchValues = {}, commonValues = {} } = props
 
     return (
       <Provider value={{ ...value, path: '', branchValues, commonValues }}>{children}</Provider>
