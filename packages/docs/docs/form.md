@@ -11,7 +11,7 @@ The `<Form>` component contains all the state that tracks what's going on in you
 ### `initialValue`
 **`initialValue?: T`**
 
-The initial value of your Form. Once `initialValue` becomes a non-null object, your Form will initialize.
+The initial value of your Form. Whenever `initialValue` changes your Form will initialize/reinitialize Comparison is done using deep equal.
 
 ### `initialTouched`
 **`initialTouched?: BooleanTree<T>`**

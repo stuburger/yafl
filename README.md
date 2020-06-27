@@ -22,5 +22,5 @@ npm i yafl
 
 ## Demos
 
-- [Welcome to Yet Another For Library.](https://codesandbox.io/s/nn657lqpv4) A small working Form app with basic create and update functionality showing some basic use cases.
+- [Welcome to Yet Another For Library.](https://codesandbox.io/s/nn657lqpv4) A small working form app with basic create and update functionality showing some basic use cases.
 - [Yup and Yafl.](https://codesandbox.io/s/xrmv9xn684) An example of how one might easily integrate third party validation into your app. In this case I'm using [Yup](https://github.com/jquense/yup) but you could swap it out for anything you like!

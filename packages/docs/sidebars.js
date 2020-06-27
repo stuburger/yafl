@@ -8,6 +8,8 @@ module.exports = {
       'section',
       'repeat',
       'form-error',
+      'yaflProvider',
+      'use-form',
       'use-field',
       'use-common-values',
       'use-branch-values',

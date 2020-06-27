@@ -4,7 +4,7 @@ title: Yet. Another. Form. Library.
 sidebar_label: Overview
 --- 
 
-Let's face it, form libraries are a dime a dozen. There's no shortage of options to choose from when picking out an abstration to help you with your daily form needs: there's `redux-form`, `formik`, `formsy-react`, `tcomb-form`, `react-form`, `react-final-form`... the list goes on. So what distinguishes **YAFL** from the rest? Yafl does some clever things under the hood (at least I think it does) but you don't - and shouldn't - care about any of that. Yafl tries to strike a balance between ergonomics, size, and performance. Yafl also aims to be the most playful form library on NPM!
+Let's face it, form libraries are a dime a dozen. There's no shortage of options to choose from when picking out an abstration to help you with your daily form needs: there's `redux-form`, `formik`, `formsy-react`, `react-hook-form`, `tcomb-form`, `react-form`, `react-final-form`... the list goes on. So what distinguishes **YAFL** from the rest? Yafl does some clever things under the hood (at least I think it does) but you don't - and shouldn't - care about any of that. Yafl tries to strike a balance between ergonomics, size, and performance. Under the hood there are no weird pub/sub shenanigans going on, no weird `useRef` optimizations - just good solid React.
 
 ## Motivation
 

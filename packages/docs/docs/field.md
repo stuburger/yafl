@@ -4,7 +4,7 @@ title: <Field />
 sidebar_label: <Field />
 ---
 
-While the [`useField()`](./use-field) hook will likely be your preferred way of handling input fields you also have the option of the `<Field>` component if you prefer its ergonomics. The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. Yafl uses a Fields location in the Form's component hierarchy to determine the shape of the resulting form value.
+While the [`useField()`](./use-field) hook will likely be your preferred way of handling input fields you also have the option of using the `<Field>` component if you prefer its ergonomics. The `<Field />` component is more or less equivalent to the Field components found in Formik or Redux-Form. Yafl uses a Fields location in the Form's component hierarchy to determine the shape of the resulting form value.
 
 ## Props
 

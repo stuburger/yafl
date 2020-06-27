@@ -23,7 +23,7 @@ const {
 
 There are two reasons you might want to use `createFormContext()`:
 
-1. **You are using TypeScript:** When using TypeScript you may specify a type to the generic function which will give all the Form components returned from this function awareness of the type `T` that you supply. This will help ensure type safety across Form components at the cost of a few extra key strokes.
+1. **You are using TypeScript:** When using TypeScript you may specify a type to the generic function which will give all the components returned from this function awareness of the type `T` that you supply. This will help ensure type safety across components at the cost of a few extra key strokes.
 2. **You are creating nested forms:** Creating nested forms where nesting context providers would interfere with one another and cause some strange behavior. Nested forms are a fairly rare use case however.
 
 ### Type safety
@@ -62,7 +62,7 @@ Unfortunately `createFormContext<T>()` will not tell you when you are incorrectl
 
 ## Gotchas
 
-* Never call `createFormContext` in render - as with `React.createContext` always try to call `createFormContext` at the module level.
+* Never call `createFormContext` in render - as with `React.createContext` always call `createFormContext` at the module level.
 * `createFormContext` while similarly named to `React.createContext` does not accept an optional default value as an argument.
 * We've noticed that the `useField` hook can become awkward to use in conjunction with `createFormContext` because of the way the `useField` hook it is used within custom input components. The best way to get around this is to use a higher order function to spit out a version of your component with the concrete type baked in:
 

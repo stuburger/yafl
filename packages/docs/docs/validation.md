@@ -11,7 +11,7 @@ Validation in Yafl is opinionated but straight forward and is usually done at th
 3. Easier to compose and share field validation logic by making use of individual field validators.
 4. Semantically it makes more sense to validate a field on its own. Whether a form is valid or not is a function of the validity of its fields only.
 
-That isn't to say yafl doesn't support form-level validation - Yafl provides you with the primitives that allow you to enable form-level validation using a library like Yup. More on that in a bit, but first let's learn how to do field-level validation.
+That isn't to say Yafl doesn't support form-level validation - Yafl provides you with the primitives that allow you to enable form-level validation using a library like Yup. More on that in a bit, but first let's learn how to do field-level validation.
 
 ## Field-level validation
 
@@ -403,7 +403,7 @@ function SignupForm(props: {}) {
 
 There is a lot to unpack here so lets go through it bit by bit. Firstly, notice that there is no `validate` function on the `TextInput` anymore. All validation is now done using Yup. We are effectively opting out of Yafl's internal implementation for form validation and we've replaced it entirely with something else. 
 
-Next, notice that there is a new Form prop in play and is curiously named `branchValues`. `branchValues` represents one of two possible mechanisms with which Yafl can distribute or "deliver" values to your fields. You can read more about the `branchValues` prop and its corresponding hook, `useBranchValues` [here](./usebranchvalues) and [here](./form#branchvalues). But in a nutshell, `branchValues` will intelligently split an object's values and distribute them to the fields with the paths that match the locations of the values of the object supplied.
+Next, notice that there is a new Form prop in play and is curiously named `branchValues`. `branchValues` is one of two possible mechanisms with which Yafl can distribute or "deliver" values to your fields. You can read more about the `branchValues` prop and its corresponding hook, `useBranchValues` [here](./usebranchvalues) and [here](./form#branchvalues). But in a nutshell, `branchValues` will intelligently split an object's values and distribute them to the fields with the paths that match the locations of the values of the object supplied.
 
 The rest is really just implementation detail - the new `validate()` function is simply there to run our `formValue` through Yup and then transform these errors into a format that enables delivery to your fields.
 
@@ -480,14 +480,14 @@ export default TextInput
 The most noteworthy change here is the addition of the `useBranchValues` hook to grab the error for this field. Note that this value is simply a `string` and not a `string[]`. Again, this is an implementation detail and it's up to you whether you feel it's necessary to supply an array errors or a single error message to your fields.
 
 > **Note:**
-> `meta.errors` will simply contain be an empty array since you will have opted out of Yafl's error handling implementation.
+> `meta.errors` will simply be an empty array since you will have opted out of Yafl's error handling implementation.
 
 
 ## Async validation
 
 And then there is the elephant in the room: async validation. Let's say the requirement came in to enable asynchronously checking if a username or email address was available before the user attempted to submit the form. This would require calling some backend api to check if the email is available.
 
-So how does yafl handle this async validation? As with form-level validation, Yafl does not support async validation out of the box, but provides two mechanisms that effectively enable it. 
+So how does Yafl handle this async validation? As with form-level validation, Yafl does not support async validation out of the box, but provides two mechanisms that effectively enable it. 
 
 The first option is to use the same `useBranchValues` or `useCommonValues` mechanism as with the above with Yup example above. 
 
